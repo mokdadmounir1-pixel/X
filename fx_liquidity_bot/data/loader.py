@@ -24,24 +24,28 @@ def load_csv(path: str) -> pd.DataFrame:
     return df[keep]
 
 
-def generate_synthetic_fx(pair: str, n_bars: int = 20_000, seed: int = 7) -> pd.DataFrame:
+def generate_synthetic_fx(pair: str, n_bars: int = 20_000, seed: int = 7, bar_minutes: int = 1) -> pd.DataFrame:
     """Regime-switching random walk in pips, with periodic injected
     fake-wick-then-impulse bursts so the sweep/displacement/FVG pipeline has
     real patterns to find. This is a synthetic self-test fixture, not a
     market simulator -- it has no claim to statistical realism, only to
-    exercising the full pipeline end to end."""
+    exercising the full pipeline end to end.
+
+    `bar_minutes` lets you cover a multi-year span in far fewer bars (e.g.
+    M15 instead of M1) for faster large-scale backtests -- the pipeline
+    itself is timeframe-agnostic, it just reads whatever bars it's given."""
     pair_offset = sum(ord(c) for c in pair)  # stable across processes, unlike built-in hash()
     rng = np.random.default_rng(seed + pair_offset)
     pip = PIP_SIZE[pair]
     price = BASE_PRICE[pair]
-    times = pd.date_range("2024-01-01", periods=n_bars, freq="1min", tz="UTC")
+    times = pd.date_range("2024-01-01", periods=n_bars, freq=f"{bar_minutes}min", tz="UTC")
 
     opens = np.empty(n_bars)
     highs = np.empty(n_bars)
     lows = np.empty(n_bars)
     closes = np.empty(n_bars)
 
-    vol = pip * rng.uniform(1.5, 3.0)
+    vol = pip * rng.uniform(1.5, 3.0) * np.sqrt(bar_minutes)
     trend_bias = 0.0
     bars_left = 0
     cur = price
@@ -77,5 +81,7 @@ def generate_synthetic_fx(pair: str, n_bars: int = 20_000, seed: int = 7) -> pd.
     )
 
 
-def generate_synthetic_universe(pairs: list[str], n_bars: int = 20_000, seed: int = 7) -> dict[str, pd.DataFrame]:
-    return {pair: generate_synthetic_fx(pair, n_bars, seed) for pair in pairs}
+def generate_synthetic_universe(
+    pairs: list[str], n_bars: int = 20_000, seed: int = 7, bar_minutes: int = 1
+) -> dict[str, pd.DataFrame]:
+    return {pair: generate_synthetic_fx(pair, n_bars, seed, bar_minutes) for pair in pairs}
