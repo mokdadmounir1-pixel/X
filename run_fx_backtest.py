@@ -19,12 +19,17 @@ def main():
     parser.add_argument("--trades-csv", default=None)
     parser.add_argument("--walk-forward", action="store_true")
     parser.add_argument("--monte-carlo", action="store_true")
+    parser.add_argument("--preset", choices=["permissive", "selective"], default=None,
+                         help="Apply a validated score/RR/daily-cap combo (see README); "
+                              "individual --score-threshold/--min-rr/--max-trades-per-day override it")
     parser.add_argument("--score-threshold", type=float, default=None)
     parser.add_argument("--min-rr", type=float, default=None)
     parser.add_argument("--max-trades-per-day", type=int, default=None)
     args = parser.parse_args()
 
     cfg = StrategyConfig()
+    if args.preset is not None:
+        cfg.apply_preset(args.preset)
     if args.score_threshold is not None:
         cfg.score_threshold = args.score_threshold
     if args.min_rr is not None:

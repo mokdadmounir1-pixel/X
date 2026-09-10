@@ -112,3 +112,19 @@ class StrategyConfig:
     max_consecutive_losses: int = 4
 
     initial_equity: float = 10_000.0
+
+    def apply_preset(self, name: str) -> None:
+        """Convenience presets validated in the 10-scenario stress test
+        (see README.md > 'Stress test: permissif vs sélectif'). 'selective'
+        trades ~4-5x less often than the defaults but showed a lower and
+        more consistent drawdown and a better average return across
+        independent synthetic market histories -- at the cost of noisier
+        per-scenario win rates from the smaller trade counts involved.
+        These are starting points, not tuned optima -- re-validate on real
+        historical data before trusting them with capital."""
+        if name == "permissive":
+            self.score_threshold, self.min_rr, self.max_trades_per_day = 50, 1.5, 10
+        elif name == "selective":
+            self.score_threshold, self.min_rr, self.max_trades_per_day = 70, 2.0, 5
+        else:
+            raise ValueError(f"Unknown preset: {name!r} (expected 'permissive' or 'selective')")

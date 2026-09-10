@@ -108,6 +108,41 @@ précisément pourquoi le bot entre ou n'entre pas.
   la séquence de PnL des trades pour estimer la distribution du rendement
   final et du drawdown max.
 
+## Stress test : permissif vs sélectif
+
+`stress_test_scenarios.py` (à la racine du repo) fait tourner le bot sur 10
+historiques de marché synthétiques indépendants (1,5 an, M15, 7 paires
+chacun) sous deux configurations :
+
+| | score min | RR min | trades/jour max |
+|---|---|---|---|
+| `permissive` | 50 | 1.5 | 10 |
+| `selective`  | 70 | 2.0 | 5  |
+
+Résultats agrégés sur les 10 scénarios (données synthétiques — voir
+avertissement plus bas) :
+
+| | trades/scénario (moy.) | rendement moyen | drawdown max (moy.) | profit factor (moy.) | scénarios gagnants |
+|---|---|---|---|---|---|
+| permissive | 47.1 | −0.92 % (± 5.81) | 6.02 % (± 2.54) | 1.00 (± 0.48) | 5/10 |
+| selective  | 10.2 | +0.35 % (± 2.66) | 2.26 % (± 1.39) | 1.77 (± 2.55) | 5/10 |
+
+Trader ~4,5x moins mais plus sélectivement a réduit le drawdown moyen et son
+écart-type (plus régulier), amélioré le rendement moyen et réduit sa
+dispersion — mais le win rate est devenu **plus bruyant**, pas plus stable
+(écart-type 11.0 → 24.8 points), simplement parce que 5 à 24 trades par
+scénario rendent chaque trade individuel bien plus déterminant sur le taux
+de réussite affiché. Le nombre de scénarios gagnants n'a pas changé (5/10).
+Ces deux presets sont disponibles via `cfg.apply_preset("selective")` ou
+`python run_fx_backtest.py --preset selective`. Le détail chiffré par
+scénario est dans `stress_test_results/results_permissive_vs_selective.csv`.
+
+**Ce ne sont pas des paramètres optimaux** : c'est une comparaison sur des
+marchés synthétiques sans structure exploitable réelle, qui démontre le
+mécanisme (moins de trades -> risque plus faible et plus consistant) mais ne
+prouve aucune rentabilité. Avant capital réel, rejouez cette même comparaison
+avec `stress_test_scenarios.py` sur vos propres CSV historiques.
+
 ## Performance
 
 Le moteur traite les bougies une par une (nécessaire pour la machine à états
