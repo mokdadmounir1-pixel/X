@@ -40,6 +40,28 @@ class Claimed(NamedTuple):
     content_hash: str
 
 
+class DocResult(NamedTuple):
+    ok: bool
+    code: str
+    id: Optional[int]
+    sha256: Optional[str]
+
+
+class Document(NamedTuple):
+    id: int
+    kind: str
+    lead_ref: str
+    sha256: str
+    variables: dict
+    pdf: bytes
+
+
+class ActivePrompt(NamedTuple):
+    version: int
+    prompt: str
+    sha256: str
+
+
 class Task(NamedTuple):
     task_id: int
     kind: str
@@ -65,8 +87,12 @@ class Client:
         return Result(row[0], row[1], row[2])
 
     # budget
-    def reserve(self, idem, category, cents, desc="") -> Result:
-        return self._result("reserve_budget(%s,%s,%s,%s)", idem, category, cents, desc)
+    def reserve(self, idem, category, cents, desc="", *, task=None, lead_ref=None, api=False) -> Result:
+        """task / lead_ref / api servent au plafond quotidien et a la reserve prioritaire (verifies EN BASE)."""
+        return self._result("reserve_budget(%s,%s,%s,%s,%s,%s,%s)", idem, category, cents, desc, task, lead_ref, api)
+
+    def record_lead_score(self, lead_ref, score, basis) -> Result:
+        return self._result("record_lead_score(%s,%s,%s)", lead_ref, score, basis)
 
     def settle(self, reservation_id, actual_cents) -> Result:
         return self._result("settle_budget(%s,%s)", reservation_id, actual_cents)
@@ -134,6 +160,55 @@ class Client:
 
     def task_status(self) -> dict:
         return self.conn.execute("SELECT nexus.task_status()").fetchone()[0]
+
+    # observabilite : rejets detailles
+    def record_rejection(self, lead_ref, stage, agent, motif_exact, preuve_source: dict, indice_confiance, base_confiance) -> Result:
+        return self._result("record_rejection(%s,%s,%s,%s,%s,%s::numeric,%s)", lead_ref, stage, agent, motif_exact,
+                            Jsonb(preuve_source), indice_confiance, base_confiance)
+
+    def list_rejections(self) -> list:
+        return self.conn.execute("SELECT nexus.list_rejections()").fetchone()[0]
+
+    def suppression_info(self, recipient) -> Optional[dict]:
+        return self.conn.execute("SELECT nexus.get_suppression_info(%s)", (recipient,)).fetchone()[0]
+
+    # closing : documents
+    def create_document(self, idem, lead_ref, kind, template_version, variables: dict, pdf: bytes) -> DocResult:
+        row = self.conn.execute("SELECT * FROM nexus.create_document(%s,%s,%s,%s,%s,%s)",
+                                (idem, lead_ref, kind, template_version, Jsonb(variables), pdf)).fetchone()
+        return DocResult(*row)
+
+    def get_document(self, doc_id) -> Optional[Document]:
+        row = self.conn.execute("SELECT * FROM nexus.get_document(%s)", (doc_id,)).fetchone()
+        return Document(row[0], row[1], row[2], row[3], row[4], bytes(row[5])) if row else None
+
+    def get_document_by_sha(self, sha) -> Optional[Document]:
+        row = self.conn.execute("SELECT * FROM nexus.get_document_by_sha(%s)", (sha,)).fetchone()
+        return Document(row[0], row[1], row[2], row[3], row[4], bytes(row[5])) if row else None
+
+    def list_documents(self) -> list:
+        return self.conn.execute("SELECT nexus.list_documents()").fetchone()[0]
+
+    # boucle d'evolution : prompts versionnes
+    def active_prompt(self, agent) -> Optional[ActivePrompt]:
+        row = self.conn.execute("SELECT * FROM nexus.active_prompt(%s)", (agent,)).fetchone()
+        return ActivePrompt(*row) if row else None
+
+    def propose_evolution(self, agent, prompt, cause, evidence: dict, test_plan, success_threshold, rollback_plan) -> Result:
+        return self._result("propose_evolution(%s,%s,%s,%s,%s,%s,%s)", agent, prompt, cause, Jsonb(evidence),
+                            test_plan, success_threshold, rollback_plan)
+
+    def decide_evolution(self, evolution_id, decision) -> Result:
+        return self._result("decide_evolution(%s,%s)", evolution_id, decision)
+
+    def rollback_prompt(self, agent, note="") -> Result:
+        return self._result("rollback_prompt(%s,%s)", agent, note)
+
+    def list_evolutions(self) -> list:
+        return self.conn.execute("SELECT nexus.list_evolutions()").fetchone()[0]
+
+    def deployment_log(self) -> list:
+        return self.conn.execute("SELECT nexus.list_deployment_log()").fetchone()[0]
 
     def stuck_alerts(self, age_minutes) -> int:
         return self.conn.execute("SELECT nexus.raise_stuck_alerts(%s)", (age_minutes,)).fetchone()[0]

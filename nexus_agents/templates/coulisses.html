@@ -161,15 +161,34 @@ td.c{text-align:center;font-family:var(--f-mono)} td.n,th.n{text-align:right;fon
 </section>
 
 <section>
+  <h2>Pourquoi chaque lead a été écarté</h2>
+  <p class="hint" style="margin-bottom:10px">Plus de rejet générique : chaque écartement porte un motif exact, une preuve et un indice de confiance, écrits en base (table immuable) et affichés dans le journal. L'indice est une <b>convention</b>, pas une probabilité calibrée : 1,00 pour une règle fixe vérifiable ou une décision humaine, au plus 0,90 pour une heuristique.</p>
+  <div class="tablewrap"><table id="rejtab"></table></div>
+</section>
+
+<section>
+  <h2>Closing : du « prêt à signer » au devis en attente de validation</h2>
+  <p class="hint" style="margin-bottom:10px">Variables extraites avec leur provenance, devis PDF déterministe, lien d'acompte simulé, puis revue du Censeur et file d'approbation. Rien n'est envoyé avant la validation du fondateur, liée à l'empreinte exacte du texte (qui contient celle du PDF).</p>
+  <div class="cards" id="docs"></div>
+</section>
+
+<section>
+  <h2>Prompts des agents : versions et déploiement</h2>
+  <p class="hint" style="margin-bottom:10px">Un prompt approuvé par le fondateur est déployé par la base elle-même (déclencheur), puis lu à chaque appel : aucun redémarrage. Une clause de sécurité obligatoire et une liste de formulations interdites bloquent tout prompt dangereux. Les anciennes versions sont conservées pour le retour arrière.</p>
+  <div class="split">
+    <div class="box" id="promptbox"></div>
+    <div class="box" id="deploylog"></div>
+  </div>
+  <div class="cards" id="evos" style="margin-top:12px"></div>
+</section>
+
+<section>
   <h2>La chaîne d'audit</h2>
   <p class="hint" style="margin-bottom:10px" id="auditnote"></p>
   <div class="log" id="audit"></div>
 </section>
 
-<section>
-  <h2>Boucle d'évolution : propositions, rien de déployé</h2>
-  <div class="cards" id="evo"></div>
-</section>
+
 </div>
 
 <script>
@@ -182,14 +201,14 @@ $('#runDate').textContent='4 octobre 2026 (horloge simulée de la base)';
 const dbCalls=E.filter(e=>e.kind==='db').length, refus=E.filter(e=>e.ok===false&&['refus','rejet','blocage'].includes(e.kind)).length,
       inj=E.filter(e=>e.kind==='injection').length;
 $('#stats').innerHTML=[[E.length,'appels tracés'],[dbCalls,'appels à la base'],[refus,'refus / rejets'],[inj,'consignes cachées retirées'],
-  [(DATA.tasks.done||0)+'/'+DATA.task_rows.length,'tâches terminées'],[DATA.sent.length,'messages remis au puits'],[DATA.audit.count,'lignes d’audit'],[DATA.audit.verify===null?'intacte':'rompue','chaîne d’audit']]
+  [(DATA.tasks.done||0)+'/'+DATA.task_rows.length,'tâches terminées'],[DATA.rejections.length,'rejets détaillés en base'],[DATA.documents.length,'devis générés'],[(DATA.deployment_log||[]).length,'prompts déployés'],[DATA.sent.length,'messages remis au puits'],[DATA.audit.count,'lignes d’audit'],[DATA.audit.verify===null?'intacte':'rompue','chaîne d’audit']]
   .map(([a,b])=>`<div class="stat"><b>${a}</b><span>${b}</span></div>`).join('');
 $('#reel').innerHTML=DATA.reel_vs_simule.reel.map(x=>`<li>${esc(x)}</li>`).join('');
 $('#simule').innerHTML=DATA.reel_vs_simule.simule.map(x=>`<li>${esc(x)}</li>`).join('');
 
 // ---- graphe
 const POS={'Hermes':[500,245],'Sourcing':[135,95],'Analyste':[300,40],'Rédacteur':[700,40],'Censeur':[865,95],'Fondateur (simulé)':[905,300],
- 'Transport':[790,455],'SMTP simulé':[905,560],'Setter':[110,385],'Passerelle de modèles':[310,300],'Modèle local (simulé)':[95,235],
+ 'Transport':[790,455],'Closing':[690,200],'Fournisseur de paiement':[905,185],'SMTP simulé':[905,560],'Setter':[110,385],'Passerelle de modèles':[310,300],'Modèle local (simulé)':[95,235],
  'Modèle cloud (simulé)':[100,530],'Noyau Nexus':[500,545]};
 const TYPE={}; DATA.agents.forEach(a=>{TYPE[a.name]=a.name==='Noyau Nexus'?'db':(a.name.startsWith('Fondateur')?'human':(a.simulated?'sim':'agent'))});
 const ROLE={}; DATA.agents.forEach(a=>ROLE[a.name]=a.db_role==='-'?'':a.db_role);
@@ -266,7 +285,7 @@ $('#play').onclick=()=>{ if(timer){clearInterval(timer);timer=null;$('#play').te
   timer=setInterval(()=>{cur++;scrub.value=cur;markNow(); if(cur>=E.length){clearInterval(timer);timer=null;$('#play').textContent='▶ Rejouer'}},matchMedia('(prefers-reduced-motion: reduce)').matches?1200:380)};
 
 // ---- parcours
-const MIL=['livrable','verdict','décision','refus','rejet','blocage','notification','alerte','issue','résultat','retour','envoi','plantage','échec','filet','tâche_reçue'];
+const MIL=['livrable','verdict','décision','refus','rejet','blocage','notification','alerte','issue','résultat','retour','envoi','plantage','échec','filet','tâche_reçue','rejet_message','variables','document','lien','approbation_requise','prompt','reserve_prioritaire'];
 const OUT=Object.fromEntries(DATA.outcomes.map(o=>[o.lead,o]));
 $('#journeys').innerHTML=Object.keys(OUT).map(l=>{ const o=OUT[l]; const ok=o.status==='sent'; const steps=E.filter(e=>e.detail.lead===l&&MIL.includes(e.kind)&&e.src!==e.dst||e.detail.lead===l&&e.kind==='issue')
    .map(e=>`<li>${e.ok===true?'✔':e.ok===false?'✘':'·'} ${esc(e.src)} → ${esc(e.dst)} : ${esc(e.summary)}</li>`).join('');
@@ -280,19 +299,39 @@ $('#perm').innerHTML=`<tr><th>Fonction</th>${R.map(r=>`<th class="c" style="text
 // ---- budget
 const b=DATA.budget, bar=(l,x,cap)=>`<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>${l}</span><span class="mono">${eur(x)} / ${eur(cap)}</span></div><div class="bar"><i style="width:${Math.min(100,100*x/cap).toFixed(1)}%"></i></div></div>`;
 $('#budget').innerHTML=`<h3>Budget du mois (${esc(b.month)})</h3>`+bar('Dépenses d’exploitation (240 € consommables)',b.operating.committed,b.operating.cap)+bar('Recherche (60 € dans les 240 €)',b.research.committed,b.research.cap)+
-  bar(`Cycle de recherche n°${b.cycle.id} (30 €)`,b.cycle.committed,b.cycle.cap)+`<p class="hint" style="margin-top:10px">Réserve intouchable : ${eur(b.reserve_untouchable)}. Arrêt du mois : ${b.stopped?'oui':'non'}. Alertes déclenchées : ${DATA.alerts.length?esc(DATA.alerts.map(a=>a.scope+' '+a.level+' %').join(', ')):'aucune'}.</p>`;
+  bar(`Cycle de recherche n°${b.cycle.id} (30 €)`,b.cycle.committed,b.cycle.cap)+bar('Plafond quotidien API (jour courant)',b.daily_api.committed,b.daily_api.cap)+bar(`Réserve prioritaire du jour (score ≥ ${b.priority_reserve.min_score}/5, final_check et closing seulement)`,b.priority_reserve.committed,b.priority_reserve.cap)+`<p class="hint" style="margin-top:10px">Réserve intouchable : ${eur(b.reserve_untouchable)}. Arrêt du mois : ${b.stopped?'oui':'non'}. Alertes déclenchées : ${DATA.alerts.length?esc(DATA.alerts.map(a=>a.scope+' '+a.level+' %').join(', ')):'aucune'}.</p>`;
 $('#notifs').innerHTML=`<h3>Boîte du fondateur (${DATA.notifications.length})</h3><ol class="steps" style="margin-top:8px;color:var(--ink)">`+DATA.notifications.map(n=>`<li><span class="mono">${esc(n.kind)}</span> · ${esc(n.ref)}<br><span class="hint">${esc(n.text)}</span></li>`).join('')+'</ol>';
 $('#ledger').innerHTML='<tr><th>#</th><th>Catégorie</th><th class="n">Réservé</th><th class="n">Réel</th><th>État</th><th>Objet</th></tr>'+(DATA.reservations.length?DATA.reservations.map(r=>`<tr><td class="mono">${r.id}</td><td>${esc(r.category)}</td><td class="n">${eur(r.reserved)}</td><td class="n">${r.actual==null?'—':eur(r.actual)}</td><td>${esc(r.status)}${r.overrun?' (dépassement)':''}</td><td>${esc(r.description)}</td></tr>`).join(''):'<tr><td colspan="6">Aucune</td></tr>');
 $('#tasks').innerHTML='<tr><th>#</th><th>Type</th><th>État</th><th class="n">Tentatives</th><th>Dernière erreur</th></tr>'+DATA.task_rows.map(t=>`<tr><td class="mono">${t.id}</td><td class="mono">${esc(t.kind)}</td><td>${esc(t.state)}</td><td class="n">${t.attempts}</td><td>${esc(t.last_error||'')}</td></tr>`).join('');
 $('#msgs').innerHTML='<tr><th>#</th><th>Version</th><th>État</th><th>Destinataire</th><th class="n">Tentatives d\u2019envoi</th><th>Motif de blocage</th></tr>'+DATA.messages.map(m=>`<tr><td class="mono">${m.id}</td><td class="mono">v${m.version}</td><td>${esc(m.state)}</td><td class="mono">${esc(m.company)}</td><td class="n">${m.attempts}</td><td>${esc(m.blocked_reason||'')}</td></tr>`).join('');
-$('#sent').innerHTML=DATA.sent.map(m=>`<div class="card"><div class="mono hint">→ ${esc(m.to)}</div><h3>${esc(m.subject)}</h3><pre class="mono" style="white-space:pre-wrap;margin:0;font-size:12px">${esc(m.body)}</pre></div>`).join('');
+$('#sent').innerHTML=DATA.sent.map(m=>`<div class="card"><div class="mono hint">→ ${esc(m.to)}</div><h3>${esc(m.subject)}</h3><pre class="mono" style="white-space:pre-wrap;overflow-wrap:anywhere;margin:0;font-size:12px">${esc(m.body)}</pre></div>`).join('');
+
+
+// ---- rejets detailles
+const confTxt=r=>`${Number(r.indice_confiance).toFixed(2)} · ${esc(r.base_confiance.replace(/_/g,' '))}`;
+$('#rejtab').innerHTML='<tr><th>Lead</th><th>Étape</th><th>Agent</th><th>Motif exact</th><th>Preuve</th><th class="n">Confiance</th></tr>'+
+  DATA.rejections.map(r=>`<tr><td class="mono">${esc(r.lead)}</td><td>${esc(r.stage.replace(/_/g,' '))}</td><td>${esc(r.agent)}</td><td>${esc(r.motif_exact)}</td><td class="mono" style="font-size:11.5px">${esc(Object.entries(r.preuve_source).filter(([k,v])=>v!==null&&v!=='').map(([k,v])=>k+': '+(typeof v==='object'?JSON.stringify(v):v)).join(' · ')).slice(0,260)}</td><td class="n">${confTxt(r)}</td></tr>`).join('');
+
+// ---- documents de closing
+const closes=Object.fromEntries((DATA.closings||[]).map(c=>[c.lead+':'+(c.code||''),c]));
+$('#docs').innerHTML=(DATA.documents.length?DATA.documents.map(d=>{const v=d.variables;
+  return `<div class="card"><div class="mono hint">${esc(d.kind)} · modèle ${esc(d.template)} · ${d.bytes} octets</div><h3>${esc(v.offre)}</h3>
+  <p><b>${esc(v.nom)}</b> · ${esc(v.entreprise)}<br>Prix HT : <b>${esc(v.prix_eur_ht)} €</b></p><p class="hint">${esc(v.perimetre)}</p>
+  <p class="mono" style="font-size:11px;overflow-wrap:anywhere">sha256 ${esc(d.sha256)}</p></div>`}).join(''):'<div class="card">Aucun document généré.</div>')+
+  (DATA.closings||[]).filter(c=>!c.ok).map(c=>`<div class="card"><div class="mono hint">closing bloqué · ${esc(c.lead)}</div><h3>Aucun devis généré</h3><p>${esc(c.motif)}</p><span class="tag bad">${esc(c.code)}</span></div>`).join('');
+
+// ---- prompts et evolutions
+const pv={}; (DATA.prompt_versions||[]).forEach(p=>{(pv[p.agent]=pv[p.agent]||[]).push(p)});
+$('#promptbox').innerHTML='<h3>Version active de chaque prompt</h3><ul style="margin:8px 0 0;padding-left:18px;font-size:14px">'+Object.keys(pv).map(a=>{const act=pv[a].find(x=>x.active);return `<li><b>${esc(a)}</b> : v${act.version}${pv[a].length>1?` <span class="hint">(${pv[a].length} versions conservées)</span>`:''}</li>`}).join('')+'</ul>';
+$('#deploylog').innerHTML='<h3>Journal de déploiement</h3><ol class="steps" style="margin-top:8px;color:var(--ink)">'+((DATA.deployment_log||[]).map(d=>`<li class="mono" style="font-size:12.5px">${esc(d.message)}</li>`).join('')||'<li>Aucun déploiement</li>')+'</ol>';
+$('#evos').innerHTML=(DATA.evolutions||[]).map(p=>`<div class="card"><div class="mono hint">évolution #${p.id} · ${esc(p.agent)} · base v${p.base_version}</div>
+  <span class="tag ${p.status==='APPROUVÉ'?'ok':p.status==='REJETÉ'?'bad':'neutral'}">${esc(p.status)}${p.deployed_version?' → déployée en v'+p.deployed_version:' · rien n’est déployé'}</span>
+  <p><b>Cause</b> : ${esc(p.cause)}</p><p><b>Test</b> : ${esc(p.test_plan)}<br><b>Succès</b> : ${esc(p.success_threshold)}<br><b>Retour arrière</b> : ${esc(p.rollback_plan)}</p></div>`).join('');
 
 // ---- audit
 $('#auditnote').innerHTML=`Chaque ligne contient l'empreinte de la précédente. Vérification faite par la base : <span class="verify" style="color:${DATA.audit.verify===null?'var(--ok)':'var(--bad)'}">${DATA.audit.verify===null?'chaîne intacte':'rompue à la ligne '+DATA.audit.verify}</span>. Un administrateur peut encore modifier la base : l'audit détecte l'altération, il ne l'empêche pas.`;
 $('#audit').innerHTML=DATA.audit.rows.map(r=>`<div class="audit row2" style="border-bottom:1px solid var(--line)"><div>${r.seq}</div><div>${esc(r.actor.replace('nexus_',''))}</div><div class="ev">${esc(r.event)}</div><div class="h">${esc(r.prev)} → ${esc(r.hash)}</div></div>`).join('');
 
-// ---- evolution
-$('#evo').innerHTML=DATA.evolution.map(p=>`<div class="card"><div class="mono hint">${esc(p.id)}</div><span class="tag neutral">${esc(p.statut)}</span><p><b>Cause</b> : ${esc(p.cause)}</p><p class="hint">${p.preuve.map(esc).join('<br>')}</p><p><b>Actuelle</b> : ${esc(p.version_actuelle)}<br><b>Proposée</b> : ${esc(p.version_proposee)}</p><p><b>Test</b> : ${esc(p.test)}<br><b>Succès</b> : ${esc(p.seuil_reussite)}<br><b>Retour arrière</b> : ${esc(p.retour_arriere)}</p></div>`).join('');
 
 $('#themebtn').onclick=()=>{const r=document.documentElement;let c=r.getAttribute('data-theme');if(!c)c=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';r.setAttribute('data-theme',c==='dark'?'light':'dark')};
 render();

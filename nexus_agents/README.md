@@ -7,7 +7,7 @@ qui les enchaîne. Tout passe par `nexus_core` : budget, revue indépendante, ap
 ```
 python -m nexus_agents.demo --out nexus_agents/demo_out --narrate     # trace dans le terminal + trace.json
 python -m nexus_agents.render_html nexus_agents/demo_out/trace.json nexus_agents/demo_out/coulisses.html
-python -m pytest nexus_agents/tests nexus_core/tests -q                # 121 tests
+python -m pytest nexus_agents/tests nexus_core/tests -q                # 216 tests
 ```
 Elle démarre un PostgreSQL temporaire (socket Unix, aucun port réseau), exécute six leads **fictifs** et écrit la trace réelle.
 
@@ -43,3 +43,14 @@ Une opposition (« stop », « ne plus m'écrire », « liste de diffusion », �
 - Une relance après plantage rejoue les étapes ; elles sont idempotentes en base (mêmes clés), mais un appel à un modèle local peut être refait.
 - L'adaptateur Ollama n'accepte que la boucle locale, sauf liste blanche explicite (ex. adresse du tunnel privé).
 - Aucun envoi réel, aucune dépense : rien ici ne prouve qu'un client paiera.
+
+
+## Quatre corrections critiques (migration 002)
+1. **Observabilité totale** — `rejection.py` : tout écartement (Sourcing, Analyste, Rédacteur, Censeur, Fondateur, Closing, coupe-circuit) produit un `RejectionDetail` avec `motif_exact`, `preuve_source`, `indice_confiance`.
+   Écrit en base (table immuable) et affiché dans le journal des appels. `Hermes._end` lève une erreur si un lead est écarté sans détail.
+2. **Closing automatique** — `closing.py` : sur « prêt à signer », extraction des variables (avec provenance), devis PDF déterministe, lien d'acompte, message déposé pour revue puis approbation du fondateur. **Rien n'est envoyé seul.**
+   Le prix vient du catalogue ; la réponse du prospect ne peut que le confirmer. Lien de paiement : simulé par défaut ; `StripeCheckoutProvider` n'accepte que des clés `sk_test_` (mode test) et n'a été testé que contre un faux serveur local.
+   Mentions de l'émetteur laissées « À COMPLÉTER » (la structure juridique n'existe pas) ; le devis est un projet à faire relire par un professionnel.
+3. **Évolutions déployées** — `prompts.py` : les prompts sont lus en base à chaque appel. Approbation du fondateur → déploiement par la base → effet à l'appel suivant, sans redémarrage. Retour arrière possible.
+   Les modèles simulés *miment* l'effet du prompt ; avec un vrai modèle, l'effet doit être mesuré (A/B) avant de s'y fier.
+4. **Réserve prioritaire** — la passerelle réserve avec `task`, `lead_ref` et `api=True` ; la base décide d'après le score enregistré. Preuve : `python -m nexus_agents.scenarios.reserve_prioritaire` (log commité dans `preuves/`).

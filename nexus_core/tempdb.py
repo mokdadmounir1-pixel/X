@@ -20,6 +20,20 @@ HERE = Path(__file__).resolve().parent
 _counter = itertools.count(1)
 
 
+def apply_migrations(conn, directory: Path = HERE / "migrations") -> list[str]:
+    """Applique, dans l'ordre, les migrations pas encore enregistrees dans nexus.schema_migrations."""
+    applied = []
+    for f in sorted(directory.glob("*.sql")):
+        version = f.stem
+        done = False
+        if conn.execute("SELECT to_regclass('nexus.schema_migrations') IS NOT NULL").fetchone()[0]:
+            done = conn.execute("SELECT EXISTS (SELECT 1 FROM nexus.schema_migrations WHERE version = %s)", (version,)).fetchone()[0]
+        if not done:
+            conn.execute(f.read_text())
+            applied.append(version)
+    return applied
+
+
 class TempCluster:
     def __init__(self, port: int = 54329):
         self.port = port
@@ -46,6 +60,7 @@ class TempCluster:
         with self.connect("nexus_template", "nexus_owner") as c:
             c.execute((HERE / "schema.sql").read_text())
             c.execute((HERE / "seed_principals.sql").read_text())
+            apply_migrations(c)
         return self
 
     def connect(self, dbname: str, user: str) -> psycopg.Connection:
