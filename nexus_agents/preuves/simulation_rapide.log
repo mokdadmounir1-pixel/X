@@ -1,0 +1,34 @@
+# Simulation rapide — 3 leads fictifs, base PostgreSQL réelle, modèles / SMTP / paiement / fondateur SIMULÉS
+# Politique : plafond quotidien API 1,50 € · réserve prioritaire 5,00 € · score minimum 4/5 · tâches éligibles final_check, closing
+# Leads : C « Garage Perrin » (sans source) · B « Menuiserie Roche » (standard, modèle faible) · A « Agence Lumière » (High-Ticket)
+
+== Jour 1 — C (sans source) et B (brouillon fautif, modèle faible)
+   issues : C → écarté_sourcing · B → sent   | jour 1.50/1.50 € · réserve 0.00/5.00 € · mois 1.50/240.00 €
+   ✔ [1] Observabilité : rejet du lead C détaillé en base — motif « aucune URL source https fournie (champ source_url : « vide ») » · preuve {'type': 'champ_absent', 'champ': 'source_url', 'regle': 'source publique https obligatoire', 'valeur': None} · confiance 1.0
+   ✔ [1] Observabilité : rejet du brouillon de B par le Censeur détaillé — motif « message #1 v1 rejeté par la revue : ton trop insistant (points d'exclamation / m » · confiance 1.0
+
+== Jour 2, matin — boucle d'évolution : Hermes propose, le fondateur (simulé) approuve, déploiement sans redémarrage
+   ✔ [3] Évolution : prompt Rédacteur déployé automatiquement à l'approbation — v1 → v2 · journal : « Prompt Agent Rédacteur mis à jour vers Version 2 » · aucun redémarrage (lecture en base à chaque appel)
+
+== Jour 2 — A (High-Ticket) : le plafond du jour est d'abord rempli par un appel ordinaire (lead de score 3)
+   appel ordinaire (score 3) : accepté   | jour 1.50/1.50 € · réserve 0.00/5.00 € · mois 3.00/240.00 €
+   issue A → sent (version 1)   | jour 1.50/1.50 € · réserve 1.50/5.00 € · mois 4.50/240.00 €
+   ✔ [3] Évolution : le prompt v2 supprime la promesse dès le 1er jet de A (modèle faible inchangé) — A envoyé en version 1, aucun rejet « promesse » (B avait besoin de 2 versions)
+   ✔ [4] Réserve prioritaire : le contrôle cloud de A passe le plafond quotidien — 1 appel(s) final_check accordé(s) via la réserve (audit base) · jour 1.50/1.50 € · réserve 1.50/5.00 € · mois 4.50/240.00 €
+
+== Jour 2 — A répond « prêt à signer » : closing automatique
+   ✔ [2] Closing : variables extraites (Nom, Entreprise, Prix, Périmètre) — nom=Claire Martin · entreprise=Agence Lumière (fictive) · prix=490 € HT · périmètre=Un seul processus. Quatre heures estimées : entr…
+   ✔ [2] Closing : PDF généré et empreinte calculée par la base — 2858 octets · sha256 7162df686ab9bc6c… · modèle devis-v1
+   ✔ [2] Closing : lien de paiement SIMULÉ joint et dépôt en file d'approbation (rien d'envoyé) — fournisseur simulation (simulé) · notification document_ready · messages envoyés avant validation : 0
+   ✔ [4] Réserve prioritaire : le contrôle « closing » passe aussi le plafond quotidien — 1 appel(s) closing accordé(s) via la réserve (audit base) · jour 1.50/1.50 € · réserve 3.00/5.00 € · mois 6.00/240.00 €
+   ✔ [2] Closing : après validation (simulée) du fondateur, le devis part avec son PDF — 1 message(s) avec pièce jointe remis au puits SMTP simulé
+
+== Sonde (lead FICTIF de score 3, étiqueté) : la réserve n'est pas ouverte hors éligibilité
+   score 3 / final_check → REFUSÉ (budget_exceeded:daily_api) · score 5 / deep_check → REFUSÉ (budget_exceeded:daily_api)
+   ✔ [4] Réserve bornée par l'éligibilité décidée en base (score ≥ 4 ET tâche final_check/closing) — score 3 : budget_exceeded:daily_api · deep_check : budget_exceeded:daily_api
+
+   ✔ [0] Chaîne d'audit intacte et enveloppe mensuelle respectée — audit intact · mois 6.00/240.00 €
+
+== Bilan : 12/12 contrôles réussis — LES 4 CORRECTIONS FONCTIONNENT dans ce scénario
+-- Limites : modèles, SMTP, lien de paiement et décisions du fondateur sont simulés ; trois leads fictifs ne prouvent ni le taux de conversion,
+   ni la qualité de vrais modèles. Cette exécution prouve la mécanique (traçabilité, droits, budget, déploiement), pas un résultat commercial.

@@ -1,0 +1,36 @@
+# Preuve : réserve prioritaire quotidienne — base PostgreSQL réelle, modèle cloud SIMULÉ à 1,50 € par appel
+# Politique : plafond quotidien API 5,00 € · réserve prioritaire 3,00 € · score minimum 4/5 · tâches éligibles : final_check, closing
+# Enveloppe mensuelle d'exploitation : 240,00 € (la réserve puise DANS cette enveloppe, elle ne l'augmente pas)
+# Scores enregistrés en base : {'LEAD-BAS': 3, 'LEAD-HAUT-A': 5, 'LEAD-HAUT-B': 4}
+
+-- 1. le plafond quotidien se remplit avec des appels ordinaires (leads de score bas)
+[01] appel ordinaire n°1                                    lead=LEAD-BAS     tâche=final_check → accepté (plafond normal)             | jour 1.50/5.00 € · réserve 0.00/3.00 € · mois 1.50/240.00 €
+[02] appel ordinaire n°2                                    lead=LEAD-BAS     tâche=final_check → accepté (plafond normal)             | jour 3.00/5.00 € · réserve 0.00/3.00 € · mois 3.00/240.00 €
+[03] appel ordinaire n°3                                    lead=LEAD-BAS     tâche=final_check → accepté (plafond normal)             | jour 4.50/5.00 € · réserve 0.00/3.00 € · mois 4.50/240.00 €
+-- 2. plafond quotidien atteint pour un appel de 1,50 € (4,50 € déjà engagés sur 5,00 €)
+[04] appel ordinaire n°4 : refusé, plafond du jour          lead=LEAD-BAS     tâche=final_check → REFUSÉ (budget_exceeded:daily_api)   | jour 4.50/5.00 € · réserve 0.00/3.00 € · mois 4.50/240.00 €
+[05] lead score 3 : la réserve ne lui est PAS ouverte       lead=LEAD-BAS     tâche=final_check → REFUSÉ (budget_exceeded:daily_api)   | jour 4.50/5.00 € · réserve 0.00/3.00 € · mois 4.50/240.00 €
+-- 3. un lead High-Ticket (score >= 4) passe le plafond grâce à la réserve
+[06] HIGH-TICKET A (score 5), final_check                   lead=LEAD-HAUT-A  tâche=final_check → ACCEPTÉ via RÉSERVE PRIORITAIRE      | jour 4.50/5.00 € · réserve 1.50/3.00 € · mois 6.00/240.00 €
+[07] HIGH-TICKET A (score 5), closing                       lead=LEAD-HAUT-A  tâche=closing     → ACCEPTÉ via RÉSERVE PRIORITAIRE      | jour 4.50/5.00 € · réserve 3.00/3.00 € · mois 7.50/240.00 €
+-- 4. la réserve est bornée : 3,00 € par jour, deux appels de 1,50 € suffisent à l'épuiser
+[08] HIGH-TICKET B (score 4), final_check : réserve épuisée lead=LEAD-HAUT-B  tâche=final_check → REFUSÉ (priority_reserve_exhausted)  | jour 4.50/5.00 € · réserve 3.00/3.00 € · mois 7.50/240.00 €
+-- 5. la réserve ne couvre que final_check et closing
+[09] HIGH-TICKET A, deep_check : tâche non éligible         lead=LEAD-HAUT-A  tâche=deep_check  → REFUSÉ (budget_exceeded:daily_api)   | jour 4.50/5.00 € · réserve 3.00/3.00 € · mois 7.50/240.00 €
+-- 6. le lendemain, plafond et réserve sont renouvelés
+[10] HIGH-TICKET B, jour suivant (plafond normal)           lead=LEAD-HAUT-B  tâche=final_check → accepté (plafond normal)             | jour 1.50/5.00 € · réserve 0.00/3.00 € · mois 9.00/240.00 €
+
+-- Ce que la base a enregistré (extrait du journal d'audit, chaîne de hachage vérifiée par la base) :
+   audit #4   budget_reserved lead=LEAD-BAS     tâche=final_check réserve_prioritaire=false
+   audit #6   budget_reserved lead=LEAD-BAS     tâche=final_check réserve_prioritaire=false
+   audit #8   budget_reserved lead=LEAD-BAS     tâche=final_check réserve_prioritaire=false
+   audit #10  budget_refused  code=budget_exceeded:daily_api    raison_priorité_refusée=score_insuffisant
+   audit #11  budget_refused  code=budget_exceeded:daily_api    raison_priorité_refusée=score_insuffisant
+   audit #12  budget_reserved lead=LEAD-HAUT-A  tâche=final_check réserve_prioritaire=true
+   audit #14  budget_reserved lead=LEAD-HAUT-A  tâche=closing     réserve_prioritaire=true
+   audit #16  budget_refused  code=priority_reserve_exhausted   raison_priorité_refusée=-
+   audit #17  budget_refused  code=budget_exceeded:daily_api    raison_priorité_refusée=tache_non_eligible
+   audit #18  budget_reserved lead=LEAD-HAUT-B  tâche=final_check réserve_prioritaire=false
+
+-- Chaîne d'audit : intacte · enveloppe mensuelle utilisée : 9.00 € sur 240.00 € (jamais dépassée par la réserve)
+-- Limite : le rôle de base « worker » est partagé par tous les agents ; un agent compromis pourrait enregistrer un faux score. Le score est écrit une seule fois, journalisé, et la réserve reste plafonnée à 3,00 €/jour.
