@@ -4,6 +4,7 @@ Il ne decide d'aucun engagement : il prepare, il fait respecter les garde-fous, 
 """
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass, field
 
 from .agents import Analyste, Censeur, FondateurSimule, Lead, Redacteur, Setter, Sourcing, Transport
@@ -111,6 +112,59 @@ class Hermes:
         sent = self.transport.drain()
         self.breaker.record(sent=sent)
         return self._end(raw, "sent" if sent else "approved", marker, message_id=mid, version=version, flags=lead.flags)
+
+    # ------------------------------------------------------------ file de taches durable
+    def enqueue_lead(self, raw: dict, **options):
+        t = self.trace
+        t.ctx = {"lead": raw.get("id")}
+        domain = (raw.get("email") or "").rsplit("@", 1)[-1].lower()
+        res = self.db.enqueue(f"lead:{raw['id']}", "process_lead", {"raw": raw, "options": options}, f"domain:{domain}" if domain else None)
+        if not res.ok and res.code == "duplicate":
+            t.emit("Sourcing", "Hermes", "rejet", f"doublon (domaine {domain} déjà en file ou traité)", ok=False, code="duplicate")
+            self._end(raw, "écarté_sourcing", "duplicate")
+        else:
+            t.emit(self.NAME, "Noyau Nexus", "file", f"tâche durable créée pour {raw.get('company')}", ok=res.ok, code=res.code)
+        t.ctx = {}
+        return res
+
+    def enqueue_reply(self, raw: dict, text: str):
+        key = hashlib.sha256(text.encode()).hexdigest()[:10]
+        self.trace.ctx = {"lead": raw["id"]}
+        res = self.db.enqueue(f"reply:{raw['id']}:{key}", "process_reply", {"raw": raw, "text": text})
+        self.trace.ctx = {}
+        return res
+
+    @staticmethod
+    def _lead_from_raw(raw: dict) -> Lead:
+        return Lead(raw["id"], raw["company"], raw.get("contact_name", ""), raw["email"].lower(), raw.get("source_url", ""), raw.get("excerpt", ""))
+
+    def run_pending(self, max_tasks: int = 100, retry_seconds: int = 60) -> int:
+        """Execute les taches dues. Un echec est replanifie avec delai croissant, puis declare mort et signale."""
+        done = 0
+        for _ in range(max_tasks):
+            task = self.db.claim_task()
+            if task is None:
+                break
+            self.trace.ctx = {"lead": task.payload.get("raw", {}).get("id"), "task": task.task_id}
+            self.trace.emit("Noyau Nexus", self.NAME, "tâche_reçue", f"tâche #{task.task_id} ({task.kind}), tentative {task.attempt}")
+            try:
+                if task.kind == "process_lead":
+                    out = self.process_lead(task.payload["raw"], **task.payload.get("options", {}))
+                    result = {"status": out["status"]}
+                elif task.kind == "process_reply":
+                    lead = self.leads.get(task.payload["raw"]["id"]) or self._lead_from_raw(task.payload["raw"])
+                    result = {"label": self.setter.handle_reply(lead, task.payload["text"])}
+                else:
+                    raise ValueError(f"type de tâche inconnu: {task.kind}")
+            except Exception as exc:     # noqa: BLE001 - toute panne doit etre rattrapee et rendue a la file
+                r = self.db.fail_task(task.task_id, f"{type(exc).__name__}: {exc}", retry_seconds)
+                self.trace.emit(self.NAME, self.NAME, "échec", f"tâche #{task.task_id} en échec ({exc}) → {r.code}", ok=False, code=r.code)
+                continue
+            finally:
+                self.trace.ctx = {}
+            self.db.complete_task(task.task_id, result)
+            done += 1
+        return done
 
     def process_reply(self, lead: Lead, text: str) -> str:
         self.trace.ctx = {"lead": lead.id}

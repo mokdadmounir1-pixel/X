@@ -151,6 +151,9 @@ td.c{text-align:center;font-family:var(--f-mono)} td.n,th.n{text-align:right;fon
   </div>
   <h3 style="margin:18px 0 8px">Réservations de budget</h3>
   <div class="tablewrap"><table id="ledger"></table></div>
+  <h3 style="margin:18px 0 8px">File de tâches durable (reprise après plantage)</h3>
+  <p class="hint" style="margin-bottom:8px">Chaque lead et chaque réponse est une tâche enregistrée en base. Un plantage laisse la tâche reprendre quand son bail expire, avec un nombre de tentatives borné.</p>
+  <div class="tablewrap"><table id="tasks"></table></div>
   <h3 style="margin:18px 0 8px">Messages en base</h3>
   <div class="tablewrap"><table id="msgs"></table></div>
   <h3 style="margin:18px 0 8px">Remis au puits en mémoire (aucun envoi réel)</h3>
@@ -179,7 +182,7 @@ $('#runDate').textContent='4 octobre 2026 (horloge simulée de la base)';
 const dbCalls=E.filter(e=>e.kind==='db').length, refus=E.filter(e=>e.ok===false&&['refus','rejet','blocage'].includes(e.kind)).length,
       inj=E.filter(e=>e.kind==='injection').length;
 $('#stats').innerHTML=[[E.length,'appels tracés'],[dbCalls,'appels à la base'],[refus,'refus / rejets'],[inj,'consignes cachées retirées'],
-  [DATA.sent.length,'messages remis au puits'],[DATA.audit.count,'lignes d’audit'],[DATA.audit.verify===null?'intacte':'rompue','chaîne d’audit']]
+  [(DATA.tasks.done||0)+'/'+DATA.task_rows.length,'tâches terminées'],[DATA.sent.length,'messages remis au puits'],[DATA.audit.count,'lignes d’audit'],[DATA.audit.verify===null?'intacte':'rompue','chaîne d’audit']]
   .map(([a,b])=>`<div class="stat"><b>${a}</b><span>${b}</span></div>`).join('');
 $('#reel').innerHTML=DATA.reel_vs_simule.reel.map(x=>`<li>${esc(x)}</li>`).join('');
 $('#simule').innerHTML=DATA.reel_vs_simule.simule.map(x=>`<li>${esc(x)}</li>`).join('');
@@ -263,7 +266,7 @@ $('#play').onclick=()=>{ if(timer){clearInterval(timer);timer=null;$('#play').te
   timer=setInterval(()=>{cur++;scrub.value=cur;markNow(); if(cur>=E.length){clearInterval(timer);timer=null;$('#play').textContent='▶ Rejouer'}},matchMedia('(prefers-reduced-motion: reduce)').matches?1200:380)};
 
 // ---- parcours
-const MIL=['livrable','verdict','décision','refus','rejet','blocage','notification','alerte','issue','résultat','retour','envoi'];
+const MIL=['livrable','verdict','décision','refus','rejet','blocage','notification','alerte','issue','résultat','retour','envoi','plantage','échec','filet','tâche_reçue'];
 const OUT=Object.fromEntries(DATA.outcomes.map(o=>[o.lead,o]));
 $('#journeys').innerHTML=Object.keys(OUT).map(l=>{ const o=OUT[l]; const ok=o.status==='sent'; const steps=E.filter(e=>e.detail.lead===l&&MIL.includes(e.kind)&&e.src!==e.dst||e.detail.lead===l&&e.kind==='issue')
    .map(e=>`<li>${e.ok===true?'✔':e.ok===false?'✘':'·'} ${esc(e.src)} → ${esc(e.dst)} : ${esc(e.summary)}</li>`).join('');
@@ -280,7 +283,8 @@ $('#budget').innerHTML=`<h3>Budget du mois (${esc(b.month)})</h3>`+bar('Dépense
   bar(`Cycle de recherche n°${b.cycle.id} (30 €)`,b.cycle.committed,b.cycle.cap)+`<p class="hint" style="margin-top:10px">Réserve intouchable : ${eur(b.reserve_untouchable)}. Arrêt du mois : ${b.stopped?'oui':'non'}. Alertes déclenchées : ${DATA.alerts.length?esc(DATA.alerts.map(a=>a.scope+' '+a.level+' %').join(', ')):'aucune'}.</p>`;
 $('#notifs').innerHTML=`<h3>Boîte du fondateur (${DATA.notifications.length})</h3><ol class="steps" style="margin-top:8px;color:var(--ink)">`+DATA.notifications.map(n=>`<li><span class="mono">${esc(n.kind)}</span> · ${esc(n.ref)}<br><span class="hint">${esc(n.text)}</span></li>`).join('')+'</ol>';
 $('#ledger').innerHTML='<tr><th>#</th><th>Catégorie</th><th class="n">Réservé</th><th class="n">Réel</th><th>État</th><th>Objet</th></tr>'+(DATA.reservations.length?DATA.reservations.map(r=>`<tr><td class="mono">${r.id}</td><td>${esc(r.category)}</td><td class="n">${eur(r.reserved)}</td><td class="n">${r.actual==null?'—':eur(r.actual)}</td><td>${esc(r.status)}${r.overrun?' (dépassement)':''}</td><td>${esc(r.description)}</td></tr>`).join(''):'<tr><td colspan="6">Aucune</td></tr>');
-$('#msgs').innerHTML='<tr><th>#</th><th>Version</th><th>État</th><th>Destinataire</th><th>Motif de blocage</th></tr>'+DATA.messages.map(m=>`<tr><td class="mono">${m.id}</td><td class="mono">v${m.version}</td><td>${esc(m.state)}</td><td class="mono">${esc(m.company)}</td><td>${esc(m.blocked_reason||'')}</td></tr>`).join('');
+$('#tasks').innerHTML='<tr><th>#</th><th>Type</th><th>État</th><th class="n">Tentatives</th><th>Dernière erreur</th></tr>'+DATA.task_rows.map(t=>`<tr><td class="mono">${t.id}</td><td class="mono">${esc(t.kind)}</td><td>${esc(t.state)}</td><td class="n">${t.attempts}</td><td>${esc(t.last_error||'')}</td></tr>`).join('');
+$('#msgs').innerHTML='<tr><th>#</th><th>Version</th><th>État</th><th>Destinataire</th><th class="n">Tentatives d\u2019envoi</th><th>Motif de blocage</th></tr>'+DATA.messages.map(m=>`<tr><td class="mono">${m.id}</td><td class="mono">v${m.version}</td><td>${esc(m.state)}</td><td class="mono">${esc(m.company)}</td><td class="n">${m.attempts}</td><td>${esc(m.blocked_reason||'')}</td></tr>`).join('');
 $('#sent').innerHTML=DATA.sent.map(m=>`<div class="card"><div class="mono hint">→ ${esc(m.to)}</div><h3>${esc(m.subject)}</h3><pre class="mono" style="white-space:pre-wrap;margin:0;font-size:12px">${esc(m.body)}</pre></div>`).join('');
 
 // ---- audit

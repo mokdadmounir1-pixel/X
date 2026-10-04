@@ -32,8 +32,14 @@ class GatewayResult:
 class ModelGateway:
     NAME = "Passerelle de modèles"
 
-    def __init__(self, db, trace: Trace, local, cloud=None):
+    def __init__(self, db, trace: Trace, local, cloud=None, qualified_tasks=None):
         self.db, self.trace, self.local, self.cloud = db, trace, local, cloud
+        # None = pas de controle (demonstration). Sinon, ensemble des taches dont le modele local a ete QUALIFIE par le banc ;
+        # les autres sont refusees (pause), jamais envoyees au cloud par defaut.
+        self.qualified_tasks = None if qualified_tasks is None else set(qualified_tasks)
+        # Resultats cloud deja payes, par cle d'idempotence : une relance apres incident ne refait pas (et ne refacture pas) l'appel.
+        # LIMITE : en memoire, donc perdu si le processus redemarre. A persister avant tout usage avec un vrai fournisseur.
+        self._cloud_cache: dict = {}
 
     def run(self, task: str, payload: dict, *, caller: str, external_keys=(), allow_cloud=False,
             est_cents: Optional[int] = None, category="operations", idem: Optional[str] = None) -> GatewayResult:
@@ -53,6 +59,9 @@ class ModelGateway:
             self.trace.emit(self.NAME, caller, "injection", f"phrase retirée ({x['rule']}) : « {x['sentence'][:80]} »",
                             ok=False, code="tentative_injection", rule=x["rule"])
         if route == "local":
+            if self.qualified_tasks is not None and task not in self.qualified_tasks:
+                self.trace.emit(self.NAME, caller, "refus", f"{task}: modèle local non qualifié pour cette tâche → pause", ok=False, code="model_not_qualified")
+                return GatewayResult(False, "model_not_qualified", route="local", degraded=True, injections=findings)
             return self._call(self.local, task, payload, caller, "local", findings, 0)
         # ---- route cloud : jamais sans autorisation explicite ni budget reserve
         if not allow_cloud:
@@ -65,6 +74,10 @@ class ModelGateway:
             self.trace.emit(self.NAME, caller, "refus", f"{task}: coût inconnu, appel refusé", ok=False, code="unknown_cost")
             return GatewayResult(False, "unknown_cost", degraded=True, injections=findings)
         idem = idem or "gw:" + hashlib.sha256(json.dumps([task, payload], sort_keys=True, default=str).encode()).hexdigest()[:24]
+        if idem in self._cloud_cache:
+            cached = self._cloud_cache[idem]
+            self.trace.emit(self.NAME, caller, "réutilisé", f"{task}: résultat déjà payé réutilisé, aucun nouvel appel facturé", ok=True, code="cache_hit")
+            return cached
         res = self.db.reserve(idem, category, est_cents, f"{task} pour {caller}")
         if not res.ok:
             self.trace.emit(self.NAME, caller, "refus", f"{task}: budget refusé ({res.code}) — aucune requête cloud émise",
@@ -79,6 +92,7 @@ class ModelGateway:
             self.db.release(res.id)
             return out
         self.db.settle(res.id, out.cost_cents)
+        self._cloud_cache[idem] = out
         return out
 
     def _call(self, model, task, payload, caller, route, findings, est) -> GatewayResult:

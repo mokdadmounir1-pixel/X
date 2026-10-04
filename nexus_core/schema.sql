@@ -850,6 +850,141 @@ BEGIN
                                                        'by', created_by) ORDER BY id) FROM notification), '[]'::jsonb);
 END $$;
 
+-- ---------------------------------------------------------------- file de taches durable
+-- Les taches survivent a un plantage : bail avec expiration, tentatives bornees, delai croissant,
+-- puis "morte" avec alerte au fondateur. Une cle d'idempotence et une cle de dedoublonnage
+-- evitent de traiter deux fois la meme demande, meme apres un redemarrage.
+CREATE TABLE task (
+  id           bigserial PRIMARY KEY,
+  idem_key     text NOT NULL UNIQUE,
+  dedupe_key   text UNIQUE,
+  kind         text NOT NULL CHECK (kind IN ('process_lead','process_reply')),
+  payload      jsonb NOT NULL CHECK (pg_column_size(payload) <= 20000),
+  state        text NOT NULL DEFAULT 'queued' CHECK (state IN ('queued','running','done','dead')),
+  attempts     int  NOT NULL DEFAULT 0,
+  max_attempts int  NOT NULL DEFAULT 3 CHECK (max_attempts BETWEEN 1 AND 10),
+  run_after    timestamptz NOT NULL DEFAULT nexus.clock(),
+  lease_until  timestamptz,
+  last_error   text,
+  result       jsonb,
+  created_by   text NOT NULL,
+  created_at   timestamptz NOT NULL DEFAULT nexus.clock(),
+  updated_at   timestamptz NOT NULL DEFAULT nexus.clock()
+);
+CREATE INDEX ON task (state, run_after, id);
+
+CREATE FUNCTION enqueue_task(p_idem text, p_kind text, p_payload jsonb, p_dedupe text DEFAULT NULL)
+RETURNS result LANGUAGE plpgsql SECURITY DEFINER SET search_path = nexus, pg_temp AS
+$$
+DECLARE v_me principal; t task;
+BEGIN
+  PERFORM pg_advisory_xact_lock(7001);
+  SELECT * INTO v_me FROM principal WHERE db_role = session_user;
+  IF NOT FOUND OR v_me.kind <> 'worker' THEN RAISE EXCEPTION 'forbidden' USING ERRCODE = 'P0001'; END IF;
+  IF p_idem IS NULL OR p_idem = '' OR p_payload IS NULL OR p_kind IS NULL
+     OR p_kind NOT IN ('process_lead','process_reply') OR pg_column_size(p_payload) > 20000 THEN
+    RETURN ROW(false, 'bad_input', NULL)::result;
+  END IF;
+  SELECT * INTO t FROM task WHERE idem_key = p_idem;
+  IF FOUND THEN RETURN ROW(true, 'ok', t.id)::result; END IF;
+  IF p_dedupe IS NOT NULL AND EXISTS (SELECT 1 FROM task WHERE dedupe_key = p_dedupe) THEN
+    RETURN ROW(false, 'duplicate', NULL)::result;
+  END IF;
+  INSERT INTO task (idem_key, dedupe_key, kind, payload, created_by)
+  VALUES (p_idem, p_dedupe, p_kind, p_payload, session_user) RETURNING * INTO t;
+  PERFORM audit('task_enqueued', jsonb_build_object('id', t.id, 'kind', p_kind));
+  RETURN ROW(true, 'ok', t.id)::result;
+END $$;
+
+-- Prend la prochaine tache due (ou une tache dont le bail a expire : l'executant a plante).
+CREATE FUNCTION claim_task(p_lease_seconds int DEFAULT 600)
+RETURNS TABLE (task_id bigint, kind text, payload jsonb, attempt int)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = nexus, pg_temp AS
+$$
+DECLARE v_me principal; v_now timestamptz := clock(); r task;
+BEGIN
+  PERFORM pg_advisory_xact_lock(7001);
+  SELECT * INTO v_me FROM principal WHERE db_role = session_user;
+  IF NOT FOUND OR v_me.kind <> 'worker' THEN RAISE EXCEPTION 'forbidden' USING ERRCODE = 'P0001'; END IF;
+  IF p_lease_seconds IS NULL OR p_lease_seconds < 10 OR p_lease_seconds > 7200 THEN
+    RAISE EXCEPTION 'bad_lease' USING ERRCODE = 'P0001';
+  END IF;
+  LOOP
+    SELECT * INTO r FROM task t
+     WHERE (t.state = 'queued' AND t.run_after <= v_now) OR (t.state = 'running' AND t.lease_until < v_now)
+     ORDER BY t.id LIMIT 1 FOR UPDATE SKIP LOCKED;
+    IF NOT FOUND THEN RETURN; END IF;
+    IF r.attempts >= r.max_attempts THEN             -- bail expire apres la derniere tentative
+      UPDATE task SET state = 'dead', last_error = COALESCE(last_error, 'bail expire'), lease_until = NULL, updated_at = v_now
+       WHERE id = r.id;
+      INSERT INTO notification (kind, ref, text, created_by) VALUES
+        ('needs_human', 'task:' || r.id, 'Tâche ' || r.id || ' (' || r.kind || ') abandonnée après ' || r.attempts || ' tentatives.', session_user)
+        ON CONFLICT DO NOTHING;
+      PERFORM audit('task_dead', jsonb_build_object('id', r.id));
+      CONTINUE;
+    END IF;
+    UPDATE task SET state = 'running', attempts = attempts + 1, lease_until = v_now + make_interval(secs => p_lease_seconds),
+                    updated_at = v_now WHERE id = r.id;
+    PERFORM audit('task_claimed', jsonb_build_object('id', r.id, 'attempt', r.attempts + 1));
+    RETURN QUERY SELECT r.id, r.kind, r.payload, r.attempts + 1;
+    RETURN;
+  END LOOP;
+END $$;
+
+CREATE FUNCTION complete_task(p_id bigint, p_result jsonb)
+RETURNS result LANGUAGE plpgsql SECURITY DEFINER SET search_path = nexus, pg_temp AS
+$$
+DECLARE v_me principal; r task;
+BEGIN
+  PERFORM pg_advisory_xact_lock(7001);
+  SELECT * INTO v_me FROM principal WHERE db_role = session_user;
+  IF NOT FOUND OR v_me.kind <> 'worker' THEN RAISE EXCEPTION 'forbidden' USING ERRCODE = 'P0001'; END IF;
+  SELECT * INTO r FROM task WHERE id = p_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN ROW(false, 'not_found', NULL)::result; END IF;
+  IF r.state = 'done' THEN RETURN ROW(true, 'ok', r.id)::result; END IF;
+  IF r.state <> 'running' THEN RETURN ROW(false, 'not_running', NULL)::result; END IF;
+  UPDATE task SET state = 'done', result = COALESCE(p_result, '{}'::jsonb), lease_until = NULL, updated_at = clock() WHERE id = p_id;
+  PERFORM audit('task_done', jsonb_build_object('id', p_id));
+  RETURN ROW(true, 'ok', p_id)::result;
+END $$;
+
+CREATE FUNCTION fail_task(p_id bigint, p_error text, p_retry_seconds int DEFAULT 60)
+RETURNS result LANGUAGE plpgsql SECURITY DEFINER SET search_path = nexus, pg_temp AS
+$$
+DECLARE v_me principal; r task; v_now timestamptz := clock();
+BEGIN
+  PERFORM pg_advisory_xact_lock(7001);
+  SELECT * INTO v_me FROM principal WHERE db_role = session_user;
+  IF NOT FOUND OR v_me.kind <> 'worker' THEN RAISE EXCEPTION 'forbidden' USING ERRCODE = 'P0001'; END IF;
+  SELECT * INTO r FROM task WHERE id = p_id FOR UPDATE;
+  IF NOT FOUND THEN RETURN ROW(false, 'not_found', NULL)::result; END IF;
+  IF r.state <> 'running' THEN RETURN ROW(false, 'not_running', NULL)::result; END IF;
+  IF r.attempts >= r.max_attempts THEN
+    UPDATE task SET state = 'dead', last_error = left(COALESCE(p_error, ''), 500), lease_until = NULL, updated_at = v_now WHERE id = p_id;
+    INSERT INTO notification (kind, ref, text, created_by) VALUES
+      ('needs_human', 'task:' || p_id, 'Tâche ' || p_id || ' (' || r.kind || ') abandonnée après ' || r.attempts || ' tentatives : ' || left(COALESCE(p_error, ''), 300), session_user)
+      ON CONFLICT DO NOTHING;
+    PERFORM audit('task_dead', jsonb_build_object('id', p_id));
+    RETURN ROW(true, 'dead', p_id)::result;
+  END IF;
+  -- delai croissant : p_retry_seconds x numero de tentative
+  UPDATE task SET state = 'queued', last_error = left(COALESCE(p_error, ''), 500), lease_until = NULL, updated_at = v_now,
+                  run_after = v_now + make_interval(secs => GREATEST(0, COALESCE(p_retry_seconds, 60)) * r.attempts)
+   WHERE id = p_id;
+  PERFORM audit('task_retry', jsonb_build_object('id', p_id, 'attempt', r.attempts));
+  RETURN ROW(true, 'retry', p_id)::result;
+END $$;
+
+CREATE FUNCTION task_status() RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = nexus, pg_temp AS
+$$
+DECLARE v_me principal;
+BEGIN
+  SELECT * INTO v_me FROM principal WHERE db_role = session_user;
+  IF NOT FOUND OR v_me.kind NOT IN ('worker','founder') THEN RAISE EXCEPTION 'forbidden' USING ERRCODE = 'P0001'; END IF;
+  RETURN COALESCE((SELECT jsonb_object_agg(state, n) FROM (SELECT state, count(*) n FROM task GROUP BY state) s), '{}'::jsonb);
+END $$;
+
 -- ---------------------------------------------------------------- droits
 REVOKE ALL ON ALL TABLES IN SCHEMA nexus FROM PUBLIC;
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA nexus FROM PUBLIC;
@@ -876,3 +1011,8 @@ GRANT EXECUTE ON FUNCTION raise_stuck_alerts(int)                  TO nexus_work
 GRANT EXECUTE ON FUNCTION get_message(bigint) TO nexus_worker, nexus_censor, nexus_founder, nexus_transport;
 GRANT EXECUTE ON FUNCTION notify_founder(text, text, text) TO nexus_worker, nexus_transport, nexus_censor;
 GRANT EXECUTE ON FUNCTION get_notifications() TO nexus_founder;
+GRANT EXECUTE ON FUNCTION enqueue_task(text, text, jsonb, text) TO nexus_worker;
+GRANT EXECUTE ON FUNCTION claim_task(int)                      TO nexus_worker;
+GRANT EXECUTE ON FUNCTION complete_task(bigint, jsonb)         TO nexus_worker;
+GRANT EXECUTE ON FUNCTION fail_task(bigint, text, int)         TO nexus_worker;
+GRANT EXECUTE ON FUNCTION task_status()                        TO nexus_worker, nexus_founder;

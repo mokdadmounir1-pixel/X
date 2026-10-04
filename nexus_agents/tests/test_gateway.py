@@ -102,3 +102,13 @@ def test_injected_sentences_never_reach_the_model(world):
 def test_cloud_model_price_is_per_thousand_tokens():
     out = StubCloudModel(price_cents_per_1k=2).generate("final_check", {"body": "x" * 4000})
     assert out.cost_cents >= 3 and out.simulated
+
+
+def test_retry_after_incident_does_not_call_or_bill_the_cloud_twice(world):
+    spy = Spy(cost=120)
+    gw, env, trace = gw_with(world, cloud=spy)
+    args = dict(caller="Hermes", allow_cloud=True, est_cents=150, idem="same-check")
+    a = gw.run("final_check", {"body": "bonjour"}, **args)
+    b = gw.run("final_check", {"body": "bonjour"}, **args)
+    assert a.ok and b.ok and len(spy.calls) == 1 and committed(env) == 120
+    assert any(e.code == "cache_hit" for e in trace.events)

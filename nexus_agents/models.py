@@ -20,6 +20,15 @@ HOURS_BY_TOPIC = {"devis": 6, "facture": 8, "relance": 5, "paiement": 5, "retard
 RISKY = [r"garanti\w*", r"sans risque", r"r[eé]sultats? assur[eé]s?", r"\b\d+ ?% de (gain|[eé]conomie|r[eé]duction)\b"]
 
 
+# Detection d'opposition : volontairement LARGE et deterministe. Rater un "stop" est la pire erreur ; un faux positif ne coute qu'un lead.
+OPT_OUT_RX = re.compile(
+    r"\bstop\b|d[ée]sinscri|\bme\s+retir|retir(?:ez|er)[- ]moi|liste de diffusion|\bunsubscribe\b|\bremove me\b"
+    r"|ne\s+(?:m[’']\s*|me\s+)?(?:[ée]crivez|[ée]crire|contactez|contacter|envoyez|envoyer|solliciter)\s*(?:plus|pas|jamais)"
+    r"|ne\s+plus\s+(?:m[’']\s*|me\s+)?(?:[ée]crire|contacter|envoyer|solliciter)"
+    r"|arr[êe]tez\s+(?:de\s+)?(?:m[’']\s*|me\s+)?(?:envoyer|[ée]crire|contacter)"
+    r"|supprim\w+\s+(?:mon|mes)\s+(?:adresse|donn[ée]es|coordonn[ée]es)", re.I)
+
+
 class ModelUnavailable(Exception):
     pass
 
@@ -90,7 +99,7 @@ class StubLocalModel:
 
     def _classify_reply(self, p):
         t = (p.get("text") or "").lower()
-        if re.search(r"\bstop\b|ne m.[ée]crivez plus|d[ée]sinscri|retirez-moi", t):
+        if OPT_OUT_RX.search(t):
             return {"label": "opt_out"}
         if re.search(r"arnaque|spam|plainte|avocat|signal", t):
             return {"label": "hostile"}

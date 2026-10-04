@@ -40,6 +40,13 @@ class Claimed(NamedTuple):
     content_hash: str
 
 
+class Task(NamedTuple):
+    task_id: int
+    kind: str
+    payload: dict
+    attempt: int
+
+
 class Client:
     def __init__(self, conn: psycopg.Connection):
         self.conn = conn
@@ -110,6 +117,23 @@ class Client:
 
     def notifications(self) -> list:
         return self.conn.execute("SELECT nexus.get_notifications()").fetchone()[0]
+
+    # file de taches durable
+    def enqueue(self, idem, kind, payload: dict, dedupe=None) -> Result:
+        return self._result("enqueue_task(%s,%s,%s,%s)", idem, kind, Jsonb(payload), dedupe)
+
+    def claim_task(self, lease_seconds=600):
+        row = self.conn.execute("SELECT * FROM nexus.claim_task(%s)", (lease_seconds,)).fetchone()
+        return Task(*row) if row else None
+
+    def complete_task(self, task_id, result: dict) -> Result:
+        return self._result("complete_task(%s,%s)", task_id, Jsonb(result))
+
+    def fail_task(self, task_id, error, retry_seconds=60) -> Result:
+        return self._result("fail_task(%s,%s,%s)", task_id, error, retry_seconds)
+
+    def task_status(self) -> dict:
+        return self.conn.execute("SELECT nexus.task_status()").fetchone()[0]
 
     def stuck_alerts(self, age_minutes) -> int:
         return self.conn.execute("SELECT nexus.raise_stuck_alerts(%s)", (age_minutes,)).fetchone()[0]
