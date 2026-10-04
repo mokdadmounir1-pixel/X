@@ -1,0 +1,21 @@
+# Socle local Nexus : PostgreSQL 16 uniquement, joignable depuis CETTE machine seulement (127.0.0.1).
+# Aucun secret dans ce fichier : tout vient de .env (non versionné). Voir .env.example.
+services:
+  db:
+    image: postgres:16
+    container_name: nexus_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${NEXUS_PG_ADMIN_PASSWORD:?définir NEXUS_PG_ADMIN_PASSWORD dans .env}
+    ports:
+      - "127.0.0.1:${NEXUS_PG_PORT:-5433}:5432"      # loopback uniquement : jamais exposé au réseau
+    volumes:
+      - nexus_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+volumes:
+  nexus_pgdata:
