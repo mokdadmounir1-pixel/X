@@ -1,3 +1,6 @@
 __pycache__/
 *.pyc
 .venv/
+
+# sorties generees par la demonstration
+nexus_agents/demo_out/

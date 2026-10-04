@@ -380,3 +380,21 @@ def test_approve_rejects_a_review_made_on_a_different_text(env):
     a.execute("ALTER TABLE nexus.review ENABLE TRIGGER review_no_mod")
     f = env.client("founder")
     assert f.approve(mid, f.content_hash(mid), 24).code == "no_independent_review"
+
+
+# ------------------------------------------------------------------ notifications au fondateur
+def test_notifications_are_idempotent_immutable_and_role_restricted(env):
+    w, f = env.client("worker"), env.client("founder")
+    text = "Client qualifie et pret a signer. Validation manuelle requise pour l'envoi du contrat."
+    a = w.notify_founder("ready_to_sign", "lead-1", text)
+    b = w.notify_founder("ready_to_sign", "lead-1", text)
+    assert a.ok and b.ok and a.id == b.id
+    assert w.notify_founder("inconnu", "x", "y").code == "bad_input"
+    assert w.notify_founder("needs_human", "", "y").code == "bad_input"
+    assert [n["kind"] for n in f.notifications()] == ["ready_to_sign"]
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        f.notify_founder("needs_human", "z", "x")           # le fondateur ne s'auto-notifie pas
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        w.notifications()                                   # un agent ne lit pas la boite du fondateur
+    with pytest.raises(psycopg.errors.RaiseException, match="immutable_table"):
+        env.admin().execute("DELETE FROM nexus.notification")

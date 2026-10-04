@@ -105,6 +105,12 @@ class Client:
     def mark_failed(self, message_id, error, actual_cost_cents=0, retryable=False) -> Result:
         return self._result("mark_failed(%s,%s,%s,%s)", message_id, error, actual_cost_cents, retryable)
 
+    def notify_founder(self, kind, ref, text) -> Result:
+        return self._result("notify_founder(%s,%s,%s)", kind, ref, text)
+
+    def notifications(self) -> list:
+        return self.conn.execute("SELECT nexus.get_notifications()").fetchone()[0]
+
     def stuck_alerts(self, age_minutes) -> int:
         return self.conn.execute("SELECT nexus.raise_stuck_alerts(%s)", (age_minutes,)).fetchone()[0]
 

@@ -802,6 +802,54 @@ BEGIN
     'purpose', m.purpose, 'content_hash', m.content_hash, 'blocked_reason', m.blocked_reason);
 END $$;
 
+-- ---------------------------------------------------------------- notifications au fondateur
+CREATE TABLE notification (
+  id         bigserial PRIMARY KEY,
+  kind       text NOT NULL CHECK (kind IN ('ready_to_sign','hostile_reply','injection_attempt',
+                                           'budget_alert','circuit_open','needs_human')),
+  ref        text NOT NULL,
+  text       text NOT NULL CHECK (length(text) <= 2000),
+  created_by text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT nexus.clock(),
+  UNIQUE (kind, ref)
+);
+CREATE TRIGGER notification_no_mod BEFORE UPDATE OR DELETE ON notification
+  FOR EACH ROW EXECUTE FUNCTION no_mutation();
+
+CREATE FUNCTION notify_founder(p_kind text, p_ref text, p_text text)
+RETURNS result LANGUAGE plpgsql SECURITY DEFINER SET search_path = nexus, pg_temp AS
+$$
+DECLARE v_me principal; n notification;
+BEGIN
+  PERFORM pg_advisory_xact_lock(7001);
+  SELECT * INTO v_me FROM principal WHERE db_role = session_user;
+  IF NOT FOUND OR v_me.kind NOT IN ('worker','transport','censor') THEN
+    RAISE EXCEPTION 'forbidden' USING ERRCODE = 'P0001';
+  END IF;
+  IF p_kind IS NULL OR p_ref IS NULL OR p_ref = '' OR p_text IS NULL OR btrim(p_text) = ''
+     OR length(p_text) > 2000
+     OR p_kind NOT IN ('ready_to_sign','hostile_reply','injection_attempt','budget_alert','circuit_open','needs_human') THEN
+    RETURN ROW(false, 'bad_input', NULL)::result;
+  END IF;
+  SELECT * INTO n FROM notification WHERE kind = p_kind AND ref = p_ref;
+  IF FOUND THEN RETURN ROW(true, 'ok', n.id)::result; END IF;
+  INSERT INTO notification (kind, ref, text, created_by) VALUES (p_kind, p_ref, p_text, session_user)
+  RETURNING * INTO n;
+  PERFORM audit('founder_notified', jsonb_build_object('id', n.id, 'kind', p_kind, 'ref', p_ref));
+  RETURN ROW(true, 'ok', n.id)::result;
+END $$;
+
+CREATE FUNCTION get_notifications() RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = nexus, pg_temp AS
+$$
+DECLARE v_me principal;
+BEGIN
+  SELECT * INTO v_me FROM principal WHERE db_role = session_user;
+  IF NOT FOUND OR v_me.kind <> 'founder' THEN RAISE EXCEPTION 'forbidden' USING ERRCODE = 'P0001'; END IF;
+  RETURN COALESCE((SELECT jsonb_agg(jsonb_build_object('id', id, 'kind', kind, 'ref', ref, 'text', text,
+                                                       'by', created_by) ORDER BY id) FROM notification), '[]'::jsonb);
+END $$;
+
 -- ---------------------------------------------------------------- droits
 REVOKE ALL ON ALL TABLES IN SCHEMA nexus FROM PUBLIC;
 REVOKE ALL ON ALL FUNCTIONS IN SCHEMA nexus FROM PUBLIC;
@@ -826,3 +874,5 @@ GRANT EXECUTE ON FUNCTION mark_sent(bigint, text, int)             TO nexus_tran
 GRANT EXECUTE ON FUNCTION mark_failed(bigint, text, int, boolean)  TO nexus_transport;
 GRANT EXECUTE ON FUNCTION raise_stuck_alerts(int)                  TO nexus_worker, nexus_founder, nexus_transport;
 GRANT EXECUTE ON FUNCTION get_message(bigint) TO nexus_worker, nexus_censor, nexus_founder, nexus_transport;
+GRANT EXECUTE ON FUNCTION notify_founder(text, text, text) TO nexus_worker, nexus_transport, nexus_censor;
+GRANT EXECUTE ON FUNCTION get_notifications() TO nexus_founder;

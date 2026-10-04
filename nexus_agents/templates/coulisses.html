@@ -1,0 +1,296 @@
+<title>Coulisses Nexus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: graphe des agents en tete avec rejeu, journal filtrable, puis le noyau (droits, budget, audit). */
+:root{
+  --bg:#EDF0F4; --surface:#F8FAFC; --ink:#101C2A; --muted:#56667A; --line:#C5CEDA; --thread:#8C9BB0;
+  --accent:#0B6B78; --accent-ink:#FFFFFF; --ok:#1F7A4D; --bad:#B3361F; --warn:#9A5800; --sim:#6B4FB3;
+  --f-display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif;
+  --f-body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B141E; --surface:#121E2B; --ink:#E6EDF5; --muted:#93A3B8; --line:#263548; --thread:#4A5E78;
+  --accent:#5FD0DC; --accent-ink:#06222A; --ok:#6CCB8D; --bad:#F08A78; --warn:#E3A33C; --sim:#B79CF0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B141E; --surface:#121E2B; --ink:#E6EDF5; --muted:#93A3B8; --line:#263548; --thread:#4A5E78;
+  --accent:#5FD0DC; --accent-ink:#06222A; --ok:#6CCB8D; --bad:#F08A78; --warn:#E3A33C; --sim:#B79CF0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--f-body);padding-inline:16px;padding-block:24px 64px}
+.wrap{max-width:1180px;margin-inline:auto;display:flex;flex-direction:column;gap:36px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(28px,4.6vw,46px);line-height:1.06}
+h2{font-size:clamp(21px,2.8vw,28px);margin-bottom:10px}
+h3{font-size:16px}
+p{margin:0}
+.eyebrow{font:500 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.hint{font-size:13px;color:var(--muted)}
+.mono{font-family:var(--f-mono)}
+header{display:flex;flex-direction:column;gap:12px;max-width:860px}
+header p{color:var(--muted);max-width:66ch}
+.stats{display:flex;flex-wrap:wrap;gap:8px 26px}
+.stat b{display:block;font:600 28px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.stat span{font:400 12px var(--f-mono);color:var(--muted)}
+.themebtn{align-self:flex-start}
+.themebtn,.btn{font:500 12px var(--f-mono);border:1px solid var(--line);background:transparent;color:var(--ink);padding:6px 11px;border-radius:4px;cursor:pointer}
+.btn:hover,.themebtn:hover{border-color:var(--ink)}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.split{grid-template-columns:1fr}}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
+.box ul{margin:8px 0 0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:3px}
+.box.real{border-left:4px solid var(--ok)} .box.fake{border-left:4px solid var(--sim)}
+.graphbox{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px}
+svg{display:block;width:100%;height:auto;max-width:100%}
+.node rect{fill:var(--surface);stroke:var(--ink);stroke-width:1.4}
+.node.sim rect{stroke:var(--sim);stroke-dasharray:5 3}
+.node.human rect{stroke:var(--sim);stroke-dasharray:5 3;stroke-width:2}
+.node.db rect{fill:var(--ink);stroke:var(--ink)}
+.node text{font:500 11.5px var(--f-body);fill:var(--ink);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.node.db text{fill:var(--bg)}
+.node .role{font:400 9.5px var(--f-mono);fill:var(--muted)}
+.node.db .role{fill:var(--bg);opacity:.75}
+.node{cursor:pointer}
+.node.dim,.edge.dim{opacity:.16}
+.node.sel rect{stroke:var(--accent);stroke-width:3}
+.node.now rect{stroke:var(--accent);stroke-width:3.4}
+.edge{fill:none;stroke:var(--thread);cursor:pointer}
+.edge.fail{stroke:var(--bad)}
+.edge.now{stroke:var(--accent);stroke-width:4!important;opacity:1}
+.ecount{font:500 10px var(--f-mono);fill:var(--muted);text-anchor:middle;pointer-events:none}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.controls input[type=range]{flex:1 1 220px;min-width:0;accent-color:var(--accent)}
+.now-card{margin-top:8px;font-size:14px;min-height:44px;border-top:1px dashed var(--line);padding-top:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.log{border:1px solid var(--line);border-radius:6px;background:var(--surface);max-height:560px;overflow:auto}
+.row{display:grid;grid-template-columns:38px 34px minmax(150px,230px) 78px minmax(0,1fr) auto;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line);font-size:13px;align-items:baseline}
+@media (max-width:760px){.row{grid-template-columns:34px 30px minmax(0,1fr);}.row .kind,.row .code{grid-column:3}.row .sum{grid-column:1/-1}}
+.row:hover{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.row.cur{background:color-mix(in srgb,var(--accent) 16%,transparent)}
+.row .n{font:400 11px var(--f-mono);color:var(--muted)}
+.row .lead{font:500 11px var(--f-mono);color:var(--sim)}
+.row .route{font-weight:500}
+.row .kind{font:500 10.5px var(--f-mono);text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.row .code{font:500 11px var(--f-mono)}
+.row .code.ok{color:var(--ok)} .row .code.bad{color:var(--bad)}
+.row .sum{min-width:0;overflow-wrap:anywhere}
+.row pre{grid-column:1/-1;margin:4px 0 2px;padding:8px;background:var(--bg);border-radius:4px;font:400 11px var(--f-mono);white-space:pre-wrap;overflow-wrap:anywhere;display:none}
+.row.open pre{display:block}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:7px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 11px var(--f-mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+td.c{text-align:center;font-family:var(--f-mono)} td.n,th.n{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.dot{color:var(--accent);font-weight:700}
+.bar{height:10px;background:var(--line);border-radius:5px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.tag{display:inline-block;font:500 11px var(--f-mono);padding:2px 8px;border-radius:3px;border:1px solid var(--line);width:fit-content}
+.tag.ok{color:var(--ok);border-color:var(--ok)} .tag.bad{color:var(--bad);border-color:var(--bad)} .tag.neutral{color:var(--muted)}
+.steps{margin:0;padding-left:16px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.audit{font:400 11.5px var(--f-mono);display:grid;grid-template-columns:34px 140px minmax(0,1fr) 160px;gap:6px 10px;padding:8px 12px}
+.audit div{overflow-wrap:anywhere}
+@media (max-width:640px){.audit{grid-template-columns:30px 1fr}.audit .h,.audit .ev{grid-column:2}}
+.verify{font-weight:600}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Coulisses · exécution réelle du <span id="runDate"></span></div>
+  <h1>Ce qui se passe entre les agents, appel par appel</h1>
+  <p>Six leads fictifs traversent la chaîne Sourcing, Analyse, Rédaction, Revue, Approbation, Envoi et Réponses. Chaque flèche ci-dessous est un appel enregistré pendant l'exécution : agent à agent, passerelle de modèles, ou base de données avec le rôle utilisé.</p>
+  <div class="stats" id="stats"></div>
+  <button class="themebtn" id="themebtn" type="button">Changer de thème</button>
+</header>
+
+<section class="split">
+  <div class="box real"><h3>Réel dans cette exécution</h3><ul id="reel"></ul></div>
+  <div class="box fake"><h3>Simulé (aucune intelligence, aucun réseau)</h3><ul id="simule"></ul></div>
+</section>
+
+<section>
+  <h2>La carte des connexions</h2>
+  <p class="hint" style="margin-bottom:10px">Épaisseur = nombre d'appels. Rouge = au moins un refus. Cliquez un agent ou un fil pour filtrer le journal. « Rejouer » parcourt les appels dans l'ordre.</p>
+  <div class="graphbox">
+    <svg id="graph" viewBox="0 0 1000 640" role="img" aria-label="Graphe des connexions entre agents"></svg>
+    <div class="controls">
+      <button class="btn" id="play" type="button">▶ Rejouer</button>
+      <input id="scrub" type="range" min="0" value="0" aria-label="Position dans la trace">
+      <button class="btn" id="reset" type="button">Tout afficher</button>
+      <span class="hint mono" id="pos"></span>
+    </div>
+    <div class="now-card" id="nowcard">Choisissez « Rejouer » ou déplacez le curseur.</div>
+  </div>
+</section>
+
+<section>
+  <h2>Le journal des appels</h2>
+  <div class="chips" id="leadChips" role="group" aria-label="Filtrer par lead"></div>
+  <div class="chips" id="kindChips" role="group" aria-label="Filtrer par type"></div>
+  <div class="log" id="log"></div>
+</section>
+
+<section>
+  <h2>Le parcours de chaque lead</h2>
+  <div class="cards" id="journeys"></div>
+</section>
+
+<section>
+  <h2>Le noyau : qui a le droit de quoi</h2>
+  <p class="hint" style="margin-bottom:10px">Lu dans la base à la fin de l'exécution (<span class="mono">has_function_privilege</span>). Les fonctions internes (audit, blocage, alertes) n'apparaissent pas : aucun rôle ne peut les appeler.</p>
+  <div class="tablewrap"><table id="perm"></table></div>
+</section>
+
+<section>
+  <h2>Budget, messages et notifications</h2>
+  <div class="split">
+    <div class="box" id="budget"></div>
+    <div class="box" id="notifs"></div>
+  </div>
+  <h3 style="margin:18px 0 8px">Réservations de budget</h3>
+  <div class="tablewrap"><table id="ledger"></table></div>
+  <h3 style="margin:18px 0 8px">Messages en base</h3>
+  <div class="tablewrap"><table id="msgs"></table></div>
+  <h3 style="margin:18px 0 8px">Remis au puits en mémoire (aucun envoi réel)</h3>
+  <div class="cards" id="sent"></div>
+</section>
+
+<section>
+  <h2>La chaîne d'audit</h2>
+  <p class="hint" style="margin-bottom:10px" id="auditnote"></p>
+  <div class="log" id="audit"></div>
+</section>
+
+<section>
+  <h2>Boucle d'évolution : propositions, rien de déployé</h2>
+  <div class="cards" id="evo"></div>
+</section>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+(function(){
+const $=s=>document.querySelector(s), esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const E=DATA.events, eur=c=>(c/100).toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+$('#runDate').textContent='4 octobre 2026 (horloge simulée de la base)';
+// ---- chiffres
+const dbCalls=E.filter(e=>e.kind==='db').length, refus=E.filter(e=>e.ok===false&&['refus','rejet','blocage'].includes(e.kind)).length,
+      inj=E.filter(e=>e.kind==='injection').length;
+$('#stats').innerHTML=[[E.length,'appels tracés'],[dbCalls,'appels à la base'],[refus,'refus / rejets'],[inj,'consignes cachées retirées'],
+  [DATA.sent.length,'messages remis au puits'],[DATA.audit.count,'lignes d’audit'],[DATA.audit.verify===null?'intacte':'rompue','chaîne d’audit']]
+  .map(([a,b])=>`<div class="stat"><b>${a}</b><span>${b}</span></div>`).join('');
+$('#reel').innerHTML=DATA.reel_vs_simule.reel.map(x=>`<li>${esc(x)}</li>`).join('');
+$('#simule').innerHTML=DATA.reel_vs_simule.simule.map(x=>`<li>${esc(x)}</li>`).join('');
+
+// ---- graphe
+const POS={'Hermes':[500,245],'Sourcing':[135,95],'Analyste':[300,40],'Rédacteur':[700,40],'Censeur':[865,95],'Fondateur (simulé)':[905,300],
+ 'Transport':[790,455],'SMTP simulé':[905,560],'Setter':[110,385],'Passerelle de modèles':[310,300],'Modèle local (simulé)':[95,235],
+ 'Modèle cloud (simulé)':[100,530],'Noyau Nexus':[500,545]};
+const TYPE={}; DATA.agents.forEach(a=>{TYPE[a.name]=a.name==='Noyau Nexus'?'db':(a.name.startsWith('Fondateur')?'human':(a.simulated?'sim':'agent'))});
+const ROLE={}; DATA.agents.forEach(a=>ROLE[a.name]=a.db_role==='-'?'':a.db_role);
+const NS='http://www.w3.org/2000/svg', svg=$('#graph'); const mk=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e};
+mk('defs',{}).innerHTML='<marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>';
+const W=(n)=>n==='Noyau Nexus'?240:158, H=(n)=>n==='Noyau Nexus'?50:40;
+const edges={}; E.forEach(e=>{ if(e.src===e.dst||!POS[e.src]||!POS[e.dst])return; const k=e.src+'→'+e.dst; (edges[k]=edges[k]||{src:e.src,dst:e.dst,n:0,fail:0,ev:[]}); edges[k].n++; if(e.ok===false)edges[k].fail++; edges[k].ev.push(e.seq)});
+function clip(a,b,n){const [x,y]=POS[n]; const dx=b[0]-a[0],dy=b[1]-a[1]; const hw=W(n)/2+4,hh=H(n)/2+4; const t=Math.min(hw/Math.abs(dx||1e-6),hh/Math.abs(dy||1e-6)); return [x+dx*t*(n===arguments[3]?1:1),y+dy*t]}
+const gE=mk('g',{}), gN=mk('g',{});
+const eEl={};
+Object.values(edges).forEach(ed=>{
+  const A=POS[ed.src],B=POS[ed.dst]; const rev=edges[ed.dst+'→'+ed.src];
+  const dx=B[0]-A[0],dy=B[1]-A[1],len=Math.hypot(dx,dy)||1, nx=-dy/len, ny=dx/len, off=rev?(ed.src<ed.dst?16:-16):0;
+  const p1=clipPt(A,B,ed.src), p2=clipPt(B,A,ed.dst);
+  const mx=(p1[0]+p2[0])/2+nx*off*2, my=(p1[1]+p2[1])/2+ny*off*2;
+  const path=mk('path',{d:`M${p1[0]} ${p1[1]} Q${mx} ${my} ${p2[0]} ${p2[1]}`,'class':'edge'+(ed.fail?' fail':''),'stroke-width':(1+Math.log2(ed.n+1)*0.9).toFixed(2),'marker-end':'url(#ar)',opacity:.75},gE);
+  path.addEventListener('click',()=>setFilter({edge:ed.src+'→'+ed.dst}));
+  const t=mk('text',{x:mx*0.5+(p1[0]+p2[0])/4,y:my*0.5+(p1[1]+p2[1])/4-4,'class':'ecount'},gE); t.textContent=ed.n;
+  eEl[ed.src+'→'+ed.dst]=path;
+});
+function clipPt(a,b,n){const dx=b[0]-a[0],dy=b[1]-a[1]; const hw=W(n)/2+5,hh=H(n)/2+5; const t=Math.min(hw/Math.abs(dx||1e-6),hh/Math.abs(dy||1e-6)); return [a[0]+dx*t,a[1]+dy*t]}
+const nEl={};
+Object.keys(POS).forEach(n=>{
+  const [x,y]=POS[n]; const g=mk('g',{'class':'node '+(TYPE[n]||'agent'),tabindex:0,role:'button','aria-label':n},gN);
+  mk('rect',{x:x-W(n)/2,y:y-H(n)/2,width:W(n),height:H(n),rx:7},g);
+  const t=mk('text',{x,y:y-(ROLE[n]?5:0)},g); t.textContent=n;
+  if(ROLE[n]){const r=mk('text',{x,y:y+11,'class':'role'},g); r.textContent=ROLE[n]}
+  g.addEventListener('click',()=>setFilter({node:n})); g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setFilter({node:n})}});
+  nEl[n]=g;
+});
+
+// ---- journal
+let F={lead:null,kind:null,node:null,edge:null}, cur=0;
+const leads=[...new Set(E.map(e=>e.detail.lead).filter(Boolean))], kinds=[...new Set(E.map(e=>e.kind))];
+const chip=(label,on,fn)=>{const b=document.createElement('button');b.className='btn';b.type='button';b.textContent=label;b.setAttribute('aria-pressed',on);b.onclick=fn;return b};
+function chips(){
+  const L=$('#leadChips'),K=$('#kindChips'); L.innerHTML=K.innerHTML='';
+  L.append(chip('Tous les leads',F.lead===null,()=>setFilter({lead:null})));
+  leads.forEach(l=>L.append(chip(l,F.lead===l,()=>setFilter({lead:l}))));
+  K.append(chip('Tous les types',F.kind===null,()=>setFilter({kind:null})));
+  kinds.forEach(k=>K.append(chip(k,F.kind===k,()=>setFilter({kind:k}))));
+}
+function setFilter(p){ if('node' in p||'edge' in p){F.node=p.node??null;F.edge=p.edge??null} else Object.assign(F,p); render(); }
+function pass(e){ if(F.lead&&e.detail.lead!==F.lead)return false; if(F.kind&&e.kind!==F.kind)return false;
+  if(F.node&&e.src!==F.node&&e.dst!==F.node)return false; if(F.edge&&(e.src+'→'+e.dst)!==F.edge)return false; return true}
+function row(e){
+  const d=document.createElement('div'); d.className='row'+(e.seq===cur?' cur':''); d.dataset.seq=e.seq;
+  const cls=e.ok===true?'ok':e.ok===false?'bad':'';
+  const cost=e.cost_cents?` · ${eur(e.cost_cents)}`:'';
+  d.innerHTML=`<span class="n">${e.seq}</span><span class="lead">${esc(e.detail.lead||'')}</span><span class="route">${esc(e.src)} → ${esc(e.dst)}</span><span class="kind">${esc(e.kind)}</span><span class="sum">${esc(e.summary)}${cost}</span><span class="code ${cls}">${esc(e.code||'')}</span><pre>${esc(JSON.stringify(e.detail,null,1))}</pre>`;
+  d.onclick=()=>d.classList.toggle('open'); return d;
+}
+function render(){
+  chips(); const log=$('#log'); log.innerHTML=''; E.filter(pass).forEach(e=>log.append(row(e)));
+  Object.entries(eEl).forEach(([k,el])=>{ const on=!F.node&&!F.edge||k===F.edge||(F.node&&(k.startsWith(F.node+'→')||k.endsWith('→'+F.node))); el.classList.toggle('dim',!on)});
+  Object.entries(nEl).forEach(([n,el])=>{ el.classList.toggle('sel',n===F.node); const touch=!F.node&&!F.edge||n===F.node||(F.edge&&F.edge.split('→').includes(n))||(F.node&&Object.keys(eEl).some(k=>(k.startsWith(F.node+'→')&&k.endsWith('→'+n))||(k.endsWith('→'+F.node)&&k.startsWith(n+'→')))); el.classList.toggle('dim',!touch)});
+  markNow();
+}
+$('#reset').onclick=()=>{F={lead:null,kind:null,node:null,edge:null};render()};
+
+// ---- rejeu
+const scrub=$('#scrub'); scrub.max=E.length; let timer=null;
+function markNow(){
+  Object.values(eEl).forEach(el=>el.classList.remove('now')); Object.values(nEl).forEach(el=>el.classList.remove('now'));
+  document.querySelectorAll('.row.cur').forEach(r=>r.classList.remove('cur'));
+  $('#pos').textContent=cur?`${cur} / ${E.length}`:''; if(!cur){$('#nowcard').textContent='Choisissez « Rejouer » ou déplacez le curseur.';return}
+  const e=E[cur-1]; const k=e.src+'→'+e.dst; if(eEl[k])eEl[k].classList.add('now'); [e.src,e.dst].forEach(n=>nEl[n]&&nEl[n].classList.add('now'));
+  const r=document.querySelector(`.row[data-seq="${cur}"]`); if(r){r.classList.add('cur'); const box=$('#log'); if(box.scrollHeight>box.clientHeight) box.scrollTop=Math.max(0,r.offsetTop-box.clientHeight/2)}
+  $('#nowcard').innerHTML=`<b>#${e.seq}</b> ${esc(e.detail.lead?'['+e.detail.lead+'] ':'')}<b>${esc(e.src)}</b> → <b>${esc(e.dst)}</b> · <span class="mono">${esc(e.kind)}</span><br>${esc(e.summary)} ${e.code?`<span class="mono">(${esc(e.code)})</span>`:''}`;
+}
+scrub.oninput=()=>{cur=+scrub.value;markNow()};
+$('#play').onclick=()=>{ if(timer){clearInterval(timer);timer=null;$('#play').textContent='▶ Rejouer';return}
+  if(cur>=E.length)cur=0; $('#play').textContent='❚❚ Pause';
+  timer=setInterval(()=>{cur++;scrub.value=cur;markNow(); if(cur>=E.length){clearInterval(timer);timer=null;$('#play').textContent='▶ Rejouer'}},matchMedia('(prefers-reduced-motion: reduce)').matches?1200:380)};
+
+// ---- parcours
+const MIL=['livrable','verdict','décision','refus','rejet','blocage','notification','alerte','issue','résultat','retour','envoi'];
+const OUT=Object.fromEntries(DATA.outcomes.map(o=>[o.lead,o]));
+$('#journeys').innerHTML=Object.keys(OUT).map(l=>{ const o=OUT[l]; const ok=o.status==='sent'; const steps=E.filter(e=>e.detail.lead===l&&MIL.includes(e.kind)&&e.src!==e.dst||e.detail.lead===l&&e.kind==='issue')
+   .map(e=>`<li>${e.ok===true?'✔':e.ok===false?'✘':'·'} ${esc(e.src)} → ${esc(e.dst)} : ${esc(e.summary)}</li>`).join('');
+  return `<div class="card"><div class="mono hint">${esc(l)}</div><h3>${esc(o.company)}</h3><span class="tag ${ok?'ok':(o.status.startsWith('écarté')||o.status.startsWith('refusé'))?'bad':'neutral'}">${esc(o.status.replace(/_/g,' '))}</span><ol class="steps">${steps}</ol></div>`}).join('');
+
+// ---- droits
+const R=['worker','censor','founder','transport'];
+$('#perm').innerHTML=`<tr><th>Fonction</th>${R.map(r=>`<th class="c" style="text-align:center">${r}</th>`).join('')}</tr>`+
+  DATA.permissions.map(p=>`<tr><td class="mono">${esc(p.function)}</td>${R.map(r=>`<td class="c">${p.roles.includes(r)?'<span class="dot">●</span>':''}</td>`).join('')}</tr>`).join('');
+
+// ---- budget
+const b=DATA.budget, bar=(l,x,cap)=>`<div style="margin-top:8px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>${l}</span><span class="mono">${eur(x)} / ${eur(cap)}</span></div><div class="bar"><i style="width:${Math.min(100,100*x/cap).toFixed(1)}%"></i></div></div>`;
+$('#budget').innerHTML=`<h3>Budget du mois (${esc(b.month)})</h3>`+bar('Dépenses d’exploitation (240 € consommables)',b.operating.committed,b.operating.cap)+bar('Recherche (60 € dans les 240 €)',b.research.committed,b.research.cap)+
+  bar(`Cycle de recherche n°${b.cycle.id} (30 €)`,b.cycle.committed,b.cycle.cap)+`<p class="hint" style="margin-top:10px">Réserve intouchable : ${eur(b.reserve_untouchable)}. Arrêt du mois : ${b.stopped?'oui':'non'}. Alertes déclenchées : ${DATA.alerts.length?esc(DATA.alerts.map(a=>a.scope+' '+a.level+' %').join(', ')):'aucune'}.</p>`;
+$('#notifs').innerHTML=`<h3>Boîte du fondateur (${DATA.notifications.length})</h3><ol class="steps" style="margin-top:8px;color:var(--ink)">`+DATA.notifications.map(n=>`<li><span class="mono">${esc(n.kind)}</span> · ${esc(n.ref)}<br><span class="hint">${esc(n.text)}</span></li>`).join('')+'</ol>';
+$('#ledger').innerHTML='<tr><th>#</th><th>Catégorie</th><th class="n">Réservé</th><th class="n">Réel</th><th>État</th><th>Objet</th></tr>'+(DATA.reservations.length?DATA.reservations.map(r=>`<tr><td class="mono">${r.id}</td><td>${esc(r.category)}</td><td class="n">${eur(r.reserved)}</td><td class="n">${r.actual==null?'—':eur(r.actual)}</td><td>${esc(r.status)}${r.overrun?' (dépassement)':''}</td><td>${esc(r.description)}</td></tr>`).join(''):'<tr><td colspan="6">Aucune</td></tr>');
+$('#msgs').innerHTML='<tr><th>#</th><th>Version</th><th>État</th><th>Destinataire</th><th>Motif de blocage</th></tr>'+DATA.messages.map(m=>`<tr><td class="mono">${m.id}</td><td class="mono">v${m.version}</td><td>${esc(m.state)}</td><td class="mono">${esc(m.company)}</td><td>${esc(m.blocked_reason||'')}</td></tr>`).join('');
+$('#sent').innerHTML=DATA.sent.map(m=>`<div class="card"><div class="mono hint">→ ${esc(m.to)}</div><h3>${esc(m.subject)}</h3><pre class="mono" style="white-space:pre-wrap;margin:0;font-size:12px">${esc(m.body)}</pre></div>`).join('');
+
+// ---- audit
+$('#auditnote').innerHTML=`Chaque ligne contient l'empreinte de la précédente. Vérification faite par la base : <span class="verify" style="color:${DATA.audit.verify===null?'var(--ok)':'var(--bad)'}">${DATA.audit.verify===null?'chaîne intacte':'rompue à la ligne '+DATA.audit.verify}</span>. Un administrateur peut encore modifier la base : l'audit détecte l'altération, il ne l'empêche pas.`;
+$('#audit').innerHTML=DATA.audit.rows.map(r=>`<div class="audit row2" style="border-bottom:1px solid var(--line)"><div>${r.seq}</div><div>${esc(r.actor.replace('nexus_',''))}</div><div class="ev">${esc(r.event)}</div><div class="h">${esc(r.prev)} → ${esc(r.hash)}</div></div>`).join('');
+
+// ---- evolution
+$('#evo').innerHTML=DATA.evolution.map(p=>`<div class="card"><div class="mono hint">${esc(p.id)}</div><span class="tag neutral">${esc(p.statut)}</span><p><b>Cause</b> : ${esc(p.cause)}</p><p class="hint">${p.preuve.map(esc).join('<br>')}</p><p><b>Actuelle</b> : ${esc(p.version_actuelle)}<br><b>Proposée</b> : ${esc(p.version_proposee)}</p><p><b>Test</b> : ${esc(p.test)}<br><b>Succès</b> : ${esc(p.seuil_reussite)}<br><b>Retour arrière</b> : ${esc(p.retour_arriere)}</p></div>`).join('');
+
+$('#themebtn').onclick=()=>{const r=document.documentElement;let c=r.getAttribute('data-theme');if(!c)c=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';r.setAttribute('data-theme',c==='dark'?'light':'dark')};
+render();
+})();
+</script>
