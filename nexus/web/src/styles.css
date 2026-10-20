@@ -1,0 +1,47 @@
+:root {
+  --bg: #0e1116; --panel: #151a21; --line: #262d37; --text: #e6edf3; --muted: #8b96a5;
+  --ok: #3fb68b; --err: #ef5b5b; --warn: #e0a83a; --run: #5b9cf5; --idle: #6b7686;
+}
+* { box-sizing: border-box }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif }
+button, input, textarea, select { font: inherit; color: inherit }
+header.top { display: flex; align-items: center; gap: 16px; padding: 10px 20px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 5; flex-wrap: wrap }
+.brand { font-weight: 700; letter-spacing: .08em }
+nav { display: flex; gap: 4px; flex-wrap: wrap }
+nav button { background: none; border: 0; padding: 6px 12px; border-radius: 6px; color: var(--muted); cursor: pointer }
+nav button[aria-current='true'] { background: var(--panel); color: var(--text) }
+.spacer { flex: 1 }
+main { padding: 20px; max-width: 1280px; margin: 0 auto }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 28px 0 10px; font-weight: 600 }
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px }
+.card .big { font-size: 26px; font-weight: 600 }
+.muted { color: var(--muted) } .small { font-size: 13px }
+table { width: 100%; border-collapse: collapse; font-size: 14px }
+th { text-align: left; color: var(--muted); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--line) }
+td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top }
+.tablewrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; background: var(--idle) }
+.s-up, .s-succeeded, .s-approved, .s-ok { --c: var(--ok) } .s-down, .s-failed, .s-rejected, .s-error, .s-denied, .s-expired, .s-invalidated { --c: var(--err) }
+.s-awaiting_approval, .s-degraded, .s-pending { --c: var(--warn) } .s-running { --c: var(--run) }
+.s-queued, .s-draft, .s-cancelled, .s-unknown, .s-disabled, .s-consumed { --c: var(--idle) }
+.dot[class*='s-'] { background: var(--c) }
+.tag { display: inline-block; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--c, var(--line)); color: var(--c, var(--muted)); font-size: 12px }
+.sim { border: 1px solid var(--warn); color: var(--warn); padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; letter-spacing: .06em }
+button.btn { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; cursor: pointer }
+button.btn:hover:not(:disabled) { border-color: var(--muted) } button.btn:disabled { opacity: .5; cursor: default }
+button.primary { background: #1f2a3a; border-color: #34507a }
+button.danger { border-color: var(--err); color: var(--err) }
+input, textarea, select { background: #0b0e13; border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; width: 100% }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap } .row > input { flex: 1; min-width: 200px }
+.banner { padding: 10px 20px; background: #3a1616; border-bottom: 1px solid var(--err); color: #ffb4b4; display: flex; gap: 12px; align-items: center; flex-wrap: wrap }
+.err { color: var(--err); margin: 6px 0 } .ok { color: var(--ok) }
+.login { max-width: 360px; margin: 14vh auto; display: grid; gap: 12px }
+pre { background: #0b0e13; border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow: auto; font-size: 13px; white-space: pre-wrap }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: grid; place-items: center; padding: 20px; z-index: 20 }
+.modal > div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; max-width: 900px; width: 100%; max-height: 90vh; overflow: auto; padding: 16px }
+svg.mesh { width: 100%; height: 560px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; touch-action: none }
+svg.mesh text { fill: var(--text); font-size: 11px; pointer-events: none }
+@media (max-width: 640px) { main { padding: 12px } .card .big { font-size: 22px } }
+
+code { word-break: break-all }

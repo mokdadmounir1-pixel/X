@@ -1,0 +1,108 @@
+{
+  "name": "NEXUS — résumé quotidien (lecture seule)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "2b222222-0000-4000-8000-000000000001",
+      "name": "Chaque matin",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "http://api:8000/api/views/executive",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "2b222222-0000-4000-8000-000000000002",
+      "name": "Vue exécutive (compte Lecture)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "A_CREER",
+          "name": "NEXUS Lecture (Authorization: Bearer ...)"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "taches",
+              "value": "={{ $json.tasks_by_status }}",
+              "type": "object"
+            },
+            {
+              "id": "a2",
+              "name": "approbations_en_attente",
+              "value": "={{ $json.approvals_pending }}",
+              "type": "number"
+            }
+          ]
+        }
+      },
+      "id": "2b222222-0000-4000-8000-000000000003",
+      "name": "Résumé (reste dans n8n)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Chaque matin": {
+      "main": [
+        [
+          {
+            "node": "Vue exécutive (compte Lecture)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vue exécutive (compte Lecture)": {
+      "main": [
+        [
+          {
+            "node": "Résumé (reste dans n8n)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "tags": []
+}

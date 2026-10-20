@@ -1,0 +1,78 @@
+# NEXUS v0.1 — accès local uniquement : tous les ports sont liés à 127.0.0.1.
+# Démarrage minimal : docker compose up -d --build        (postgres + api + dashboard)
+# Pile complète    : docker compose --profile full up -d  (+ ollama, n8n, baserow)
+# Versions épinglées. NON vérifiées ici (pas de démon Docker dans l'environnement de développement) :
+# lancer `docker compose pull` sur votre machine et remplacer toute étiquette introuvable.
+name: nexus
+
+services:
+  postgres:
+    image: postgres:16.6-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nexus
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: ${NEXUS_DB_PASSWORD:?définir NEXUS_DB_PASSWORD dans deploy/.env}
+    volumes:
+      - nexus_pgdata:/var/lib/postgresql/data      # base applicative, séparée de celles de n8n et Baserow
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus -d nexus"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: { context: .., dockerfile: Dockerfile }
+    image: nexus-api:0.1.0
+    restart: unless-stopped
+    depends_on:
+      postgres: { condition: service_healthy }
+    environment:
+      NEXUS_DATABASE_URL: postgresql://nexus:${NEXUS_DB_PASSWORD}@postgres:5432/nexus
+      NEXUS_OLLAMA_URL: http://ollama:11434
+      NEXUS_OLLAMA_MODEL: ${NEXUS_OLLAMA_MODEL:-qwen2.5:7b-instruct}
+    ports: ["127.0.0.1:8000:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health').status==200 else 1)"]
+      interval: 10s
+      timeout: 4s
+      retries: 10
+
+  ollama:
+    profiles: ["full"]
+    image: ollama/ollama:0.5.7
+    restart: unless-stopped
+    ports: ["127.0.0.1:11434:11434"]
+    volumes: [ "ollama_models:/root/.ollama" ]
+    # GPU NVIDIA : décommenter le bloc deploy ci-dessous (nécessite nvidia-container-toolkit).
+    # deploy: { resources: { reservations: { devices: [ { driver: nvidia, count: all, capabilities: [gpu] } ] } } }
+
+  n8n:
+    profiles: ["full"]
+    image: n8nio/n8n:1.76.1
+    restart: unless-stopped
+    environment:
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:?définir N8N_ENCRYPTION_KEY}
+      N8N_HOST: localhost
+      N8N_PORT: "5678"
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_PERSONALIZATION_ENABLED: "false"
+      GENERIC_TIMEZONE: Europe/Paris
+    ports: ["127.0.0.1:5678:5678"]
+    volumes: [ "n8n_data:/home/node/.n8n" ]      # base interne de n8n : aucun accès à la base NEXUS
+
+  baserow:
+    profiles: ["full"]
+    image: baserow/baserow:1.30.1
+    restart: unless-stopped
+    environment:
+      BASEROW_PUBLIC_URL: ${BASEROW_PUBLIC_URL:-http://localhost:8080}
+      SECRET_KEY: ${BASEROW_SECRET_KEY:?définir BASEROW_SECRET_KEY}
+    ports: ["127.0.0.1:8080:80"]
+    volumes: [ "baserow_data:/baserow/data" ]    # base embarquée de Baserow, distincte de la base NEXUS
+
+volumes:
+  nexus_pgdata:
+  ollama_models:
+  n8n_data:
+  baserow_data:
