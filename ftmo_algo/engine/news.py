@@ -17,7 +17,7 @@ class NewsCalendar:
     @classmethod
     def default(cls, start: pd.Timestamp, end: pd.Timestamp) -> "NewsCalendar":
         from ..data.synth import nfp_times
-        ts = nfp_times(start, end)
+        ts = nfp_times(start, end + pd.Timedelta(days=45))   # un calendrier est publié à l'avance
         return cls(np.array([t.value for t in ts], dtype="int64"), ["NFP"] * len(ts))
 
     @classmethod

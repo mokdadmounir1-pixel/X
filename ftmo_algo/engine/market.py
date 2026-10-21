@@ -32,6 +32,7 @@ class Market:
     pday: np.ndarray   # jour calendaire Prague (entier)
     roll: np.ndarray   # nuits de swap facturées en entrant dans la barre i
     gap_next: np.ndarray  # True si la barre est la dernière avant une fermeture longue
+    news_block_next: np.ndarray = None  # blocage d'annonce pour l'OUVERTURE de la barre suivante (connu à la clôture)
     fine: dict | None = None   # données plus fines pour résoudre stop/cible dans la même barre
 
     def bar_ns(self) -> int:
@@ -55,6 +56,7 @@ def build_market(sym: str, df: pd.DataFrame, spec: Spec, news: NewsCalendar | No
     if news is None:
         news = NewsCalendar.default(df.index[0], df.index[-1])
     nb, nm, _ = news.masks(t, bar)
+    nbn, _, _ = news.masks(t + bar, bar)
     local = df.index.tz_convert("Europe/Prague")
     pday = (local.normalize().tz_localize(None).asi8 // 86_400_000_000_000) if hasattr(local, "asi8") else None
     pday = ns(local.tz_localize(None).normalize()) // 86_400_000_000_000
@@ -70,9 +72,14 @@ def build_market(sym: str, df: pd.DataFrame, spec: Spec, news: NewsCalendar | No
     cum = np.cumsum(w)
     base = kk.min() - 1
     roll = np.r_[0.0, cum[kk[1:] - base] - cum[kk[:-1] - base]]
-    gap = np.r_[(t[1:] - t[:-1]) > 6 * HOUR, False]
+    # dernière barre avant la fermeture du week-end : déterminée par l'HORAIRE (causal, identique en live)
+    if spec.kind == "crypto":
+        gap = np.zeros(len(t), bool)
+    else:
+        cl = pd.DatetimeIndex(t + bar, tz="UTC") if False else pd.to_datetime(t + bar, utc=True)
+        gap = np.asarray((cl.weekday == 4) & (cl.hour * 60 + cl.minute >= 22 * 60 - 5))
     return Market(sym, spec, df, len(df), t, t + bar, o, h, l, c, spr, a, s, sh, nb, nm, pday, roll, gap,
-                  fine=_fine_index(fine) if fine is not None else None)
+                  news_block_next=nbn, fine=_fine_index(fine) if fine is not None else None)
 
 
 def _fine_index(fine: pd.DataFrame) -> dict:

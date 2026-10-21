@@ -210,9 +210,9 @@ class Sim:
             return self._rej("grade", key=key)
         if any(p.key == key for p in self.pos) or any(o["key"] == key for o in self.pending):
             return self._rej("deja_en_position", key=key)
-        if j + 1 >= mk.n or mk.gap_next[j]:
+        if mk.gap_next[j]:
             return self._rej("pre_gap", key=key)
-        if mk.news_block[j + 1] and not s.allow_news:
+        if mk.news_block_next[j] and not s.allow_news:
             return self._rej("annonce", key=key)
         dk = (key, self.g.day)
         if self.day_trades.get(dk, 0) >= s.max_per_day:
@@ -222,7 +222,8 @@ class Sim:
                              "feat": None if s.feat is None else s.feat[j].copy(), "sig_t": int(mk.t[j]),
                              "ref": float(mk.c[j]), "allow_news": s.allow_news})
         self.events.append({"type": "signal", "key": key, "side": int(s.side[j]), "t": int(mk.tc[j]),
-                            "grade": int(s.grade[j])})
+                            "grade": int(s.grade[j]), "stop": float(s.stop[j]), "target": float(s.target[j]),
+                            "ref": float(mk.c[j])})
 
     # ------------------------------------------------------------------ entrée
     def _fill(self, od, mk: Market, j: int):

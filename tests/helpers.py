@@ -7,8 +7,8 @@ from ftmo_algo.engine.news import NewsCalendar
 from ftmo_algo.engine.sim import Sim, SimConfig
 from ftmo_algo.algos.base import Signals, ExitCfg
 
-ZERO = replace(SPECS["US500"], name="TEST", spread=0.0, slippage=0.0, commission_lot=0.0, swap_long=0, swap_short=0)
-COSTLY = replace(SPECS["US500"], name="TEST", spread=0.5, slippage=0.2, commission_lot=0.2)
+ZERO = replace(SPECS["US500"], name="TEST", max_lot=1e6, spread=0.0, slippage=0.0, commission_lot=0.0, swap_long=0, swap_short=0)
+COSTLY = replace(SPECS["US500"], name="TEST", max_lot=1e6, spread=0.5, slippage=0.2, commission_lot=0.2)
 
 
 def bars(rows, start="2024-01-08 10:00", freq="15min"):
