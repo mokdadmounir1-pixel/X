@@ -87,6 +87,6 @@ def make_series(name: str, start="2021-01-04", years=4.0, seed=0, persistence=0.
 def make_universe(names, seed=0, years=4.0, persistence=0.0, start="2021-01-04"):
     """Univers synthétique avec facteur commun entre actifs du même groupe."""
     rng = np.random.default_rng(seed + 991)
-    shared = {g: rng.standard_normal(int(years * 365 * 288) + 10) for g in {SPECS[n].group for n in names}}
+    shared = {g: rng.standard_normal(int(years * 365 * 288) + 10) for g in sorted({SPECS[n].group for n in names})}   # ordre déterministe
     return {n: make_series(n, start, years, seed * 100 + i, persistence, shared[SPECS[n].group])
             for i, n in enumerate(names)}

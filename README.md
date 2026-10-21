@@ -8,6 +8,8 @@ Système de trading algorithmique pour passer et tenir des comptes prop firm (FT
 > Tout ce qui est chiffré ci-dessous provient de données `[SYNTHÉTIQUE]`. Voir `ETAT_PROJET.md` pour les résultats
 > et la liste de ce qui reste à vérifier sur votre machine.
 
+Résultats publiés (synthétiques) : `reports/` ; journal de décisions, rejets et limites : `ETAT_PROJET.md`.
+
 ## Démarrage
 
 ```bash

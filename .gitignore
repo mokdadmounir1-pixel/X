@@ -7,3 +7,4 @@ data_cache/
 vendor/
 toolbox_env/
 *.sqlite
+results_*/

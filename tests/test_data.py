@@ -30,3 +30,12 @@ def test_reproducibility_hash_and_seed():
     a = make_series("US500", years=0.1, seed=4); b = make_series("US500", years=0.1, seed=4)
     assert data_hash({"x": a}) == data_hash({"x": b})
     assert data_hash({"x": a}) != data_hash({"x": make_series("US500", years=0.1, seed=5)})
+
+
+def test_universe_reproducible_across_processes_with_different_hash_seeds():
+    import subprocess, sys, os
+    code = ("from ftmo_algo.data.synth import make_universe; from ftmo_algo.data.loaders import data_hash;"
+            "print(data_hash(make_universe(['US500','US100','EURUSD'], seed=3, years=0.05)))")
+    outs = {subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, cwd=os.path.dirname(os.path.dirname(__file__)),
+                           env={**os.environ, "PYTHONHASHSEED": h}).stdout.strip() for h in ("1", "2", "3")}
+    assert len(outs) == 1 and "" not in outs

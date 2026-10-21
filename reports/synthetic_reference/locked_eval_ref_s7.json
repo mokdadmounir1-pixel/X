@@ -1,0 +1,70 @@
+{
+ "tag": "ref_s7",
+ "lock_start": "2025-01-02 21:55:00+00:00",
+ "forced": false,
+ "result": {
+  "trend_pullback": {
+   "n": 41,
+   "expectancy_R": -0.222,
+   "pf": 0.7,
+   "win_rate": 0.293,
+   "total_R": -9.1,
+   "variant": "pull_n=6|stop_atr=2.0@fixed4",
+   "verdict_research": "FAIL"
+  },
+  "sweep_reversal": {
+   "n": 1170,
+   "expectancy_R": -0.173,
+   "pf": 0.77,
+   "win_rate": 0.235,
+   "total_R": -202.6,
+   "variant": "stop_atr=1.6|wick_k=0.4@fixed3",
+   "verdict_research": "FAIL"
+  },
+  "squeeze_breakout": {
+   "n": 1118,
+   "expectancy_R": -0.149,
+   "pf": 0.8,
+   "win_rate": 0.24,
+   "total_R": -166.3,
+   "variant": "donch_n=20|squeeze_q=0.2@fixed3_wkflat",
+   "verdict_research": "FAIL"
+  },
+  "session_orb": {
+   "n": 669,
+   "expectancy_R": -0.004,
+   "pf": 0.99,
+   "win_rate": 0.381,
+   "total_R": -2.7,
+   "variant": "adx_min=15|range_min=60@fixed3_wkflat",
+   "verdict_research": "FAIL"
+  },
+  "meanrev_z": {
+   "n": 110,
+   "expectancy_R": -0.005,
+   "pf": 0.99,
+   "win_rate": 0.264,
+   "total_R": -0.5,
+   "variant": "adx_max=22|z_thr=3.0@fixed3_wkflat",
+   "verdict_research": "FAIL"
+  },
+  "news_momentum": {
+   "n": 31,
+   "expectancy_R": -0.298,
+   "pf": 0.38,
+   "win_rate": 0.323,
+   "total_R": -9.2,
+   "variant": "delay=2|move_k=1.5@fixed3_wkflat",
+   "verdict_research": "FAIL"
+  },
+  "regime_router": {
+   "n": 703,
+   "expectancy_R": -0.106,
+   "pf": 0.8,
+   "win_rate": 0.162,
+   "total_R": -74.2,
+   "variant": "adx_range=16|adx_trend=22@be3",
+   "verdict_research": "FAIL"
+  }
+ }
+}

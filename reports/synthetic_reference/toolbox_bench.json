@@ -1,0 +1,25 @@
+{
+ "talib_ema": {
+  "max_abs_diff_after_warmup": 9.094947017729282e-13,
+  "t_core_s": 0.0028943506000359775,
+  "t_tool_s": 0.0011773014000027616,
+  "speedup_tool_vs_core": 2.46,
+  "integration": "gain r\u00e9el (2.46\u00d7) mais absolu n\u00e9gligeable (3 ms pour 200 000 barres, <1 % du temps de recherche) : NON int\u00e9gr\u00e9, le c\u0153ur reste sans d\u00e9pendance"
+ },
+ "talib_atr": {
+  "max_abs_diff_after_warmup": 1.7763568394002505e-15,
+  "t_core_s": 0.006924105400048575,
+  "t_tool_s": 0.0010176347999731662,
+  "speedup_tool_vs_core": 6.8,
+  "integration": "gain r\u00e9el (6.8\u00d7) mais absolu n\u00e9gligeable (7 ms pour 200 000 barres, <1 % du temps de recherche) : NON int\u00e9gr\u00e9, le c\u0153ur reste sans d\u00e9pendance"
+ },
+ "sklearn_logistic": {
+  "max_abs_proba_diff": 0.00013326922883327708,
+  "t_core_s": 0.012660752666761255,
+  "t_tool_s": 0.031102235000010598,
+  "speedup_tool_vs_core": 0.41,
+  "integration": "non int\u00e9gr\u00e9 : pas de gain mesur\u00e9 ; le c\u0153ur reste sans d\u00e9pendance"
+ },
+ "numba": "pr\u00e9sent (aucun noyau chaud \u00e0 acc\u00e9l\u00e9rer : les boucles dominantes sont dans Sim, d\u00e9j\u00e0 \u00e0 \u00e9v\u00e9nements)",
+ "_rule": "int\u00e9gration au c\u0153ur uniquement si gain mesur\u00e9 (vitesse ou exactitude) ; sinon le c\u0153ur reste minimal"
+}
