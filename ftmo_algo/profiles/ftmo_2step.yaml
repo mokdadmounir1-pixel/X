@@ -1,0 +1,16 @@
+# FTMO Challenge 2 étapes (standard). Perte journalière et perte max mesurées sur l'ÉQUITÉ (flottant inclus).
+name: FTMO_2STEP_100K
+type: static            # static | trailing_eod | trailing_intraday
+initial_balance: 100000
+daily_loss_pct: 5.0     # % du solde initial ; référence = max(solde, équité) à minuit Prague
+max_loss_pct: 10.0      # plancher statique = solde initial - 10 %
+profit_target_pct: 10.0 # phase 1 (phase 2 : 5 %)
+min_trading_days: 4
+max_days: 0             # 0 = pas de limite de temps (règle actuelle)
+reset_tz: Europe/Prague
+guardian: {daily_frac: 0.70, total_frac: 0.70}   # arrêt interne à 70 % de la limite officielle
+verified_on: "2026-10-21"
+verified_note: >
+  Valeurs recoupées par recherche web (sources tierces : luxalgo, pineconnector, tradingfunder, oanda-ftmo).
+  Le site ftmo.com est INACCESSIBLE depuis l'environnement cloud : à RE-VÉRIFIER sur ftmo.com avant tout
+  achat. Un blog mentionne un « 1-Step » (3 % journalier, drawdown suiveur) lancé en 2026 : non figé ici.

@@ -1,0 +1,15 @@
+# Futures (type Lucid) : drawdown suiveur fin de journée, plafonné au solde initial.
+name: FUTURES_EOD_TRAILING_50K
+type: trailing_eod
+initial_balance: 50000
+daily_loss_pct: 0.0     # pas de limite journalière stricte (limite souple) -> 0 = désactivée
+max_loss_pct: 4.0       # 2 000 $ sur 50 k (valeur de blog 2025, à vérifier)
+profit_target_pct: 6.0
+min_trading_days: 5
+max_days: 0
+reset_tz: America/New_York
+guardian: {daily_frac: 0.70, total_frac: 0.70}
+verified_on: "2026-10-21"
+verified_note: >
+  Chiffres issus de blogs tiers (traderspost, proptradingvibes) qui divergent entre eux ; le plancher suit le
+  solde de clôture (17h ET) et se fige au solde initial. À vérifier sur le site officiel.

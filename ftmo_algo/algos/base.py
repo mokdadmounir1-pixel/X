@@ -1,0 +1,71 @@
+"""Interface commune des algos + structure de signaux."""
+from __future__ import annotations
+from dataclasses import dataclass, field
+import itertools
+import numpy as np
+import pandas as pd
+
+
+@dataclass(frozen=True)
+class ExitCfg:
+    mode: str = "fixed"      # fixed | be | partial | trail_atr | trail_struct
+    rr: float = 3.0          # multiple de risque de la cible (cible absolue si le signal n'en fournit pas)
+    time_stop: int = 96      # barres
+    be_at: float = 1.0
+    partial_at: float = 1.5
+    partial_frac: float = 0.5
+    atr_k: float = 2.5
+    trail_after: float = 1.0
+    max_rr: float = 8.0
+    weekend_flat: bool = False
+
+
+@dataclass
+class Signals:
+    algo: str
+    sym: str
+    side: np.ndarray            # int8 : +1 long, -1 short, 0 rien (signal constaté À LA CLÔTURE de la barre i)
+    stop: np.ndarray            # prix de stop absolu
+    target: np.ndarray          # prix de cible absolu (nan -> exit.rr)
+    grade: np.ndarray           # 2 = A+, 1 = A, 0 = B
+    exit: ExitCfg = field(default_factory=ExitCfg)
+    feat: np.ndarray | None = None      # (n, k) features du setup (pour le filtre ML)
+    feat_names: tuple = ()
+    allow_news: bool = False
+    max_per_day: int = 2
+    params: dict = field(default_factory=dict)
+
+    def idx(self):
+        return np.flatnonzero(self.side != 0)
+
+
+def empty_signals(algo, sym, n, exit=None, **kw) -> Signals:
+    return Signals(algo, sym, np.zeros(n, np.int8), np.full(n, np.nan), np.full(n, np.nan),
+                   np.zeros(n, np.int8), exit or ExitCfg(), **kw)
+
+
+class Algo:
+    """Chaque algo : hypothèse économique, invalidation, grille de paramètres, génération causale."""
+    name = "base"
+    hypothesis = ""
+    invalidation = ""
+    grid: dict = {}            # nom -> liste de valeurs (la grille entière est comptée dans le DSR)
+    default: dict = {}
+    timeframes = ("M15", "H1", "H4", "D1")
+
+    def combos(self):
+        keys = list(self.grid)
+        return [dict(zip(keys, v)) for v in itertools.product(*[self.grid[k] for k in keys])]
+
+    def neighbors(self, params: dict):
+        """Voisins immédiats (±1 cran sur une dimension) pour le test de plateau."""
+        out = []
+        for k, vals in self.grid.items():
+            i = vals.index(params[k])
+            for d in (-1, 1):
+                if 0 <= i + d < len(vals):
+                    out.append({**params, k: vals[i + d]})
+        return out
+
+    def generate(self, ctx, params: dict) -> Signals:  # pragma: no cover
+        raise NotImplementedError
