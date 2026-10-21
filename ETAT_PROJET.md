@@ -76,6 +76,10 @@ Lecture : sous le nul la boucle ne fabrique pas de gain (moyenne ≈ 0, bruit sy
 Sur le marché synthétique complet (`evolve --years 4`, `reports/evolution/synthetic_example_*`) : un exemple de run et son évaluation unique sur la période verrouillée (non démontré, IC95 contient 0).
 **Non vérifié / limites :** (a) aucune donnée réelle ; (b) les trades sont pré-calculés puis tranchés par date (sans fuite, comme le walk-forward) mais l'exclusion de zones est appliquée **a posteriori** sur la liste de trades (un trade retiré ne libère pas de créneau) ; (c) les seuils de la boucle (marges, 80 %, 2 mois d'ombre) sont des choix a priori non optimisés ; (d) le mode `--loop` n'a jamais tourné sur données fraîches MT5 ; (e) les exclusions promues ne sont pas encore appliquées par les agents live (seules la variante et la pause le sont).
 
+## 3ter. Verrou de gain — ajout du 2026-10-21
+Aucune trace d'un « verrou de gain » dans `legacy/` ni dans l'historique git (seuls existaient un arrêt sur perte journalière et un arrêt sur drawdown) : il a été **réimplémenté d'après la demande**, pas repris. Deux niveaux opt-in (voir README) : sorties à cliquet `lock3`/`lock4` (moteur `sim._manage`) et verrou de gain journalier dans `Guardian` (`profit_lock`). 5 tests (`tests/test_profit_lock.py`).
+Mesure [SYNTHÉTIQUE], marche aléatoire 3 ans, 2 instruments, paramètres par défaut, espérance moyenne par trade : fixed3 −0,124 R, be3 −0,132, **lock3 −0,138**, lock4 −0,186, trail_atr −0,208. Sur ces données le verrou n'améliore rien (attendu : pas d'edge à protéger) ; sa valeur sur marché réel est **non mesurée**.
+
 ## 4. Algos rejetés et pourquoi
 Tous les algos échouent sur la marche aléatoire de référence — **ce n'est pas un rejet sur le fond** : sans edge à trouver, un FAIL est le bon résultat, et ce n'est pas une preuve contre les hypothèses sur marché réel. Ce que le dépôt prouve, c'est que le pipeline ne fabrique pas de faux edge. Rejets effectifs :
 - `micro_scalping` et `fx_liquidity_bot` (code historique) : remplacés, voir §1.

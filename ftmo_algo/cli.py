@@ -24,6 +24,7 @@ def _common(p):
     p.add_argument("--workers", type=int, default=4)
     p.add_argument("--profile", default="ftmo_2step")
     p.add_argument("--news-csv", help="calendrier économique CSV (time,name)")
+    p.add_argument("--lock-exit", action="store_true", help="ajoute les sorties à verrou de gain par paliers (lock3, lock4) aux variantes testées")
 
 
 def _news(a):
@@ -366,6 +367,9 @@ def main(argv=None):
     s.add_argument("--weeks", type=float, default=0); s.add_argument("--trades", type=int, default=0)
     s.add_argument("--gap", type=float, default=None); s.set_defaults(f=cmd_gate)
     a = ap.parse_args(argv)
+    if getattr(a, "lock_exit", False):
+        from .algos.library import enable_lock_exit
+        enable_lock_exit()
     a.f(a)
 
 

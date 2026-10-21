@@ -8,7 +8,7 @@ import pandas as pd
 
 @dataclass(frozen=True)
 class ExitCfg:
-    mode: str = "fixed"      # fixed | be | partial | trail_atr | trail_struct
+    mode: str = "fixed"      # fixed | be | partial | trail_atr | trail_struct | lock
     rr: float = 3.0          # multiple de risque de la cible (cible absolue si le signal n'en fournit pas)
     time_stop: int = 96      # barres
     be_at: float = 1.0
@@ -18,6 +18,7 @@ class ExitCfg:
     trail_after: float = 1.0
     max_rr: float = 8.0
     weekend_flat: bool = False
+    lock_steps: tuple = ((1.5, 0.0), (2.5, 1.0))   # mode « lock » : (MFE atteint en R, gain verrouillé en R)
 
 
 @dataclass

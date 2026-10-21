@@ -8,6 +8,9 @@ profit_target_pct: 10.0 # phase 1 (phase 2 : 5 %)
 min_trading_days: 4
 max_days: 0             # 0 = pas de limite de temps (règle actuelle)
 reset_tz: Europe/Prague
+# Verrou de gain journalier (désactivé = {}). Exemple : profit_lock: {day_gain_pct: 2.0, arm_pct: 1.0, giveback_frac: 0.5}
+#  -> plus aucune nouvelle entrée du jour à +2 % ; ou si, après +1 % au moins, on restitue la moitié du gain du jour.
+profit_lock: {}
 guardian: {daily_frac: 0.70, total_frac: 0.70}   # arrêt interne à 70 % de la limite officielle
 verified_on: "2026-10-21"
 verified_note: >

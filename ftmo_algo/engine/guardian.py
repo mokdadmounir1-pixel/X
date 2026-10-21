@@ -19,6 +19,9 @@ class PropProfile:
     max_days: int = 0
     reset_tz: str = "Europe/Prague"
     guardian: dict = field(default_factory=lambda: {"daily_frac": 0.7, "total_frac": 0.7})
+    # verrou de gain journalier (0 = désactivé) : day_gain_pct = on s'arrête pour la journée à +X % du capital initial ;
+    # giveback_frac = après un gain d'au moins arm_pct, on s'arrête si on en restitue cette part.
+    profit_lock: dict = field(default_factory=dict)
     verified_on: str = ""
     verified_note: str = ""
 
@@ -53,6 +56,9 @@ class Guardian:
         self.floor = prof.initial_balance - prof.max_loss
         self.eod_peak = prof.initial_balance
         self.blocked_day = False
+        self.blocked_gain = False
+        self.day_eq0 = prof.initial_balance
+        self.day_peak_gain = 0.0
         self.blocked_all = False
         self.reason = ""
         self.breach = None
@@ -65,6 +71,9 @@ class Guardian:
         self.day = day
         self.day_ref = max(balance, equity)
         self.blocked_day = False
+        self.blocked_gain = False
+        self.day_eq0 = equity
+        self.day_peak_gain = 0.0
 
     def internal_daily(self):
         return self.p.daily_limit * self.p.guardian["daily_frac"] if self.p.daily_loss_pct > 0 else float("inf")
@@ -82,10 +91,26 @@ class Guardian:
             if not self.blocked_day:
                 self.blocked_day = True; self.reason = "gardien: perte journalière interne"
                 return "flatten_day"
+        self._profit_lock(equity)
         if equity <= self.internal_floor() and not self.blocked_all:
             self.blocked_all = True; self.reason = "gardien: perte max interne"
             return "flatten_all"
         return None
+
+    def _profit_lock(self, equity):
+        """Verrou de gain : bloque les NOUVELLES entrées du jour (les positions ouvertes gardent leur stop/cible)."""
+        pl = self.p.profit_lock or {}
+        if self.blocked_gain or not pl:
+            return
+        gain = equity - self.day_eq0
+        self.day_peak_gain = max(self.day_peak_gain, gain)
+        cap = pl.get("day_gain_pct", 0) / 100 * self.p.initial_balance
+        arm = pl.get("arm_pct", 0) / 100 * self.p.initial_balance
+        gb = pl.get("giveback_frac", 0)
+        if cap > 0 and gain >= cap:
+            self.blocked_gain = True; self.reason = "verrou de gain: objectif journalier atteint"
+        elif gb > 0 and arm > 0 and self.day_peak_gain >= arm and gain <= self.day_peak_gain * (1 - gb):
+            self.blocked_gain = True; self.reason = "verrou de gain: restitution du gain du jour"
 
     def check_official(self, worst_equity, t):
         """Violation officielle (au pire de la barre). Fige `breach`."""
@@ -102,6 +127,8 @@ class Guardian:
             return False, "gardien_total"
         if self.blocked_day:
             return False, "gardien_jour"
+        if self.blocked_gain:
+            return False, "verrou_gain"
         if self.p.daily_loss_pct > 0 and self.daily_loss(equity) + open_risk + new_risk > self.internal_daily():
             return False, "reserve_risque_jour"
         if equity - open_risk - new_risk <= self.internal_floor():

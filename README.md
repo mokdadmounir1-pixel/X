@@ -91,6 +91,11 @@ FTMO 2 étapes : perte jour 5 %, perte max 10 %, objectif 10 %, 4 jours min, res
 - Un résultat `[SYNTHÉTIQUE]` ne prouve **rien** sur le marché réel : il valide la mécanique (portes, absence de look-ahead, faux PASS) et rien d'autre.
 - Les limites connues (conversion de devise approximative, calendrier d'annonces réduit à la règle NFP sauf CSV fourni, test nul évalué sur la variante modale, spreads synthétiques) sont listées dans `ETAT_PROJET.md`.
 
+## Verrou de gain
+Deux niveaux, **désactivés par défaut** (le catalogue de référence est inchangé) :
+- **Par trade** (`--lock-exit` sur `research` / `evolve` / `paper`) : sorties `lock3` et `lock4`, un cliquet à paliers. Dès que le trade a atteint +1,5 R le stop passe à l'entrée, à +2,5 R il verrouille +1 R (`lock4` : paliers 1/2/3 R → −0,3/+0,5/+1,5 R). Le stop ne recule jamais ; côté vendeur le spread est payé. Ces variantes entrent dans la grille testée (donc dans le comptage DSR) et dans l'évolution continue.
+- **Par jour** (profil prop firm, `profit_lock` dans le YAML) : `day_gain_pct` = plus de nouvelle entrée du jour une fois +X % atteint ; `arm_pct` + `giveback_frac` = plus d'entrée si, après un gain d'au moins `arm_pct`, on en restitue cette part. Les positions ouvertes gardent leur stop/cible.
+
 ## Amélioration continue des stratégies (`evolve`)
 
 Les stratégies ne sont pas jugées une fois pour toutes : une boucle les surveille et les fait évoluer **sur preuve**.

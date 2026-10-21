@@ -335,6 +335,15 @@ class Sim:
         mfe_r = p.best_r
         if ex.mode in ("be", "partial") and not p.be_done and (mfe_r >= ex.be_at if ex.mode == "be" else p.partial_done):
             p.stop = p.entry; p.be_done = True
+        if ex.mode == "lock":      # cliquet : le stop ne recule jamais ; palier atteint (MFE) -> gain verrouillé
+            lvl = None
+            for trig, keep in ex.lock_steps:
+                if mfe_r >= trig:
+                    lvl = keep
+            if lvl is not None:
+                ns_ = p.entry + sd * lvl * p.r_dist + (0.0 if sd > 0 else spr)    # court : côté ask, spread payé
+                if sd * (ns_ - p.stop) > 0:
+                    p.stop = ns_
         if ex.mode in ("trail_atr", "trail_struct") and mfe_r >= ex.trail_after:
             p.trail_on = True
         if p.trail_on:

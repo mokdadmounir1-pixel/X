@@ -260,3 +260,10 @@ EXIT_VARIANTS = {
     "trail_atr": ExitCfg("trail_atr", rr=8.0, time_stop=192, atr_k=2.5, trail_after=1.0),
     "trail_struct": ExitCfg("trail_struct", rr=8.0, time_stop=192, trail_after=1.0),
 }
+
+
+def enable_lock_exit():
+    """Ajoute la sortie à verrou de gain par paliers au catalogue testé (opt-in : `--lock-exit`). Elle compte alors dans
+    le nombre d'essais (DSR) et dans l'étude des sorties ; sans l'option, le catalogue de référence est inchangé."""
+    EXIT_VARIANTS["lock3"] = ExitCfg("lock", rr=3.0, time_stop=96, lock_steps=((1.5, 0.0), (2.5, 1.0)))
+    EXIT_VARIANTS["lock4"] = ExitCfg("lock", rr=4.0, time_stop=96, lock_steps=((1.0, -0.3), (2.0, 0.5), (3.0, 1.5)))
