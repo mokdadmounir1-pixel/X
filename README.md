@@ -1,3 +1,26 @@
+# QuantLab — recherche, paper-trading et dashboard de scalping
+
+```bash
+pip install -r requirements.txt
+python -m quantlab install                 # installe + smoke-teste ~30 projets open source (pip + clones git dans vendor/)
+python -m quantlab research --ccxt BTC/USDT --bars 30000   # données réelles ; sans --ccxt : synthétique (signalé)
+python -m quantlab dashboard --port 8767 --ccxt BTC/USDT   # http://127.0.0.1:8767
+python -m pytest -q tests
+```
+
+## Ce qui est construit
+- `quantlab/engine.py` : backtest pessimiste (signal à la clôture -> fill à l'ouverture suivante, stop prioritaire si stop+cible dans la même bougie, frais+spread+slippage, levier plafonné, plafond de trades/jour, arrêt sur perte journalière).
+- `quantlab/strategies/` : 8 algos (ema_pullback, bb_reversion, vwap_reversion, squeeze_breakout, momentum_burst, liquidity_sweep, regime_router, ml_direction walk-forward). Un test vérifie que chacun est causal (pas de look-ahead).
+- `quantlab/research.py` : protocole anti-illusion. Un algo n'est **PASS** que s'il passe 7 portes : >=60 trades OOS, espérance OOS>0, PF>1.15, bat un marché nul (block-bootstrap, p<0.10), survit à 2x les frais, Monte-Carlo p5>capital, pas porté par 3 trades.
+- `quantlab/live.py` + `dashboard/` : paper-trading multi-agents (1 algo = 1 agent) rejouant le même moteur, vortex animé piloté par les métriques réelles (ω = vol courte/longue, étirement = force de tendance, ordre = accord des agents, couleur = direction), chandeliers + entrées, tape, verdicts de recherche, état des outils installés, suivi d'objectif de session.
+- `quantlab/tools/` : registre de 31 projets (ccxt, vectorbt, backtesting.py, hftbacktest, freqtrade, nautilus_trader, py-clob-client Polymarket, quantstats, optuna, hmmlearn, lightgbm, arch, ...).
+- Les anciens dossiers `micro_scalping/` et `fx_liquidity_bot/` sont conservés intacts.
+
+## Lecture honnête des résultats
+Sur données synthétiques, **tous les algos sont FAIL** : c'est normal (le coût aller-retour ~0.12 % est de l'ordre de la taille d'un stop de 1 minute). Seule une exécution `research` sur vos vraies données (`--ccxt` ou `--csv`) dit quelque chose d'exploitable. Ce conteneur n'a pas accès aux exchanges, donc rien n'y a été validé sur marché réel. Ne passez en réel qu'après PASS/WATCH stables sur plusieurs mois et plusieurs actifs, puis du paper trading.
+
+---
+
 # Micro-Scalping Strategy
 
 Stratégie de micro-scalping (timeframe 1 min) avec moteur de backtest, conçue

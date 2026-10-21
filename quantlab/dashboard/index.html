@@ -1,0 +1,79 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>QUANT VORTEX // Scalping Lab</title>
+<style>
+:root{--bg:#070b14;--pn:#0d1424;--ln:#1c2a44;--tx:#cfe0ff;--dim:#6f86b3;--up:#22e0a0;--dn:#ff4d6d;--ac:#5aa9ff;--gd:#ffc857}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:12px/1.4 ui-monospace,Menlo,Consolas,monospace}
+header{display:flex;gap:18px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--ln);flex-wrap:wrap}
+h1{font-size:15px;margin:0;letter-spacing:2px}.badge{padding:2px 8px;border:1px solid var(--gd);color:var(--gd);border-radius:3px}
+.kpi{display:flex;flex-direction:column}.kpi b{font-size:18px}.kpi span{color:var(--dim);font-size:10px;letter-spacing:1px}
+main{display:grid;grid-template-columns:1.1fr 1fr;gap:10px;padding:10px}
+.pn{background:var(--pn);border:1px solid var(--ln);border-radius:4px;padding:8px;min-width:0}
+.pn h2{margin:0 0 6px;font-size:10px;letter-spacing:2px;color:var(--dim);display:flex;justify-content:space-between}
+canvas{width:100%;display:block}.up{color:var(--up)}.dn{color:var(--dn)}
+#agents{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.ag{border:1px solid var(--ln);border-radius:4px;padding:6px;background:#0a1120}.ag.on{border-color:var(--ac)}
+.ag h3{margin:0;font-size:11px}.ag small{color:var(--dim);display:block;min-height:26px}
+table{width:100%;border-collapse:collapse}td,th{padding:2px 4px;text-align:left;border-bottom:1px solid #121c33;font-weight:400}th{color:var(--dim)}
+.v{padding:1px 6px;border-radius:3px;font-weight:700}.PASS{background:#0b4;color:#001}.WATCH{background:var(--gd);color:#220}.FAIL{background:#5a1a28;color:#ffb0c0}
+.wide{grid-column:1/-1}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{background:#12203a;color:var(--tx);border:1px solid var(--ln);padding:3px 9px;cursor:pointer;border-radius:3px}
+.bar{height:6px;background:#12203a;border-radius:3px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac)}
+@media(max-width:900px){main,.row{grid-template-columns:1fr}}
+</style></head><body>
+<header><h1>QUANT&nbsp;VORTEX&nbsp;<span style="color:var(--dim)">// SCALPING LAB</span></h1><span class="badge" id="mode">SIMULATION</span>
+<div class="kpi"><b id="bal">–</b><span>SYSTEM BALANCE</span></div><div class="kpi"><b id="pnl">–</b><span>COMBINED P&amp;L</span></div>
+<div class="kpi"><b id="wr">–</b><span>WIN RATE</span></div><div class="kpi"><b id="sig">–</b><span>SIGNALS</span></div><div class="kpi"><b id="ntr">–</b><span>CLOSED TRADES</span></div>
+<div class="kpi" style="min-width:170px"><b id="tg">–</b><span>OBJECTIF / SESSION</span><div class="bar"><i id="tgb" style="width:0"></i></div></div>
+<div style="margin-left:auto"><button id="pp">⏸</button> <button data-s="1">1×</button><button data-s="4">4×</button><button data-s="15">15×</button></div></header>
+<main>
+<section class="pn"><h2><span>01 THE VORTEX</span><span id="vinfo"></span></h2><canvas id="vx" height="430"></canvas></section>
+<section class="pn"><h2><span>02 PRIX + ENTRÉES</span><span id="px"></span></h2><canvas id="ch" height="430"></canvas></section>
+<section class="pn wide"><h2><span>03 AGENTS — un algo par agent, même moteur que le backtest</span></h2><div id="agents"></div></section>
+<section class="pn"><h2><span>04 EXECUTION TAPE</span></h2><table id="tape"></table></section>
+<section class="pn"><h2><span>05 RECHERCHE — verdicts hors-échantillon (python -m quantlab research)</span><span id="rinfo"></span></h2><table id="res"></table></section>
+<section class="pn wide"><h2><span>06 BOÎTE À OUTILS OPEN SOURCE</span><span id="tinfo"></span></h2><div id="tools" style="display:flex;flex-wrap:wrap;gap:5px"></div></section>
+</main>
+<script>
+const $=id=>document.getElementById(id),f=(x,d=2)=>(x>=0?'+':'')+x.toFixed(d),cl=x=>x>=0?'up':'dn';
+let S=null,V={omega:1,stretch:1,coherence:0,vorticity:0,dir:0},pulses=[];
+async function pull(){try{S=await (await fetch('/api/state')).json();draw()}catch(e){}}
+function draw(){const s=S;$('mode').textContent=s.sim?'SIMULATION (replay)':'DONNÉES RÉELLES';
+$('bal').textContent='$'+s.balance.toFixed(2);$('pnl').innerHTML=`<span class="${cl(s.pnl)}">${f(s.pnl)}</span>`;
+$('wr').textContent=s.win_rate.toFixed(1)+'%';$('sig').textContent=s.signals;$('ntr').textContent=s.trades;
+const tp=s.capital*s.target_pct/100;$('tg').innerHTML=`${f(s.pnl)} / $${tp.toFixed(0)}`;$('tgb').style.width=Math.max(0,Math.min(100,s.pnl/tp*100))+'%';
+V=s.vortex;$('px').textContent='$'+s.price.toFixed(2);
+$('vinfo').textContent=`ω ${V.omega.toFixed(2)} · étirement ${V.stretch.toFixed(2)} · cohérence ${(V.coherence*100|0)}% · régime ${V.regime}`;
+$('agents').innerHTML=s.agents.map(a=>`<div class="ag ${a.pos?'on':''}"><h3>${a.name} ${a.pos>0?'<span class=up>▲ LONG</span>':a.pos<0?'<span class=dn>▼ SHORT</span>':a.signal?'<span style="color:var(--gd)">• signal</span>':''}</h3><small>${a.desc}</small>
+<b class="${cl(a.pnl)}">${f(a.pnl)}</b> <span style="color:var(--dim)">${a.trades}t · ${a.win_rate.toFixed(0)}%</span><svg width="100%" height="24" viewBox="0 0 80 24" preserveAspectRatio="none">${spark(a.spark)}</svg></div>`).join('');
+$('tape').innerHTML='<tr><th>TIME</th><th>AGENT</th><th>SIDE</th><th>PX</th><th>PnL</th></tr>'+s.tape.slice(0,14).map(t=>t.type=='fill'?`<tr><td>${t.time.slice(11,19)}</td><td>${t.agent}</td><td>${t.side>0?'L':'S'} ${t.reason}</td><td>${t.exit.toFixed(1)}</td><td class="${cl(t.pnl)}">${f(t.pnl)}</td></tr>`:`<tr><td>${t.time.slice(11,19)}</td><td>${t.agent}</td><td>ENTRY ${t.side>0?'L':'S'}</td><td>${t.price.toFixed(1)}</td><td>…</td></tr>`).join('');
+const last=s.candles[s.candles.length-1];if(last&&s.tape[0]&&s.tape[0].type!='x')for(const t of s.tape.slice(0,3))if(!pulses.find(p=>p.id==t.time+t.agent+t.type))pulses.push({id:t.time+t.agent+t.type,a:0,d:t.side||1,w:t.type=='fill'?(t.pnl>=0?1:-1):0});
+drawChart();}
+function spark(v){if(!v||v.length<2)return'';const mn=Math.min(...v),mx=Math.max(...v),r=(mx-mn)||1;return`<polyline fill="none" stroke="${v[v.length-1]>=v[0]?'#22e0a0':'#ff4d6d'}" stroke-width="1.5" points="${v.map((y,i)=>(i/(v.length-1)*80).toFixed(1)+','+(22-(y-mn)/r*20).toFixed(1)).join(' ')}"/>`}
+function fit(c){const r=c.getBoundingClientRect(),d=devicePixelRatio||1;if(c.width!=r.width*d){c.width=r.width*d;c.height=430*d}return d}
+function drawChart(){const c=$('ch'),d=fit(c),x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);const W=c.width/d,H=430;x.clearRect(0,0,W,H);
+const cs=S.candles.slice(-90);const hi=Math.max(...cs.map(k=>k[2])),lo=Math.min(...cs.map(k=>k[3])),R=(hi-lo)||1,y=p=>H-20-(p-lo)/R*(H-40),w=W/cs.length;
+x.strokeStyle='#14213a';for(let i=0;i<5;i++){x.beginPath();x.moveTo(0,20+i*(H-40)/4);x.lineTo(W,20+i*(H-40)/4);x.stroke()}
+cs.forEach((k,i)=>{const up=k[4]>=k[1];x.strokeStyle=x.fillStyle=up?'#22e0a0':'#ff4d6d';const cx=i*w+w/2;x.beginPath();x.moveTo(cx,y(k[2]));x.lineTo(cx,y(k[3]));x.stroke();x.fillRect(cx-w*.35,Math.min(y(k[1]),y(k[4])),w*.7,Math.max(1,Math.abs(y(k[1])-y(k[4]))))});
+const t0=cs[0][0];for(const t of S.tape){if(t.type!='entry')continue;const ts=Date.parse(t.time.replace(' ','T')+'Z')/1e3,i=cs.findIndex(k=>k[0]>=ts);if(i<0)continue;x.fillStyle=t.side>0?'#22e0a0':'#ff4d6d';x.beginPath();const cx=i*w+w/2,cy=y(t.price);x.moveTo(cx,cy+(t.side>0?4:-4));x.lineTo(cx-5,cy+(t.side>0?14:-14));x.lineTo(cx+5,cy+(t.side>0?14:-14));x.fill()}}
+// ---- vortex: spiral particles; angular speed=short/long vol, axial stretch=trend strength, hue=direction, order=agent coherence
+const vc=$('vx'),N=2600,P=[];for(let i=0;i<N;i++)P.push({a:Math.random()*6.28,r:Math.random(),h:Math.random()*2-1,s:.3+Math.random()});
+let T=0,om=1,st=1,co=0,hue=0;
+function vloop(){const d=fit(vc),x=vc.getContext('2d');x.setTransform(d,0,0,d,0,0);const W=vc.width/d,H=430,cx=W/2,cy=H/2;
+om+=(V.omega-om)*.05;st+=(V.stretch-st)*.05;co+=(V.coherence-co)*.05;hue+=((V.dir||0)-hue)*.05;T+=.012*om;
+x.fillStyle='rgba(7,11,20,.16)';x.fillRect(0,0,W,H);const rr=Math.min(W*.42,H*.62);
+for(const p of P){p.a+=.004*om*(1.4-p.r)*(1+co*2);const spiral=p.a+p.r*4*st,rad=rr*(.18+p.r*.82)*(1-.25*Math.sin(T+p.h*3)*.3);
+const X=cx+Math.cos(spiral)*rad,Yz=Math.sin(spiral)*rad*.38,Y=cy+Yz+p.h*rr*.5*(1-p.r*.6)*(0.5+st*.35)*(1-co*.3);
+const g=hue>0.05?[34,224,160]:hue<-.05?[255,77,109]:[90,169,255],al=.55+.45*(1-p.r);x.fillStyle=`rgba(${g[0]},${g[1]},${g[2]},${al*(.5+.5*Math.sin(p.a*2))})`;x.fillRect(X,Y,p.s*2.4,p.s*2.4)}
+// agents as orbiting nodes: lit when in a position / signalling
+if(S){const A=S.agents,n=A.length;A.forEach((a,i)=>{const t=T*.7+i/n*6.28,X=cx+Math.cos(t)*rr*1.0,Y=cy+Math.sin(t)*rr*.4;const c=a.pos>0?'#22e0a0':a.pos<0?'#ff4d6d':a.signal?'#ffc857':'#3a4f7a';x.fillStyle=c;x.beginPath();x.arc(X,Y,a.pos?7:4,0,6.28);x.fill();x.fillStyle='#9fb6e0';x.font='10px monospace';x.fillText(a.name.slice(0,10),X+9,Y+3);
+if(a.pos||a.signal){x.strokeStyle=c;x.globalAlpha=.25;x.beginPath();x.moveTo(X,Y);x.lineTo(cx,cy);x.stroke();x.globalAlpha=1}});
+pulses=pulses.filter(p=>p.a<1);for(const p of pulses){p.a+=.02;x.strokeStyle=p.w>0||p.d>0&&!p.w?'#22e0a0':'#ff4d6d';x.globalAlpha=1-p.a;x.beginPath();x.ellipse(cx,cy,rr*p.a*1.1,rr*p.a*.45,0,0,6.28);x.stroke();x.globalAlpha=1}}
+x.fillStyle='#cfe0ff';x.font='11px monospace';x.fillText('ω vol court/long   étirement = force de tendance   ordre = accord des agents   couleur = direction',8,H-8);requestAnimationFrame(vloop)}
+async function slow(){try{const r=await (await fetch('/api/research')).json();$('rinfo').textContent=r.source?`${r.source} · ${r.bars} barres`:'aucun run';
+$('res').innerHTML='<tr><th>VERDICT</th><th>ALGO</th><th>gates</th><th>OOS n</th><th>exp R</th><th>PF</th><th>p-null</th></tr>'+(r.reports||[]).map(x=>`<tr><td><span class="v ${x.verdict}">${x.verdict}</span></td><td>${x.strategy}</td><td>${x.gates_passed}/7</td><td>${x.oos.trades}</td><td class="${cl(x.oos.expectancy_r)}">${f(x.oos.expectancy_r,3)}</td><td>${x.oos.profit_factor>99?'∞':x.oos.profit_factor.toFixed(2)}</td><td>${x.null.p_value.toFixed(2)}</td></tr>`).join('');
+const t=await (await fetch('/api/tools')).json();$('tinfo').textContent=t.filter(x=>x.status=='ok').length+'/'+t.length+' installés';
+$('tools').innerHTML=t.map(x=>`<span title="${x.why} [${x.category}]" style="padding:2px 7px;border:1px solid ${x.status=='ok'?'#1b7a58':x.status=='failed'?'#7a1b2c':'#33415f'};color:${x.status=='ok'?'#22e0a0':x.status=='failed'?'#ff4d6d':'#6f86b3'};border-radius:3px">${x.id}</span>`).join('')}catch(e){}}
+$('pp').onclick=()=>fetch('/api/control',{method:'POST',body:JSON.stringify({paused:!S.paused})});
+document.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>fetch('/api/control',{method:'POST',body:JSON.stringify({speed:+b.dataset.s})}));
+pull();setInterval(pull,500);slow();setInterval(slow,15000);vloop();
+</script></body></html>
