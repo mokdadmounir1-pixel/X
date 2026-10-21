@@ -1,0 +1,1097 @@
+{
+ "label": "[SYNTHÉTIQUE : spreads/commissions = specs [HYPOTHÈSE]]",
+ "report": {
+  "US500": {
+   "pas_min": 0,
+   "source_spread": "colonne spread des barres",
+   "fenetres": {
+    "asie 00-07": {
+     "atr_moyen_prix": 1.799528,
+     "cout_AR_prix": 1.35,
+     "cout_sur_ATR": 0.75,
+     "stop=1.0ATR": {
+      "cout_R": 0.75,
+      "winrate_equilibre": {
+       "RR1.0": 0.875,
+       "RR1.5": 0.7,
+       "RR2.0": 0.583,
+       "RR3.0": 0.438
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.375,
+      "winrate_equilibre": {
+       "RR1.0": 0.688,
+       "RR1.5": 0.55,
+       "RR2.0": 0.458,
+       "RR3.0": 0.344
+      },
+      "joue": false
+     }
+    },
+    "londres 07-11": {
+     "atr_moyen_prix": 3.785358,
+     "cout_AR_prix": 1.1,
+     "cout_sur_ATR": 0.291,
+     "stop=1.0ATR": {
+      "cout_R": 0.291,
+      "winrate_equilibre": {
+       "RR1.0": 0.645,
+       "RR1.5": 0.516,
+       "RR2.0": 0.43,
+       "RR3.0": 0.323
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.145,
+      "winrate_equilibre": {
+       "RR1.0": 0.573,
+       "RR1.5": 0.458,
+       "RR2.0": 0.382,
+       "RR3.0": 0.286
+      },
+      "joue": true
+     }
+    },
+    "milieu 11-12.5": {
+     "atr_moyen_prix": 3.014446,
+     "cout_AR_prix": 1.1,
+     "cout_sur_ATR": 0.365,
+     "stop=1.0ATR": {
+      "cout_R": 0.365,
+      "winrate_equilibre": {
+       "RR1.0": 0.682,
+       "RR1.5": 0.546,
+       "RR2.0": 0.455,
+       "RR3.0": 0.341
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.182,
+      "winrate_equilibre": {
+       "RR1.0": 0.591,
+       "RR1.5": 0.473,
+       "RR2.0": 0.394,
+       "RR3.0": 0.296
+      },
+      "joue": true
+     }
+    },
+    "new_york 12.5-16.5": {
+     "atr_moyen_prix": 4.301725,
+     "cout_AR_prix": 1.1,
+     "cout_sur_ATR": 0.256,
+     "stop=1.0ATR": {
+      "cout_R": 0.256,
+      "winrate_equilibre": {
+       "RR1.0": 0.628,
+       "RR1.5": 0.502,
+       "RR2.0": 0.419,
+       "RR3.0": 0.314
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.128,
+      "winrate_equilibre": {
+       "RR1.0": 0.564,
+       "RR1.5": 0.451,
+       "RR2.0": 0.376,
+       "RR3.0": 0.282
+      },
+      "joue": true
+     }
+    },
+    "après-midi 16.5-21": {
+     "atr_moyen_prix": 2.212295,
+     "cout_AR_prix": 1.35,
+     "cout_sur_ATR": 0.61,
+     "stop=1.0ATR": {
+      "cout_R": 0.61,
+      "winrate_equilibre": {
+       "RR1.0": 0.805,
+       "RR1.5": 0.644,
+       "RR2.0": 0.537,
+       "RR3.0": 0.403
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.305,
+      "winrate_equilibre": {
+       "RR1.0": 0.653,
+       "RR1.5": 0.522,
+       "RR2.0": 0.435,
+       "RR3.0": 0.326
+      },
+      "joue": false
+     }
+    },
+    "nuit 21-24": {
+     "atr_moyen_prix": 1.684783,
+     "cout_AR_prix": 2.6,
+     "cout_sur_ATR": 1.543,
+     "stop=1.0ATR": {
+      "cout_R": 1.543,
+      "winrate_equilibre": {
+       "RR1.0": 1.272,
+       "RR1.5": 1.017,
+       "RR2.0": 0.848,
+       "RR3.0": 0.636
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.772,
+      "winrate_equilibre": {
+       "RR1.0": 0.886,
+       "RR1.5": 0.709,
+       "RR2.0": 0.591,
+       "RR3.0": 0.443
+      },
+      "joue": false
+     }
+    }
+   }
+  },
+  "US100": {
+   "pas_min": 0,
+   "source_spread": "colonne spread des barres",
+   "fenetres": {
+    "asie 00-07": {
+     "atr_moyen_prix": 4.055542,
+     "cout_AR_prix": 3.85,
+     "cout_sur_ATR": 0.949,
+     "stop=1.0ATR": {
+      "cout_R": 0.949,
+      "winrate_equilibre": {
+       "RR1.0": 0.975,
+       "RR1.5": 0.78,
+       "RR2.0": 0.65,
+       "RR3.0": 0.487
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.475,
+      "winrate_equilibre": {
+       "RR1.0": 0.737,
+       "RR1.5": 0.59,
+       "RR2.0": 0.492,
+       "RR3.0": 0.369
+      },
+      "joue": false
+     }
+    },
+    "londres 07-11": {
+     "atr_moyen_prix": 8.445724,
+     "cout_AR_prix": 3.1,
+     "cout_sur_ATR": 0.367,
+     "stop=1.0ATR": {
+      "cout_R": 0.367,
+      "winrate_equilibre": {
+       "RR1.0": 0.684,
+       "RR1.5": 0.547,
+       "RR2.0": 0.456,
+       "RR3.0": 0.342
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.184,
+      "winrate_equilibre": {
+       "RR1.0": 0.592,
+       "RR1.5": 0.473,
+       "RR2.0": 0.395,
+       "RR3.0": 0.296
+      },
+      "joue": true
+     }
+    },
+    "milieu 11-12.5": {
+     "atr_moyen_prix": 6.809834,
+     "cout_AR_prix": 3.1,
+     "cout_sur_ATR": 0.455,
+     "stop=1.0ATR": {
+      "cout_R": 0.455,
+      "winrate_equilibre": {
+       "RR1.0": 0.728,
+       "RR1.5": 0.582,
+       "RR2.0": 0.485,
+       "RR3.0": 0.364
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.228,
+      "winrate_equilibre": {
+       "RR1.0": 0.614,
+       "RR1.5": 0.491,
+       "RR2.0": 0.409,
+       "RR3.0": 0.307
+      },
+      "joue": true
+     }
+    },
+    "new_york 12.5-16.5": {
+     "atr_moyen_prix": 9.732993,
+     "cout_AR_prix": 3.1,
+     "cout_sur_ATR": 0.319,
+     "stop=1.0ATR": {
+      "cout_R": 0.319,
+      "winrate_equilibre": {
+       "RR1.0": 0.659,
+       "RR1.5": 0.527,
+       "RR2.0": 0.44,
+       "RR3.0": 0.33
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.159,
+      "winrate_equilibre": {
+       "RR1.0": 0.58,
+       "RR1.5": 0.464,
+       "RR2.0": 0.386,
+       "RR3.0": 0.29
+      },
+      "joue": true
+     }
+    },
+    "après-midi 16.5-21": {
+     "atr_moyen_prix": 5.048469,
+     "cout_AR_prix": 3.85,
+     "cout_sur_ATR": 0.763,
+     "stop=1.0ATR": {
+      "cout_R": 0.763,
+      "winrate_equilibre": {
+       "RR1.0": 0.881,
+       "RR1.5": 0.705,
+       "RR2.0": 0.588,
+       "RR3.0": 0.441
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.381,
+      "winrate_equilibre": {
+       "RR1.0": 0.691,
+       "RR1.5": 0.553,
+       "RR2.0": 0.46,
+       "RR3.0": 0.345
+      },
+      "joue": false
+     }
+    },
+    "nuit 21-24": {
+     "atr_moyen_prix": 3.822767,
+     "cout_AR_prix": 7.6,
+     "cout_sur_ATR": 1.988,
+     "stop=1.0ATR": {
+      "cout_R": 1.988,
+      "winrate_equilibre": {
+       "RR1.0": 1.494,
+       "RR1.5": 1.195,
+       "RR2.0": 0.996,
+       "RR3.0": 0.747
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.994,
+      "winrate_equilibre": {
+       "RR1.0": 0.997,
+       "RR1.5": 0.798,
+       "RR2.0": 0.665,
+       "RR3.0": 0.499
+      },
+      "joue": false
+     }
+    }
+   }
+  },
+  "GER40": {
+   "pas_min": 0,
+   "source_spread": "colonne spread des barres",
+   "fenetres": {
+    "asie 00-07": {
+     "atr_moyen_prix": 3.258499,
+     "cout_AR_prix": 2.5,
+     "cout_sur_ATR": 0.767,
+     "stop=1.0ATR": {
+      "cout_R": 0.767,
+      "winrate_equilibre": {
+       "RR1.0": 0.884,
+       "RR1.5": 0.707,
+       "RR2.0": 0.589,
+       "RR3.0": 0.442
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.384,
+      "winrate_equilibre": {
+       "RR1.0": 0.692,
+       "RR1.5": 0.553,
+       "RR2.0": 0.461,
+       "RR3.0": 0.346
+      },
+      "joue": false
+     }
+    },
+    "londres 07-11": {
+     "atr_moyen_prix": 6.870171,
+     "cout_AR_prix": 2.0,
+     "cout_sur_ATR": 0.291,
+     "stop=1.0ATR": {
+      "cout_R": 0.291,
+      "winrate_equilibre": {
+       "RR1.0": 0.646,
+       "RR1.5": 0.516,
+       "RR2.0": 0.43,
+       "RR3.0": 0.323
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.146,
+      "winrate_equilibre": {
+       "RR1.0": 0.573,
+       "RR1.5": 0.458,
+       "RR2.0": 0.382,
+       "RR3.0": 0.286
+      },
+      "joue": true
+     }
+    },
+    "milieu 11-12.5": {
+     "atr_moyen_prix": 5.585086,
+     "cout_AR_prix": 2.0,
+     "cout_sur_ATR": 0.358,
+     "stop=1.0ATR": {
+      "cout_R": 0.358,
+      "winrate_equilibre": {
+       "RR1.0": 0.679,
+       "RR1.5": 0.543,
+       "RR2.0": 0.453,
+       "RR3.0": 0.34
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.179,
+      "winrate_equilibre": {
+       "RR1.0": 0.59,
+       "RR1.5": 0.472,
+       "RR2.0": 0.393,
+       "RR3.0": 0.295
+      },
+      "joue": true
+     }
+    },
+    "new_york 12.5-16.5": {
+     "atr_moyen_prix": 7.881446,
+     "cout_AR_prix": 2.0,
+     "cout_sur_ATR": 0.254,
+     "stop=1.0ATR": {
+      "cout_R": 0.254,
+      "winrate_equilibre": {
+       "RR1.0": 0.627,
+       "RR1.5": 0.502,
+       "RR2.0": 0.418,
+       "RR3.0": 0.313
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.127,
+      "winrate_equilibre": {
+       "RR1.0": 0.563,
+       "RR1.5": 0.451,
+       "RR2.0": 0.376,
+       "RR3.0": 0.282
+      },
+      "joue": true
+     }
+    },
+    "après-midi 16.5-21": {
+     "atr_moyen_prix": 4.027798,
+     "cout_AR_prix": 2.5,
+     "cout_sur_ATR": 0.621,
+     "stop=1.0ATR": {
+      "cout_R": 0.621,
+      "winrate_equilibre": {
+       "RR1.0": 0.81,
+       "RR1.5": 0.648,
+       "RR2.0": 0.54,
+       "RR3.0": 0.405
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.31,
+      "winrate_equilibre": {
+       "RR1.0": 0.655,
+       "RR1.5": 0.524,
+       "RR2.0": 0.437,
+       "RR3.0": 0.328
+      },
+      "joue": false
+     }
+    },
+    "nuit 21-24": {
+     "atr_moyen_prix": 3.117937,
+     "cout_AR_prix": 5.0,
+     "cout_sur_ATR": 1.604,
+     "stop=1.0ATR": {
+      "cout_R": 1.604,
+      "winrate_equilibre": {
+       "RR1.0": 1.302,
+       "RR1.5": 1.041,
+       "RR2.0": 0.868,
+       "RR3.0": 0.651
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.802,
+      "winrate_equilibre": {
+       "RR1.0": 0.901,
+       "RR1.5": 0.721,
+       "RR2.0": 0.601,
+       "RR3.0": 0.45
+      },
+      "joue": false
+     }
+    }
+   }
+  },
+  "XAUUSD": {
+   "pas_min": 0,
+   "source_spread": "colonne spread des barres",
+   "fenetres": {
+    "asie 00-07": {
+     "atr_moyen_prix": 0.509814,
+     "cout_AR_prix": 0.575,
+     "cout_sur_ATR": 1.128,
+     "stop=1.0ATR": {
+      "cout_R": 1.128,
+      "winrate_equilibre": {
+       "RR1.0": 1.064,
+       "RR1.5": 0.851,
+       "RR2.0": 0.709,
+       "RR3.0": 0.532
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.564,
+      "winrate_equilibre": {
+       "RR1.0": 0.782,
+       "RR1.5": 0.626,
+       "RR2.0": 0.521,
+       "RR3.0": 0.391
+      },
+      "joue": false
+     }
+    },
+    "londres 07-11": {
+     "atr_moyen_prix": 1.06771,
+     "cout_AR_prix": 0.45,
+     "cout_sur_ATR": 0.421,
+     "stop=1.0ATR": {
+      "cout_R": 0.421,
+      "winrate_equilibre": {
+       "RR1.0": 0.711,
+       "RR1.5": 0.569,
+       "RR2.0": 0.474,
+       "RR3.0": 0.355
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.211,
+      "winrate_equilibre": {
+       "RR1.0": 0.605,
+       "RR1.5": 0.484,
+       "RR2.0": 0.404,
+       "RR3.0": 0.303
+      },
+      "joue": true
+     }
+    },
+    "milieu 11-12.5": {
+     "atr_moyen_prix": 0.858814,
+     "cout_AR_prix": 0.45,
+     "cout_sur_ATR": 0.524,
+     "stop=1.0ATR": {
+      "cout_R": 0.524,
+      "winrate_equilibre": {
+       "RR1.0": 0.762,
+       "RR1.5": 0.61,
+       "RR2.0": 0.508,
+       "RR3.0": 0.381
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.262,
+      "winrate_equilibre": {
+       "RR1.0": 0.631,
+       "RR1.5": 0.505,
+       "RR2.0": 0.421,
+       "RR3.0": 0.315
+      },
+      "joue": false
+     }
+    },
+    "new_york 12.5-16.5": {
+     "atr_moyen_prix": 1.211647,
+     "cout_AR_prix": 0.45,
+     "cout_sur_ATR": 0.371,
+     "stop=1.0ATR": {
+      "cout_R": 0.371,
+      "winrate_equilibre": {
+       "RR1.0": 0.686,
+       "RR1.5": 0.549,
+       "RR2.0": 0.457,
+       "RR3.0": 0.343
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.186,
+      "winrate_equilibre": {
+       "RR1.0": 0.593,
+       "RR1.5": 0.474,
+       "RR2.0": 0.395,
+       "RR3.0": 0.296
+      },
+      "joue": true
+     }
+    },
+    "après-midi 16.5-21": {
+     "atr_moyen_prix": 0.628336,
+     "cout_AR_prix": 0.575,
+     "cout_sur_ATR": 0.915,
+     "stop=1.0ATR": {
+      "cout_R": 0.915,
+      "winrate_equilibre": {
+       "RR1.0": 0.958,
+       "RR1.5": 0.766,
+       "RR2.0": 0.638,
+       "RR3.0": 0.479
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.458,
+      "winrate_equilibre": {
+       "RR1.0": 0.729,
+       "RR1.5": 0.583,
+       "RR2.0": 0.486,
+       "RR3.0": 0.364
+      },
+      "joue": false
+     }
+    },
+    "nuit 21-24": {
+     "atr_moyen_prix": 0.487067,
+     "cout_AR_prix": 1.2,
+     "cout_sur_ATR": 2.464,
+     "stop=1.0ATR": {
+      "cout_R": 2.464,
+      "winrate_equilibre": {
+       "RR1.0": 1.732,
+       "RR1.5": 1.385,
+       "RR2.0": 1.155,
+       "RR3.0": 0.866
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 1.232,
+      "winrate_equilibre": {
+       "RR1.0": 1.116,
+       "RR1.5": 0.893,
+       "RR2.0": 0.744,
+       "RR3.0": 0.558
+      },
+      "joue": false
+     }
+    }
+   }
+  },
+  "EURUSD": {
+   "pas_min": 0,
+   "source_spread": "colonne spread des barres",
+   "fenetres": {
+    "asie 00-07": {
+     "atr_moyen_prix": 0.000126,
+     "cout_AR_prix": 0.000238,
+     "cout_sur_ATR": 1.893,
+     "stop=1.0ATR": {
+      "cout_R": 1.893,
+      "winrate_equilibre": {
+       "RR1.0": 1.447,
+       "RR1.5": 1.157,
+       "RR2.0": 0.964,
+       "RR3.0": 0.723
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.947,
+      "winrate_equilibre": {
+       "RR1.0": 0.973,
+       "RR1.5": 0.779,
+       "RR2.0": 0.649,
+       "RR3.0": 0.487
+      },
+      "joue": false
+     }
+    },
+    "londres 07-11": {
+     "atr_moyen_prix": 0.000261,
+     "cout_AR_prix": 0.000198,
+     "cout_sur_ATR": 0.758,
+     "stop=1.0ATR": {
+      "cout_R": 0.758,
+      "winrate_equilibre": {
+       "RR1.0": 0.879,
+       "RR1.5": 0.703,
+       "RR2.0": 0.586,
+       "RR3.0": 0.439
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.379,
+      "winrate_equilibre": {
+       "RR1.0": 0.689,
+       "RR1.5": 0.552,
+       "RR2.0": 0.46,
+       "RR3.0": 0.345
+      },
+      "joue": false
+     }
+    },
+    "milieu 11-12.5": {
+     "atr_moyen_prix": 0.000209,
+     "cout_AR_prix": 0.000198,
+     "cout_sur_ATR": 0.948,
+     "stop=1.0ATR": {
+      "cout_R": 0.948,
+      "winrate_equilibre": {
+       "RR1.0": 0.974,
+       "RR1.5": 0.779,
+       "RR2.0": 0.649,
+       "RR3.0": 0.487
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.474,
+      "winrate_equilibre": {
+       "RR1.0": 0.737,
+       "RR1.5": 0.59,
+       "RR2.0": 0.491,
+       "RR3.0": 0.368
+      },
+      "joue": false
+     }
+    },
+    "new_york 12.5-16.5": {
+     "atr_moyen_prix": 0.000298,
+     "cout_AR_prix": 0.000198,
+     "cout_sur_ATR": 0.663,
+     "stop=1.0ATR": {
+      "cout_R": 0.663,
+      "winrate_equilibre": {
+       "RR1.0": 0.832,
+       "RR1.5": 0.665,
+       "RR2.0": 0.554,
+       "RR3.0": 0.416
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.332,
+      "winrate_equilibre": {
+       "RR1.0": 0.666,
+       "RR1.5": 0.533,
+       "RR2.0": 0.444,
+       "RR3.0": 0.333
+      },
+      "joue": false
+     }
+    },
+    "après-midi 16.5-21": {
+     "atr_moyen_prix": 0.000155,
+     "cout_AR_prix": 0.000238,
+     "cout_sur_ATR": 1.532,
+     "stop=1.0ATR": {
+      "cout_R": 1.532,
+      "winrate_equilibre": {
+       "RR1.0": 1.266,
+       "RR1.5": 1.013,
+       "RR2.0": 0.844,
+       "RR3.0": 0.633
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.766,
+      "winrate_equilibre": {
+       "RR1.0": 0.883,
+       "RR1.5": 0.706,
+       "RR2.0": 0.589,
+       "RR3.0": 0.441
+      },
+      "joue": false
+     }
+    },
+    "nuit 21-24": {
+     "atr_moyen_prix": 0.000117,
+     "cout_AR_prix": 0.000438,
+     "cout_sur_ATR": 3.753,
+     "stop=1.0ATR": {
+      "cout_R": 3.753,
+      "winrate_equilibre": {
+       "RR1.0": 2.377,
+       "RR1.5": 1.901,
+       "RR2.0": 1.584,
+       "RR3.0": 1.188
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 1.877,
+      "winrate_equilibre": {
+       "RR1.0": 1.438,
+       "RR1.5": 1.151,
+       "RR2.0": 0.959,
+       "RR3.0": 0.719
+      },
+      "joue": false
+     }
+    }
+   }
+  },
+  "GBPUSD": {
+   "pas_min": 0,
+   "source_spread": "colonne spread des barres",
+   "fenetres": {
+    "asie 00-07": {
+     "atr_moyen_prix": 0.000217,
+     "cout_AR_prix": 0.00028,
+     "cout_sur_ATR": 1.292,
+     "stop=1.0ATR": {
+      "cout_R": 1.292,
+      "winrate_equilibre": {
+       "RR1.0": 1.146,
+       "RR1.5": 0.917,
+       "RR2.0": 0.764,
+       "RR3.0": 0.573
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.646,
+      "winrate_equilibre": {
+       "RR1.0": 0.823,
+       "RR1.5": 0.658,
+       "RR2.0": 0.549,
+       "RR3.0": 0.411
+      },
+      "joue": false
+     }
+    },
+    "londres 07-11": {
+     "atr_moyen_prix": 0.000445,
+     "cout_AR_prix": 0.00023,
+     "cout_sur_ATR": 0.516,
+     "stop=1.0ATR": {
+      "cout_R": 0.516,
+      "winrate_equilibre": {
+       "RR1.0": 0.758,
+       "RR1.5": 0.607,
+       "RR2.0": 0.505,
+       "RR3.0": 0.379
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.258,
+      "winrate_equilibre": {
+       "RR1.0": 0.629,
+       "RR1.5": 0.503,
+       "RR2.0": 0.419,
+       "RR3.0": 0.315
+      },
+      "joue": false
+     }
+    },
+    "milieu 11-12.5": {
+     "atr_moyen_prix": 0.000362,
+     "cout_AR_prix": 0.00023,
+     "cout_sur_ATR": 0.635,
+     "stop=1.0ATR": {
+      "cout_R": 0.635,
+      "winrate_equilibre": {
+       "RR1.0": 0.818,
+       "RR1.5": 0.654,
+       "RR2.0": 0.545,
+       "RR3.0": 0.409
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.318,
+      "winrate_equilibre": {
+       "RR1.0": 0.659,
+       "RR1.5": 0.527,
+       "RR2.0": 0.439,
+       "RR3.0": 0.329
+      },
+      "joue": false
+     }
+    },
+    "new_york 12.5-16.5": {
+     "atr_moyen_prix": 0.000509,
+     "cout_AR_prix": 0.00023,
+     "cout_sur_ATR": 0.452,
+     "stop=1.0ATR": {
+      "cout_R": 0.452,
+      "winrate_equilibre": {
+       "RR1.0": 0.726,
+       "RR1.5": 0.581,
+       "RR2.0": 0.484,
+       "RR3.0": 0.363
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.226,
+      "winrate_equilibre": {
+       "RR1.0": 0.613,
+       "RR1.5": 0.49,
+       "RR2.0": 0.409,
+       "RR3.0": 0.307
+      },
+      "joue": true
+     }
+    },
+    "après-midi 16.5-21": {
+     "atr_moyen_prix": 0.000261,
+     "cout_AR_prix": 0.00028,
+     "cout_sur_ATR": 1.073,
+     "stop=1.0ATR": {
+      "cout_R": 1.073,
+      "winrate_equilibre": {
+       "RR1.0": 1.036,
+       "RR1.5": 0.829,
+       "RR2.0": 0.691,
+       "RR3.0": 0.518
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.536,
+      "winrate_equilibre": {
+       "RR1.0": 0.768,
+       "RR1.5": 0.615,
+       "RR2.0": 0.512,
+       "RR3.0": 0.384
+      },
+      "joue": false
+     }
+    },
+    "nuit 21-24": {
+     "atr_moyen_prix": 0.000202,
+     "cout_AR_prix": 0.00053,
+     "cout_sur_ATR": 2.626,
+     "stop=1.0ATR": {
+      "cout_R": 2.626,
+      "winrate_equilibre": {
+       "RR1.0": 1.813,
+       "RR1.5": 1.45,
+       "RR2.0": 1.209,
+       "RR3.0": 0.906
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 1.313,
+      "winrate_equilibre": {
+       "RR1.0": 1.156,
+       "RR1.5": 0.925,
+       "RR2.0": 0.771,
+       "RR3.0": 0.578
+      },
+      "joue": false
+     }
+    }
+   }
+  },
+  "USDJPY": {
+   "pas_min": 0,
+   "source_spread": "colonne spread des barres",
+   "fenetres": {
+    "asie 00-07": {
+     "atr_moyen_prix": 0.027171,
+     "cout_AR_prix": 0.0285,
+     "cout_sur_ATR": 1.049,
+     "stop=1.0ATR": {
+      "cout_R": 1.049,
+      "winrate_equilibre": {
+       "RR1.0": 1.024,
+       "RR1.5": 0.82,
+       "RR2.0": 0.683,
+       "RR3.0": 0.512
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.524,
+      "winrate_equilibre": {
+       "RR1.0": 0.762,
+       "RR1.5": 0.61,
+       "RR2.0": 0.508,
+       "RR3.0": 0.381
+      },
+      "joue": false
+     }
+    },
+    "londres 07-11": {
+     "atr_moyen_prix": 0.056516,
+     "cout_AR_prix": 0.0245,
+     "cout_sur_ATR": 0.434,
+     "stop=1.0ATR": {
+      "cout_R": 0.434,
+      "winrate_equilibre": {
+       "RR1.0": 0.717,
+       "RR1.5": 0.573,
+       "RR2.0": 0.478,
+       "RR3.0": 0.358
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.217,
+      "winrate_equilibre": {
+       "RR1.0": 0.608,
+       "RR1.5": 0.487,
+       "RR2.0": 0.406,
+       "RR3.0": 0.304
+      },
+      "joue": true
+     }
+    },
+    "milieu 11-12.5": {
+     "atr_moyen_prix": 0.045507,
+     "cout_AR_prix": 0.0245,
+     "cout_sur_ATR": 0.538,
+     "stop=1.0ATR": {
+      "cout_R": 0.538,
+      "winrate_equilibre": {
+       "RR1.0": 0.769,
+       "RR1.5": 0.615,
+       "RR2.0": 0.513,
+       "RR3.0": 0.385
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.269,
+      "winrate_equilibre": {
+       "RR1.0": 0.635,
+       "RR1.5": 0.508,
+       "RR2.0": 0.423,
+       "RR3.0": 0.317
+      },
+      "joue": false
+     }
+    },
+    "new_york 12.5-16.5": {
+     "atr_moyen_prix": 0.065249,
+     "cout_AR_prix": 0.0245,
+     "cout_sur_ATR": 0.375,
+     "stop=1.0ATR": {
+      "cout_R": 0.375,
+      "winrate_equilibre": {
+       "RR1.0": 0.688,
+       "RR1.5": 0.55,
+       "RR2.0": 0.458,
+       "RR3.0": 0.344
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.188,
+      "winrate_equilibre": {
+       "RR1.0": 0.594,
+       "RR1.5": 0.475,
+       "RR2.0": 0.396,
+       "RR3.0": 0.297
+      },
+      "joue": true
+     }
+    },
+    "après-midi 16.5-21": {
+     "atr_moyen_prix": 0.03344,
+     "cout_AR_prix": 0.0285,
+     "cout_sur_ATR": 0.852,
+     "stop=1.0ATR": {
+      "cout_R": 0.852,
+      "winrate_equilibre": {
+       "RR1.0": 0.926,
+       "RR1.5": 0.741,
+       "RR2.0": 0.617,
+       "RR3.0": 0.463
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.426,
+      "winrate_equilibre": {
+       "RR1.0": 0.713,
+       "RR1.5": 0.57,
+       "RR2.0": 0.475,
+       "RR3.0": 0.357
+      },
+      "joue": false
+     }
+    },
+    "nuit 21-24": {
+     "atr_moyen_prix": 0.025579,
+     "cout_AR_prix": 0.0485,
+     "cout_sur_ATR": 1.896,
+     "stop=1.0ATR": {
+      "cout_R": 1.896,
+      "winrate_equilibre": {
+       "RR1.0": 1.448,
+       "RR1.5": 1.158,
+       "RR2.0": 0.965,
+       "RR3.0": 0.724
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.948,
+      "winrate_equilibre": {
+       "RR1.0": 0.974,
+       "RR1.5": 0.779,
+       "RR2.0": 0.649,
+       "RR3.0": 0.487
+      },
+      "joue": false
+     }
+    }
+   }
+  }
+ }
+}

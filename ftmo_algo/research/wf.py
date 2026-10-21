@@ -149,9 +149,11 @@ def in_windows(entry_t: np.ndarray, folds):
 
 
 # ---------------------------------------------------------------- surrogates (test nul)
-def make_surrogate(df: pd.DataFrame, seed: int, demean=True) -> pd.DataFrame:
+def make_surrogate(df: pd.DataFrame, seed: int, demean=True, block_bars: int | None = None) -> pd.DataFrame:
     """Inversion de signe aléatoire par blocs (1 jour) des rendements log, dérive retirée : détruit toute
-    structure directionnelle exploitable en conservant volatilité, saisonnalité, spreads."""
+    structure directionnelle exploitable en conservant volatilité, saisonnalité, spreads.
+    ATTENTION : par blocs d'un jour, l'élan / le retour à la moyenne INTRAJOURNALIERS survivent (le bloc est retourné d'un seul tenant) ;
+    pour un algo intrajournalier utiliser block_bars=1."""
     rng = np.random.default_rng(seed)
     o, h, l, c = (df[k].to_numpy("float64") for k in ("open", "high", "low", "close"))
     gap = np.r_[0.0, np.log(o[1:] / c[:-1])]
@@ -159,8 +161,11 @@ def make_surrogate(df: pd.DataFrame, seed: int, demean=True) -> pd.DataFrame:
     if demean:
         mu = (gap + body).mean()
         gap = gap - mu / 2; body = body - mu / 2
-    day = ns(df.index) // 86_400_000_000_000
-    _, blk = np.unique(day, return_inverse=True)
+    if block_bars:      # blocs de k barres (k=1 : signe aléatoire par barre) : détruit aussi la dépendance INTRAJOURNALIÈRE
+        blk = np.arange(len(df)) // block_bars
+    else:
+        day = ns(df.index) // 86_400_000_000_000
+        _, blk = np.unique(day, return_inverse=True)
     s = rng.choice([-1.0, 1.0], size=blk.max() + 1)[blk]
     gs, bs = gap * s, body * s
     ups = np.where(s > 0, up, -dn); dns = np.where(s > 0, dn, -up)

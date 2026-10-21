@@ -86,6 +86,45 @@ def cmd_research(a):
     print(f"résultats : {a.out}/latest.json  (hash données {rep['data_hash']}, graine {rep['seed']}, v{rep['version']})")
 
 
+def _scalp_data(a):
+    """Données M1 : réelles (--data-dir / --mt5 en M1) ou SYNTHÉTIQUES M1."""
+    if a.data_dir or a.mt5:
+        a.timeframe = "M1"
+        return _data(a)
+    from .data.synth import make_universe
+    return make_universe([n.strip() for n in a.instruments.split(",")], seed=a.seed, years=a.years,
+                         persistence=a.persistence, step_min=1)
+
+
+def cmd_scalp_costs(a):
+    from .scalp.costs import cost_report, print_costs
+    dfs = _scalp_data(a)
+    rep = cost_report(dfs)
+    lab = "[SYNTHÉTIQUE : spreads/commissions = specs [HYPOTHÈSE]]" if any(str(d.attrs.get("source", "")).startswith("SYNTH") for d in dfs.values()) else "[VÉRIFIÉ : spreads mesurés]"
+    print_costs(rep, lab)
+    Path(a.out).mkdir(exist_ok=True)
+    (Path(a.out) / "scalp_costs.json").write_text(json.dumps({"label": lab, "report": rep}, indent=1, ensure_ascii=False))
+
+
+def cmd_scalp_research(a):
+    from .scalp.pipeline import research
+    from .research.pipeline import to_json, print_table
+    dfs = _scalp_data(a)
+    rep = research(dfs, _news(a), a.workers, a.seed, null_B=a.null, out_dir=a.out, tag=a.tag, locked_force=a.force_relock)
+    to_json(rep, Path(a.out) / "latest.json")
+    print_table(rep)
+    for n, r in rep["algos"].items():
+        print(f"  {n}: espérance brute {r['gross_expectancy_R']} R -> nette {r['oos']['expectancy_R']} R | conformité {r['compliance']}")
+    print(f"résultats : {a.out}/latest.json  (hash {rep['data_hash']}, graine {rep['seed']}, v{rep['version']})")
+
+
+def cmd_scalp_calibrate(a):
+    from .scalp.calibrate import calibrate
+    r = calibrate(tuple(a.instruments.split(",")), a.n, a.years, a.null, a.workers, f"{a.out}/{a.name}.json", a.seed0, a.persistence)
+    print(f"{r['label']} faux PASS par série : {r['false_pass_rate_per_series']:.1%} (borne haute 95 % si 0 : {r['upper_bound_95_if_zero']}) | "
+          f"faux WATCH : {r['false_watch_rate_per_series']:.1%} | espérance OOS moyenne : {r['mean_oos_expectancy_R']} R (brute {r['mean_gross_expectancy_R']})")
+
+
 def cmd_calibrate(a):
     from .research.calibrate import calibrate
     real = _data(a) if (a.data_dir or a.mt5) else None
@@ -342,6 +381,13 @@ def main(argv=None):
     s.add_argument("--tag", default="run"); s.add_argument("--force-relock", action="store_true"); s.set_defaults(f=cmd_research)
     s = sub.add_parser("calibrate"); _common(s); s.add_argument("--n", type=int, default=20); s.add_argument("--null", type=int, default=99)
     s.add_argument("--seed0", type=int, default=0); s.add_argument("--name", default="calibration"); s.set_defaults(f=cmd_calibrate)
+    s = sub.add_parser("scalp-costs"); _common(s); s.set_defaults(f=cmd_scalp_costs, years=1.0, out="results_scalp")
+    s = sub.add_parser("scalp-research"); _common(s); s.add_argument("--null", type=int, default=49)
+    s.add_argument("--tag", default="scalp"); s.add_argument("--force-relock", action="store_true")
+    s.set_defaults(f=cmd_scalp_research, years=3.5, out="results_scalp")
+    s = sub.add_parser("scalp-calibrate"); _common(s); s.add_argument("--n", type=int, default=12); s.add_argument("--null", type=int, default=29)
+    s.add_argument("--seed0", type=int, default=0); s.add_argument("--name", default="calibration")
+    s.set_defaults(f=cmd_scalp_calibrate, years=3.0, out="results_scalp")
     s = sub.add_parser("target"); _common(s); s.add_argument("--all", action="store_true"); s.add_argument("--paths", type=int, default=2000)
     s.set_defaults(f=cmd_target)
     for nm, fn in (("dashboard", cmd_dashboard), ("paper", cmd_paper)):

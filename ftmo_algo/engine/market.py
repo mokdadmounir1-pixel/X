@@ -40,7 +40,7 @@ class Market:
 
 
 def build_market(sym: str, df: pd.DataFrame, spec: Spec, news: NewsCalendar | None = None,
-                 fine: pd.DataFrame | None = None, struct_n: int = 8) -> Market:
+                 fine: pd.DataFrame | None = None, struct_n: int = 8, cost_window_min: float | None = None) -> Market:
     t = ns(df.index)
     bar = int(np.median(np.diff(t)))
     o, h, l, c = (df[k].to_numpy("float64") for k in ("open", "high", "low", "close"))
@@ -55,7 +55,9 @@ def build_market(sym: str, df: pd.DataFrame, spec: Spec, news: NewsCalendar | No
     sh = pd.Series(h).rolling(struct_n, min_periods=1).max().to_numpy()
     if news is None:
         news = NewsCalendar.default(df.index[0], df.index[-1])
-    nb, nm, _ = news.masks(t, bar)
+    # fenêtre de coûts majorés autour des annonces : 6 barres par défaut (comportement historique) ou durée fixe en minutes
+    kw = {} if cost_window_min is None else {"cost_bars": cost_window_min * 6e10 / bar}
+    nb, nm, _ = news.masks(t, bar, **kw)
     nbn, _, _ = news.masks(t + bar, bar)
     local = df.index.tz_convert("Europe/Prague")
     pday = (local.normalize().tz_localize(None).asi8 // 86_400_000_000_000) if hasattr(local, "asi8") else None

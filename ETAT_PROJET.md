@@ -76,6 +76,11 @@ Lecture : sous le nul la boucle ne fabrique pas de gain (moyenne ≈ 0, bruit sy
 Sur le marché synthétique complet (`evolve --years 4`, `reports/evolution/synthetic_example_*`) : un exemple de run et son évaluation unique sur la période verrouillée (non démontré, IC95 contient 0).
 **Non vérifié / limites :** (a) aucune donnée réelle ; (b) les trades sont pré-calculés puis tranchés par date (sans fuite, comme le walk-forward) mais l'exclusion de zones est appliquée **a posteriori** sur la liste de trades (un trade retiré ne libère pas de créneau) ; (c) les seuils de la boucle (marges, 80 %, 2 mois d'ombre) sont des choix a priori non optimisés ; (d) le mode `--loop` n'a jamais tourné sur données fraîches MT5 ; (e) les exclusions promues ne sont pas encore appliquées par les agents live (seules la variante et la pause le sont).
 
+## 3ter. Scalp / micro-scalp M1 (`ftmo_algo/scalp/`, voir `SCALP.md`) — ajout du 2026-10-21
+4 algos M1, étude des coûts, portes scalp, 10ᵉ porte « retard d'une barre », mêmes moteur / walk-forward / verrou / DSR. **[SYNTHÉTIQUE]** : référence (marche aléatoire) 4 FAIL ; faux PASS 0/60 (borne 95 % ≈ 4,9 %) ; edge fort planté → PASS (+1,2 R), edge faible → FAIL.
+**Défaut trouvé** : le test nul par blocs d'un jour conserve l'élan intrajournalier (nul moyen +1,07 R vs observé +1,20 R sur edge planté → vrai edge rejeté). Corrigé pour le scalp (`make_surrogate(block_bars=1)`) ; **non appliqué au pipeline M15** (mesures publiées inchangées) : décision à prendre.
+Règles FTMO sur le scalping : sources tierces seulement (pas de durée minimale mentionnée, HFT / tick scalping / arbitrage de latence interdits, ~2 000 requêtes/jour évoquées) : **à confirmer sur ftmo.com**. Aucun edge réel mesuré.
+
 ## 4. Algos rejetés et pourquoi
 Tous les algos échouent sur la marche aléatoire de référence — **ce n'est pas un rejet sur le fond** : sans edge à trouver, un FAIL est le bon résultat, et ce n'est pas une preuve contre les hypothèses sur marché réel. Ce que le dépôt prouve, c'est que le pipeline ne fabrique pas de faux edge. Rejets effectifs :
 - `micro_scalping` et `fx_liquidity_bot` (code historique) : remplacés, voir §1.

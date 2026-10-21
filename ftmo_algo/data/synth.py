@@ -27,11 +27,12 @@ def nfp_times(start, end) -> list[pd.Timestamp]:
 
 
 def make_series(name: str, start="2021-01-04", years=4.0, seed=0, persistence=0.0,
-                shared: np.ndarray | None = None) -> pd.DataFrame:
+                shared: np.ndarray | None = None, step_min: int = 5) -> pd.DataFrame:
     rng = np.random.default_rng(seed)
+    bpd = 1440 // step_min                       # barres par jour (288 en M5 : comportement historique inchangé)
     spec = SPECS[name]
     px0, avol = BASE[name]
-    idx = pd.date_range(start, periods=int(years * 365 * 288), freq=FREQ, tz="UTC")
+    idx = pd.date_range(start, periods=int(years * 365 * bpd), freq=f"{step_min}min", tz="UTC")
     if spec.kind != "crypto":  # week-end fermé : ven 21:55 -> dim 22:00 UTC
         wd, h = idx.weekday, idx.hour + idx.minute / 60
         closed = (wd == 5) | ((wd == 4) & (h >= 22)) | ((wd == 6) & (h < 22))
@@ -46,13 +47,13 @@ def make_series(name: str, start="2021-01-04", years=4.0, seed=0, persistence=0.
     for i in range(1, len(ud)):
         lv[i] = 0.97 * lv[i - 1] + 0.22 * e[i]
     dvol = avol / np.sqrt(252) * np.exp(lv - lv.var() / 2)  # vol quotidienne
-    bar_vol = dvol[inv] / np.sqrt(288 * (5 / 7 if spec.kind != "crypto" else 1)) * seas
+    bar_vol = dvol[inv] / np.sqrt(bpd * (5 / 7 if spec.kind != "crypto" else 1)) * seas
     z = rng.standard_normal(n)
     if shared is not None and len(shared) >= n:
         z = 0.6 * shared[:n] + 0.8 * z
     r = bar_vol * z
     if persistence > 0:  # dérive de tendance persistante (demi-vie ≈ 1,5 jour)
-        a = np.exp(-np.log(2) / (288 * 1.5)); dr = np.zeros(n); g = rng.standard_normal(n) * np.sqrt(1 - a * a)
+        a = np.exp(-np.log(2) / (bpd * 1.5)); dr = np.zeros(n); g = rng.standard_normal(n) * np.sqrt(1 - a * a)
         for i in range(1, n):
             dr[i] = a * dr[i - 1] + g[i]
         r = r + persistence * bar_vol * dr
@@ -84,9 +85,9 @@ def make_series(name: str, start="2021-01-04", years=4.0, seed=0, persistence=0.
     return df
 
 
-def make_universe(names, seed=0, years=4.0, persistence=0.0, start="2021-01-04"):
+def make_universe(names, seed=0, years=4.0, persistence=0.0, start="2021-01-04", step_min: int = 5):
     """Univers synthétique avec facteur commun entre actifs du même groupe."""
     rng = np.random.default_rng(seed + 991)
-    shared = {g: rng.standard_normal(int(years * 365 * 288) + 10) for g in sorted({SPECS[n].group for n in names})}   # ordre déterministe
-    return {n: make_series(n, start, years, seed * 100 + i, persistence, shared[SPECS[n].group])
+    shared = {g: rng.standard_normal(int(years * 365 * (1440 // step_min)) + 10) for g in sorted({SPECS[n].group for n in names})}   # ordre déterministe
+    return {n: make_series(n, start, years, seed * 100 + i, persistence, shared[SPECS[n].group], step_min)
             for i, n in enumerate(names)}

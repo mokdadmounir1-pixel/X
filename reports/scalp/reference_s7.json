@@ -1,0 +1,1043 @@
+{
+ "version": "0.1.0",
+ "mode": "scalp_M1",
+ "data_hash": "ec0b75a808cd4b83",
+ "seed": 7,
+ "source": [
+  "SYNTHETIC"
+ ],
+ "synthetic": true,
+ "years": 3.5,
+ "instruments": [
+  "EURUSD",
+  "US500",
+  "XAUUSD"
+ ],
+ "lock_start": "2023-07-04 11:59:00+00:00",
+ "n_folds": 7,
+ "gate_cfg": {
+  "min_trades": 300,
+  "min_exp": 0.08,
+  "min_pf": 1.12,
+  "null_alpha": 0.1,
+  "top3_max": 0.5,
+  "plateau_frac": 0.75,
+  "risk_pct": 0.15,
+  "dd_frac": 0.6,
+  "mc_paths": 2000,
+  "min_years": 3.0,
+  "dsr_min": 0.5
+ },
+ "min_rr_net": 1.3,
+ "cost_stress": 1.5,
+ "quality": [
+  {
+   "instrument": "US500",
+   "source": "SYNTHETIC",
+   "bars": 1315440,
+   "start": "2021-01-04 00:00:00+00:00",
+   "end": "2024-07-04 11:59:00+00:00",
+   "years": 3.5,
+   "step_min": 1,
+   "duplicates": 0,
+   "monotonic": true,
+   "gaps_intraday": 0,
+   "gaps_weekend": 182,
+   "bad_ohlc": 0,
+   "outlier_bars": 129,
+   "zero_range_pct": 0.12,
+   "weekend_bars": 0,
+   "dst_consistent": true,
+   "synthetic": true
+  },
+  {
+   "instrument": "EURUSD",
+   "source": "SYNTHETIC",
+   "bars": 1315440,
+   "start": "2021-01-04 00:00:00+00:00",
+   "end": "2024-07-04 11:59:00+00:00",
+   "years": 3.5,
+   "step_min": 1,
+   "duplicates": 0,
+   "monotonic": true,
+   "gaps_intraday": 0,
+   "gaps_weekend": 182,
+   "bad_ohlc": 0,
+   "outlier_bars": 4164,
+   "zero_range_pct": 0.91,
+   "weekend_bars": 0,
+   "dst_consistent": false,
+   "synthetic": true
+  },
+  {
+   "instrument": "XAUUSD",
+   "source": "SYNTHETIC",
+   "bars": 1315440,
+   "start": "2021-01-04 00:00:00+00:00",
+   "end": "2024-07-04 11:59:00+00:00",
+   "years": 3.5,
+   "step_min": 1,
+   "duplicates": 0,
+   "monotonic": true,
+   "gaps_intraday": 0,
+   "gaps_weekend": 182,
+   "bad_ohlc": 0,
+   "outlier_bars": 142,
+   "zero_range_pct": 0.0,
+   "weekend_bars": 0,
+   "dst_consistent": true,
+   "synthetic": true
+  }
+ ],
+ "label": "[SYNTH\u00c9TIQUE]",
+ "cost_feasibility": {
+  "US500": {
+   "pas_min": 0,
+   "source_spread": "colonne spread des barres",
+   "fenetres": {
+    "asie 00-07": {
+     "atr_moyen_prix": 1.09909,
+     "cout_AR_prix": 1.35,
+     "cout_sur_ATR": 1.228,
+     "stop=1.0ATR": {
+      "cout_R": 1.228,
+      "winrate_equilibre": {
+       "RR1.0": 1.114,
+       "RR1.5": 0.891,
+       "RR2.0": 0.743,
+       "RR3.0": 0.557
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.614,
+      "winrate_equilibre": {
+       "RR1.0": 0.807,
+       "RR1.5": 0.646,
+       "RR2.0": 0.538,
+       "RR3.0": 0.404
+      },
+      "joue": false
+     }
+    },
+    "londres 07-11": {
+     "atr_moyen_prix": 2.290113,
+     "cout_AR_prix": 1.1,
+     "cout_sur_ATR": 0.48,
+     "stop=1.0ATR": {
+      "cout_R": 0.48,
+      "winrate_equilibre": {
+       "RR1.0": 0.74,
+       "RR1.5": 0.592,
+       "RR2.0": 0.493,
+       "RR3.0": 0.37
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.24,
+      "winrate_equilibre": {
+       "RR1.0": 0.62,
+       "RR1.5": 0.496,
+       "RR2.0": 0.413,
+       "RR3.0": 0.31
+      },
+      "joue": true
+     }
+    },
+    "milieu 11-12.5": {
+     "atr_moyen_prix": 1.841672,
+     "cout_AR_prix": 1.1,
+     "cout_sur_ATR": 0.597,
+     "stop=1.0ATR": {
+      "cout_R": 0.597,
+      "winrate_equilibre": {
+       "RR1.0": 0.799,
+       "RR1.5": 0.639,
+       "RR2.0": 0.532,
+       "RR3.0": 0.399
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.299,
+      "winrate_equilibre": {
+       "RR1.0": 0.649,
+       "RR1.5": 0.519,
+       "RR2.0": 0.433,
+       "RR3.0": 0.325
+      },
+      "joue": false
+     }
+    },
+    "new_york 12.5-16.5": {
+     "atr_moyen_prix": 2.614967,
+     "cout_AR_prix": 1.1,
+     "cout_sur_ATR": 0.421,
+     "stop=1.0ATR": {
+      "cout_R": 0.421,
+      "winrate_equilibre": {
+       "RR1.0": 0.71,
+       "RR1.5": 0.568,
+       "RR2.0": 0.474,
+       "RR3.0": 0.355
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.21,
+      "winrate_equilibre": {
+       "RR1.0": 0.605,
+       "RR1.5": 0.484,
+       "RR2.0": 0.403,
+       "RR3.0": 0.303
+      },
+      "joue": true
+     }
+    },
+    "apr\u00e8s-midi 16.5-21": {
+     "atr_moyen_prix": 1.326773,
+     "cout_AR_prix": 1.35,
+     "cout_sur_ATR": 1.018,
+     "stop=1.0ATR": {
+      "cout_R": 1.018,
+      "winrate_equilibre": {
+       "RR1.0": 1.009,
+       "RR1.5": 0.807,
+       "RR2.0": 0.673,
+       "RR3.0": 0.504
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.509,
+      "winrate_equilibre": {
+       "RR1.0": 0.754,
+       "RR1.5": 0.604,
+       "RR2.0": 0.503,
+       "RR3.0": 0.377
+      },
+      "joue": false
+     }
+    },
+    "nuit 21-24": {
+     "atr_moyen_prix": 1.04127,
+     "cout_AR_prix": 2.6,
+     "cout_sur_ATR": 2.497,
+     "stop=1.0ATR": {
+      "cout_R": 2.497,
+      "winrate_equilibre": {
+       "RR1.0": 1.748,
+       "RR1.5": 1.399,
+       "RR2.0": 1.166,
+       "RR3.0": 0.874
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 1.248,
+      "winrate_equilibre": {
+       "RR1.0": 1.124,
+       "RR1.5": 0.899,
+       "RR2.0": 0.749,
+       "RR3.0": 0.562
+      },
+      "joue": false
+     }
+    }
+   }
+  },
+  "EURUSD": {
+   "pas_min": 0,
+   "source_spread": "colonne spread des barres",
+   "fenetres": {
+    "asie 00-07": {
+     "atr_moyen_prix": 0.000117,
+     "cout_AR_prix": 0.000238,
+     "cout_sur_ATR": 2.041,
+     "stop=1.0ATR": {
+      "cout_R": 2.041,
+      "winrate_equilibre": {
+       "RR1.0": 1.52,
+       "RR1.5": 1.216,
+       "RR2.0": 1.014,
+       "RR3.0": 0.76
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 1.02,
+      "winrate_equilibre": {
+       "RR1.0": 1.01,
+       "RR1.5": 0.808,
+       "RR2.0": 0.673,
+       "RR3.0": 0.505
+      },
+      "joue": false
+     }
+    },
+    "londres 07-11": {
+     "atr_moyen_prix": 0.000241,
+     "cout_AR_prix": 0.000198,
+     "cout_sur_ATR": 0.822,
+     "stop=1.0ATR": {
+      "cout_R": 0.822,
+      "winrate_equilibre": {
+       "RR1.0": 0.911,
+       "RR1.5": 0.729,
+       "RR2.0": 0.607,
+       "RR3.0": 0.456
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.411,
+      "winrate_equilibre": {
+       "RR1.0": 0.706,
+       "RR1.5": 0.564,
+       "RR2.0": 0.47,
+       "RR3.0": 0.353
+      },
+      "joue": false
+     }
+    },
+    "milieu 11-12.5": {
+     "atr_moyen_prix": 0.00019,
+     "cout_AR_prix": 0.000198,
+     "cout_sur_ATR": 1.04,
+     "stop=1.0ATR": {
+      "cout_R": 1.04,
+      "winrate_equilibre": {
+       "RR1.0": 1.02,
+       "RR1.5": 0.816,
+       "RR2.0": 0.68,
+       "RR3.0": 0.51
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.52,
+      "winrate_equilibre": {
+       "RR1.0": 0.76,
+       "RR1.5": 0.608,
+       "RR2.0": 0.507,
+       "RR3.0": 0.38
+      },
+      "joue": false
+     }
+    },
+    "new_york 12.5-16.5": {
+     "atr_moyen_prix": 0.000275,
+     "cout_AR_prix": 0.000198,
+     "cout_sur_ATR": 0.719,
+     "stop=1.0ATR": {
+      "cout_R": 0.719,
+      "winrate_equilibre": {
+       "RR1.0": 0.86,
+       "RR1.5": 0.688,
+       "RR2.0": 0.573,
+       "RR3.0": 0.43
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.36,
+      "winrate_equilibre": {
+       "RR1.0": 0.68,
+       "RR1.5": 0.544,
+       "RR2.0": 0.453,
+       "RR3.0": 0.34
+      },
+      "joue": false
+     }
+    },
+    "apr\u00e8s-midi 16.5-21": {
+     "atr_moyen_prix": 0.000146,
+     "cout_AR_prix": 0.000238,
+     "cout_sur_ATR": 1.635,
+     "stop=1.0ATR": {
+      "cout_R": 1.635,
+      "winrate_equilibre": {
+       "RR1.0": 1.317,
+       "RR1.5": 1.054,
+       "RR2.0": 0.878,
+       "RR3.0": 0.659
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.817,
+      "winrate_equilibre": {
+       "RR1.0": 0.909,
+       "RR1.5": 0.727,
+       "RR2.0": 0.606,
+       "RR3.0": 0.454
+      },
+      "joue": false
+     }
+    },
+    "nuit 21-24": {
+     "atr_moyen_prix": 0.000108,
+     "cout_AR_prix": 0.000438,
+     "cout_sur_ATR": 4.06,
+     "stop=1.0ATR": {
+      "cout_R": 4.06,
+      "winrate_equilibre": {
+       "RR1.0": 2.53,
+       "RR1.5": 2.024,
+       "RR2.0": 1.687,
+       "RR3.0": 1.265
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 2.03,
+      "winrate_equilibre": {
+       "RR1.0": 1.515,
+       "RR1.5": 1.212,
+       "RR2.0": 1.01,
+       "RR3.0": 0.757
+      },
+      "joue": false
+     }
+    }
+   }
+  },
+  "XAUUSD": {
+   "pas_min": 0,
+   "source_spread": "colonne spread des barres",
+   "fenetres": {
+    "asie 00-07": {
+     "atr_moyen_prix": 0.363252,
+     "cout_AR_prix": 0.575,
+     "cout_sur_ATR": 1.583,
+     "stop=1.0ATR": {
+      "cout_R": 1.583,
+      "winrate_equilibre": {
+       "RR1.0": 1.291,
+       "RR1.5": 1.033,
+       "RR2.0": 0.861,
+       "RR3.0": 0.646
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.791,
+      "winrate_equilibre": {
+       "RR1.0": 0.896,
+       "RR1.5": 0.717,
+       "RR2.0": 0.597,
+       "RR3.0": 0.448
+      },
+      "joue": false
+     }
+    },
+    "londres 07-11": {
+     "atr_moyen_prix": 0.749166,
+     "cout_AR_prix": 0.45,
+     "cout_sur_ATR": 0.601,
+     "stop=1.0ATR": {
+      "cout_R": 0.601,
+      "winrate_equilibre": {
+       "RR1.0": 0.8,
+       "RR1.5": 0.64,
+       "RR2.0": 0.534,
+       "RR3.0": 0.4
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.3,
+      "winrate_equilibre": {
+       "RR1.0": 0.65,
+       "RR1.5": 0.52,
+       "RR2.0": 0.433,
+       "RR3.0": 0.325
+      },
+      "joue": false
+     }
+    },
+    "milieu 11-12.5": {
+     "atr_moyen_prix": 0.602954,
+     "cout_AR_prix": 0.45,
+     "cout_sur_ATR": 0.746,
+     "stop=1.0ATR": {
+      "cout_R": 0.746,
+      "winrate_equilibre": {
+       "RR1.0": 0.873,
+       "RR1.5": 0.699,
+       "RR2.0": 0.582,
+       "RR3.0": 0.437
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.373,
+      "winrate_equilibre": {
+       "RR1.0": 0.687,
+       "RR1.5": 0.549,
+       "RR2.0": 0.458,
+       "RR3.0": 0.343
+      },
+      "joue": false
+     }
+    },
+    "new_york 12.5-16.5": {
+     "atr_moyen_prix": 0.851065,
+     "cout_AR_prix": 0.45,
+     "cout_sur_ATR": 0.529,
+     "stop=1.0ATR": {
+      "cout_R": 0.529,
+      "winrate_equilibre": {
+       "RR1.0": 0.764,
+       "RR1.5": 0.611,
+       "RR2.0": 0.51,
+       "RR3.0": 0.382
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.264,
+      "winrate_equilibre": {
+       "RR1.0": 0.632,
+       "RR1.5": 0.506,
+       "RR2.0": 0.421,
+       "RR3.0": 0.316
+      },
+      "joue": false
+     }
+    },
+    "apr\u00e8s-midi 16.5-21": {
+     "atr_moyen_prix": 0.449282,
+     "cout_AR_prix": 0.575,
+     "cout_sur_ATR": 1.28,
+     "stop=1.0ATR": {
+      "cout_R": 1.28,
+      "winrate_equilibre": {
+       "RR1.0": 1.14,
+       "RR1.5": 0.912,
+       "RR2.0": 0.76,
+       "RR3.0": 0.57
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 0.64,
+      "winrate_equilibre": {
+       "RR1.0": 0.82,
+       "RR1.5": 0.656,
+       "RR2.0": 0.547,
+       "RR3.0": 0.41
+      },
+      "joue": false
+     }
+    },
+    "nuit 21-24": {
+     "atr_moyen_prix": 0.339854,
+     "cout_AR_prix": 1.2,
+     "cout_sur_ATR": 3.531,
+     "stop=1.0ATR": {
+      "cout_R": 3.531,
+      "winrate_equilibre": {
+       "RR1.0": 2.265,
+       "RR1.5": 1.812,
+       "RR2.0": 1.51,
+       "RR3.0": 1.133
+      },
+      "joue": false
+     },
+     "stop=2.0ATR": {
+      "cout_R": 1.765,
+      "winrate_equilibre": {
+       "RR1.0": 1.383,
+       "RR1.5": 1.106,
+       "RR2.0": 0.922,
+       "RR3.0": 0.691
+      },
+      "joue": false
+     }
+    }
+   }
+  }
+ },
+ "exit_study": {
+  "s15": {
+   "n": 6954,
+   "expectancy_R": -0.115,
+   "pf": 0.77,
+   "win_rate": 0.391,
+   "total_R": -802.9
+  },
+  "s2": {
+   "n": 13511,
+   "expectancy_R": -0.155,
+   "pf": 0.73,
+   "win_rate": 0.351,
+   "total_R": -2096.8
+  },
+  "s3": {
+   "n": 13043,
+   "expectancy_R": -0.152,
+   "pf": 0.76,
+   "win_rate": 0.311,
+   "total_R": -1977.7
+  },
+  "sbe2": {
+   "n": 13631,
+   "expectancy_R": -0.162,
+   "pf": 0.68,
+   "win_rate": 0.285,
+   "total_R": -2213.3
+  }
+ },
+ "algos": {
+  "orb_micro": {
+   "oos": {
+    "n": 856,
+    "expectancy_R": -0.051,
+    "pf": 0.85,
+    "win_rate": 0.479,
+    "total_R": -43.2
+   },
+   "modal_variant": "or_min=30|stop_atr=3.0@s15",
+   "gates": {
+    "g1_n_oos": {
+     "pass": true,
+     "value": 856,
+     "threshold": 300
+    },
+    "g2_expectancy": {
+     "pass": false,
+     "value": -0.051,
+     "threshold": 0.08
+    },
+    "g3_profit_factor": {
+     "pass": false,
+     "value": 0.85,
+     "threshold": 1.12
+    },
+    "g6_monte_carlo_p5": {
+     "pass": false,
+     "value": 0.8817,
+     "threshold": 1.0
+    },
+    "g7_top3_share": {
+     "pass": false,
+     "value": 1.0,
+     "threshold": 0.5
+    },
+    "g8_plateau": {
+     "pass": false,
+     "value": 0.0,
+     "threshold": 0.75
+    },
+    "g9_loss_streak": {
+     "pass": false,
+     "value": {
+      "dd95_pct": 6.62,
+      "streak95": 12.0
+     },
+     "threshold": {
+      "dd_max_pct": 6.0
+     }
+    },
+    "g5_costs_x1.5": {
+     "pass": false,
+     "value": -0.076,
+     "threshold": 0.0
+    },
+    "g10_delay_1_bar": {
+     "pass": false,
+     "value": -0.041,
+     "threshold": 0.0
+    },
+    "g4_null": {
+     "pass": false,
+     "value": "non \u00e9valu\u00e9 (porte pr\u00e9c\u00e9dente \u00e9chou\u00e9e)",
+     "threshold": 0.1
+    }
+   },
+   "dsr": 0.0,
+   "n_trials": 48,
+   "compliance": {
+    "trades_par_jour": 1.36,
+    "duree_mediane_min": 21.0,
+    "part_trades_<=1_barre": 0.0,
+    "requetes_serveur_estimees_par_jour": 5.4,
+    "note": "\u22484 requ\u00eates/trade (ordre, SL/TP, modification, cl\u00f4ture) ; seuil \u00e9voqu\u00e9 par des sources tierces : 2000/jour"
+   },
+   "gross_expectancy_R": -0.046,
+   "verdict": "FAIL",
+   "reason": "\u00e9choue : g2_expectancy,g3_profit_factor,g6_monte_carlo_p5,g7_top3_share,g8_plateau,g9_loss_streak,g5_costs_x1.5,g10_delay_1_bar,g4_null,dsr",
+   "target_math": {
+    "risk_0.25%": {
+     "R_par_mois_requis": 20.0
+    },
+    "risk_0.5%": {
+     "R_par_mois_requis": 10.0
+    },
+    "risk_0.75%": {
+     "R_par_mois_requis": 6.67
+    },
+    "risk_1.0%": {
+     "R_par_mois_requis": 5.0
+    },
+    "trades_par_mois_observes": 28.6,
+    "R_par_mois_observes": -1.46,
+    "pct_mois_a_0.5%": -0.73
+   }
+  },
+  "vwap_fade": {
+   "oos": {
+    "n": 99,
+    "expectancy_R": -0.303,
+    "pf": 0.57,
+    "win_rate": 0.152,
+    "total_R": -30.0
+   },
+   "modal_variant": "er_max=0.4|zk=3.0@s3",
+   "gates": {
+    "g1_n_oos": {
+     "pass": false,
+     "value": 99,
+     "threshold": 300
+    },
+    "g2_expectancy": {
+     "pass": false,
+     "value": -0.303,
+     "threshold": 0.08
+    },
+    "g3_profit_factor": {
+     "pass": false,
+     "value": 0.57,
+     "threshold": 1.12
+    },
+    "g6_monte_carlo_p5": {
+     "pass": false,
+     "value": 0.9251,
+     "threshold": 1.0
+    },
+    "g7_top3_share": {
+     "pass": false,
+     "value": 1.0,
+     "threshold": 0.5
+    },
+    "g8_plateau": {
+     "pass": false,
+     "value": 0.0,
+     "threshold": 0.75
+    },
+    "g9_loss_streak": {
+     "pass": true,
+     "value": {
+      "dd95_pct": 3.88,
+      "streak95": 23.0
+     },
+     "threshold": {
+      "dd_max_pct": 6.0
+     }
+    },
+    "g5_costs_x1.5": {
+     "pass": false,
+     "value": -0.38,
+     "threshold": 0.0
+    },
+    "g10_delay_1_bar": {
+     "pass": false,
+     "value": -0.283,
+     "threshold": 0.0
+    },
+    "g4_null": {
+     "pass": false,
+     "value": "non \u00e9valu\u00e9 (porte pr\u00e9c\u00e9dente \u00e9chou\u00e9e)",
+     "threshold": 0.1
+    }
+   },
+   "dsr": 0.006,
+   "n_trials": 72,
+   "compliance": {
+    "trades_par_jour": 0.16,
+    "duree_mediane_min": 8.0,
+    "part_trades_<=1_barre": 0.081,
+    "requetes_serveur_estimees_par_jour": 0.6,
+    "note": "\u22484 requ\u00eates/trade (ordre, SL/TP, modification, cl\u00f4ture) ; seuil \u00e9voqu\u00e9 par des sources tierces : 2000/jour"
+   },
+   "gross_expectancy_R": -0.288,
+   "verdict": "FAIL",
+   "reason": "\u00e9choue : g1_n_oos,g2_expectancy,g3_profit_factor,g6_monte_carlo_p5,g7_top3_share,g8_plateau,g5_costs_x1.5,g10_delay_1_bar,g4_null,dsr",
+   "target_math": {
+    "risk_0.25%": {
+     "R_par_mois_requis": 20.0
+    },
+    "risk_0.5%": {
+     "R_par_mois_requis": 10.0
+    },
+    "risk_0.75%": {
+     "R_par_mois_requis": 6.67
+    },
+    "risk_1.0%": {
+     "R_par_mois_requis": 5.0
+    },
+    "trades_par_mois_observes": 3.31,
+    "R_par_mois_observes": -1.0,
+    "pct_mois_a_0.5%": -0.5
+   }
+  },
+  "burst_momentum": {
+   "oos": {
+    "n": 121,
+    "expectancy_R": -0.275,
+    "pf": 0.62,
+    "win_rate": 0.248,
+    "total_R": -33.2
+   },
+   "modal_variant": "k=2.5|vol_k=0.0@s15",
+   "gates": {
+    "g1_n_oos": {
+     "pass": false,
+     "value": 121,
+     "threshold": 300
+    },
+    "g2_expectancy": {
+     "pass": false,
+     "value": -0.275,
+     "threshold": 0.08
+    },
+    "g3_profit_factor": {
+     "pass": false,
+     "value": 0.62,
+     "threshold": 1.12
+    },
+    "g6_monte_carlo_p5": {
+     "pass": false,
+     "value": 0.9201,
+     "threshold": 1.0
+    },
+    "g7_top3_share": {
+     "pass": false,
+     "value": 1.0,
+     "threshold": 0.5
+    },
+    "g8_plateau": {
+     "pass": false,
+     "value": 0.0,
+     "threshold": 0.75
+    },
+    "g9_loss_streak": {
+     "pass": true,
+     "value": {
+      "dd95_pct": 4.09,
+      "streak95": 17.0
+     },
+     "threshold": {
+      "dd_max_pct": 6.0
+     }
+    },
+    "g5_costs_x1.5": {
+     "pass": false,
+     "value": -0.42,
+     "threshold": 0.0
+    },
+    "g10_delay_1_bar": {
+     "pass": false,
+     "value": -0.243,
+     "threshold": 0.0
+    },
+    "g4_null": {
+     "pass": false,
+     "value": "non \u00e9valu\u00e9 (porte pr\u00e9c\u00e9dente \u00e9chou\u00e9e)",
+     "threshold": 0.1
+    }
+   },
+   "dsr": 0.002,
+   "n_trials": 48,
+   "compliance": {
+    "trades_par_jour": 0.19,
+    "duree_mediane_min": 7.0,
+    "part_trades_<=1_barre": 0.033,
+    "requetes_serveur_estimees_par_jour": 0.8,
+    "note": "\u22484 requ\u00eates/trade (ordre, SL/TP, modification, cl\u00f4ture) ; seuil \u00e9voqu\u00e9 par des sources tierces : 2000/jour"
+   },
+   "gross_expectancy_R": -0.262,
+   "verdict": "FAIL",
+   "reason": "\u00e9choue : g1_n_oos,g2_expectancy,g3_profit_factor,g6_monte_carlo_p5,g7_top3_share,g8_plateau,g5_costs_x1.5,g10_delay_1_bar,g4_null,dsr",
+   "target_math": {
+    "risk_0.25%": {
+     "R_par_mois_requis": 20.0
+    },
+    "risk_0.5%": {
+     "R_par_mois_requis": 10.0
+    },
+    "risk_0.75%": {
+     "R_par_mois_requis": 6.67
+    },
+    "risk_1.0%": {
+     "R_par_mois_requis": 5.0
+    },
+    "trades_par_mois_observes": 4.04,
+    "R_par_mois_observes": -1.11,
+    "pct_mois_a_0.5%": -0.56
+   }
+  },
+  "micro_sweep": {
+   "oos": {
+    "n": 78,
+    "expectancy_R": -0.104,
+    "pf": 0.82,
+    "win_rate": 0.397,
+    "total_R": -8.1
+   },
+   "modal_variant": "n=40|wick_k=1.0@s15",
+   "gates": {
+    "g1_n_oos": {
+     "pass": false,
+     "value": 78,
+     "threshold": 300
+    },
+    "g2_expectancy": {
+     "pass": false,
+     "value": -0.104,
+     "threshold": 0.08
+    },
+    "g3_profit_factor": {
+     "pass": false,
+     "value": 0.82,
+     "threshold": 1.12
+    },
+    "g6_monte_carlo_p5": {
+     "pass": false,
+     "value": 0.966,
+     "threshold": 1.0
+    },
+    "g7_top3_share": {
+     "pass": false,
+     "value": 1.0,
+     "threshold": 0.5
+    },
+    "g8_plateau": {
+     "pass": false,
+     "value": 0.0,
+     "threshold": 0.75
+    },
+    "g9_loss_streak": {
+     "pass": true,
+     "value": {
+      "dd95_pct": 2.24,
+      "streak95": 10.0
+     },
+     "threshold": {
+      "dd_max_pct": 6.0
+     }
+    },
+    "g5_costs_x1.5": {
+     "pass": false,
+     "value": -0.27,
+     "threshold": 0.0
+    },
+    "g10_delay_1_bar": {
+     "pass": false,
+     "value": -0.117,
+     "threshold": 0.0
+    },
+    "g4_null": {
+     "pass": false,
+     "value": "non \u00e9valu\u00e9 (porte pr\u00e9c\u00e9dente \u00e9chou\u00e9e)",
+     "threshold": 0.1
+    }
+   },
+   "dsr": 0.032,
+   "n_trials": 48,
+   "compliance": {
+    "trades_par_jour": 0.12,
+    "duree_mediane_min": 7.0,
+    "part_trades_<=1_barre": 0.026,
+    "requetes_serveur_estimees_par_jour": 0.5,
+    "note": "\u22484 requ\u00eates/trade (ordre, SL/TP, modification, cl\u00f4ture) ; seuil \u00e9voqu\u00e9 par des sources tierces : 2000/jour"
+   },
+   "gross_expectancy_R": -0.091,
+   "verdict": "FAIL",
+   "reason": "\u00e9choue : g1_n_oos,g2_expectancy,g3_profit_factor,g6_monte_carlo_p5,g7_top3_share,g8_plateau,g5_costs_x1.5,g10_delay_1_bar,g4_null,dsr",
+   "target_math": {
+    "risk_0.25%": {
+     "R_par_mois_requis": 20.0
+    },
+    "risk_0.5%": {
+     "R_par_mois_requis": 10.0
+    },
+    "risk_0.75%": {
+     "R_par_mois_requis": 6.67
+    },
+    "risk_1.0%": {
+     "R_par_mois_requis": 5.0
+    },
+    "trades_par_mois_observes": 2.61,
+    "R_par_mois_observes": -0.27,
+    "pct_mois_a_0.5%": -0.14
+   }
+  }
+ },
+ "hypotheses": {
+  "orb_micro": {
+   "hypothese": "L'ouverture de la s\u00e9ance concentre les ordres institutionnels : la sortie de la fourchette des premi\u00e8res minutes avec \u00e9lan d\u00e9clenche des stops et prolonge le mouvement quelques dizaines de minutes.",
+   "invalidation": "Faux d\u00e9parts syst\u00e9matiques (retour dans la fourchette), spread \u00e9largi \u00e0 l'ouverture > 25 % du stop."
+  },
+  "vwap_fade": {
+   "hypothese": "Dans un march\u00e9 sans tendance, les \u00e9carts extr\u00eames au VWAP de s\u00e9ance (flux de liquidit\u00e9 non inform\u00e9) se r\u00e9sorbent ; on ach\u00e8te le retournement d'un \u00e9cart > k \u00e9carts-types avec la cible au VWAP.",
+   "invalidation": "Efficacit\u00e9 de tendance \u00e9lev\u00e9e (le prix s'\u00e9loigne sans revenir) ou spread > 25 % du stop."
+  },
+  "burst_momentum": {
+   "hypothese": "Une barre d'expansion (amplitude \u226b ATR, cl\u00f4ture \u00e0 l'extr\u00eame, volume anormal) trahit un d\u00e9s\u00e9quilibre d'ordres qui se prolonge quelques minutes (ex\u00e9cution fractionn\u00e9e des gros ordres).",
+   "invalidation": "Retour syst\u00e9matique dans la barre d'expansion (\u00e9puisement) ; spread \u00e9largi pendant l'expansion."
+  },
+  "micro_sweep": {
+   "hypothese": "Les stops sous/sur les extr\u00eames r\u00e9cents (20-40 min) sont un r\u00e9servoir de liquidit\u00e9 ; un balayage avec longue m\u00e8che et retour au-dessus du niveau signale une prise de liquidit\u00e9 sans suite.",
+   "invalidation": "Le prix recl\u00f4ture au-del\u00e0 du niveau balay\u00e9 (cassure r\u00e9elle) ; m\u00e8ches dues au seul \u00e9largissement du spread."
+  }
+ },
+ "final_config": {
+  "orb_micro": "or_min=30|stop_atr=3.0@s15",
+  "vwap_fade": "er_max=0.4|zk=3.0@s3",
+  "burst_momentum": "k=2.5|vol_k=0.0@s15",
+  "micro_sweep": "n=40|wick_k=1.0@s15"
+ },
+ "locked": {
+  "orb_micro": {
+   "n": 724,
+   "expectancy_R": -0.06,
+   "pf": 0.83,
+   "win_rate": 0.454,
+   "total_R": -43.3,
+   "variant": "or_min=30|stop_atr=3.0@s15",
+   "verdict_research": "FAIL"
+  },
+  "vwap_fade": {
+   "n": 68,
+   "expectancy_R": -0.306,
+   "pf": 0.58,
+   "win_rate": 0.221,
+   "total_R": -20.8,
+   "variant": "er_max=0.4|zk=3.0@s3",
+   "verdict_research": "FAIL"
+  },
+  "burst_momentum": {
+   "n": 55,
+   "expectancy_R": -0.233,
+   "pf": 0.64,
+   "win_rate": 0.309,
+   "total_R": -12.8,
+   "variant": "k=2.5|vol_k=0.0@s15",
+   "verdict_research": "FAIL"
+  },
+  "micro_sweep": {
+   "n": 54,
+   "expectancy_R": -0.106,
+   "pf": 0.81,
+   "win_rate": 0.407,
+   "total_R": -5.7,
+   "variant": "n=40|wick_k=1.0@s15",
+   "verdict_research": "FAIL"
+  },
+  "_note": "Configuration gel\u00e9e avant lecture, \u00e9valu\u00e9e UNE fois, publi\u00e9e telle quelle."
+ },
+ "runtime_s": 47.7
+}

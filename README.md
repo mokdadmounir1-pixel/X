@@ -112,6 +112,10 @@ python -m ftmo_algo evolve-calibrate --n 40                                     
 `paper`/`dashboard` utilisent automatiquement `results/evolved_config.json` (champions promus, algos en pause exclus). Le dashboard affiche le panneau « amélioration continue ».
 **Réel** : les promotions s'appliquent automatiquement en paper/démo ; un compte réel reste soumis à `gate` (décision humaine).
 
+## Scalp / micro-scalp (M1)
+`python -m ftmo_algo scalp-costs | scalp-research | scalp-calibrate` : même chaîne (moteur pessimiste, walk-forward, période verrouillée, portes, test nul, DSR) sur barres M1,
+avec étude des coûts et stress de retard d'exécution. Règles FTMO, résultats `[SYNTHÉTIQUE]`, limites et lancement sur votre machine : voir `SCALP.md`.
+
 ## Démo MT5 et passage au réel
 `python -m ftmo_algo demo` (sur votre machine Windows, terminal MT5 ouvert, **compte démo**) : mêmes agents, ordres réels avec SL/TP côté courtier,
 réconciliation prix demandé/exécuté/slippage, kill switch (gardien, flux coupé, écart d'exécution anormal, performance hors intervalle Monte Carlo → pause de l'agent).

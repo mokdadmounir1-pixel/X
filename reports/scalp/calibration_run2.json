@@ -1,0 +1,763 @@
+{
+ "n_series": 44,
+ "false_pass_rate_per_series": 0.0,
+ "false_pass_rate_per_algo_test": 0.0,
+ "false_watch_rate_per_series": 0.0,
+ "upper_bound_95_if_zero": 0.066,
+ "mean_oos_expectancy_R": -0.136,
+ "mean_gross_expectancy_R": -0.126,
+ "threshold": 0.05,
+ "ok": true,
+ "detail": [
+  {
+   "seed": 100,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.114,
+    "vwap_fade": -0.068,
+    "burst_momentum": -0.121,
+    "micro_sweep": -0.063
+   },
+   "gross": {
+    "orb_micro": -0.105,
+    "vwap_fade": -0.042,
+    "burst_momentum": -0.103,
+    "micro_sweep": -0.05
+   }
+  },
+  {
+   "seed": 101,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.059,
+    "vwap_fade": -0.312,
+    "burst_momentum": -0.221,
+    "micro_sweep": -0.178
+   },
+   "gross": {
+    "orb_micro": -0.054,
+    "vwap_fade": -0.289,
+    "burst_momentum": -0.2,
+    "micro_sweep": -0.17
+   }
+  },
+  {
+   "seed": 102,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.068,
+    "vwap_fade": -0.123,
+    "burst_momentum": -0.213,
+    "micro_sweep": -0.107
+   },
+   "gross": {
+    "orb_micro": -0.064,
+    "vwap_fade": -0.104,
+    "burst_momentum": -0.199,
+    "micro_sweep": -0.093
+   }
+  },
+  {
+   "seed": 103,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.075,
+    "vwap_fade": -0.063,
+    "burst_momentum": -0.079,
+    "micro_sweep": -0.062
+   },
+   "gross": {
+    "orb_micro": -0.075,
+    "vwap_fade": -0.057,
+    "burst_momentum": -0.078,
+    "micro_sweep": -0.062
+   }
+  },
+  {
+   "seed": 104,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.077,
+    "vwap_fade": -0.038,
+    "burst_momentum": -0.16,
+    "micro_sweep": 0.127
+   },
+   "gross": {
+    "orb_micro": -0.068,
+    "vwap_fade": -0.014,
+    "burst_momentum": -0.136,
+    "micro_sweep": 0.141
+   }
+  },
+  {
+   "seed": 105,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.07,
+    "vwap_fade": -0.293,
+    "burst_momentum": -0.19,
+    "micro_sweep": -0.134
+   },
+   "gross": {
+    "orb_micro": -0.06,
+    "vwap_fade": -0.263,
+    "burst_momentum": -0.167,
+    "micro_sweep": -0.113
+   }
+  },
+  {
+   "seed": 106,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.044,
+    "vwap_fade": -0.11,
+    "burst_momentum": -0.227,
+    "micro_sweep": -0.021
+   },
+   "gross": {
+    "orb_micro": -0.042,
+    "vwap_fade": -0.101,
+    "burst_momentum": -0.223,
+    "micro_sweep": -0.021
+   }
+  },
+  {
+   "seed": 107,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.028,
+    "vwap_fade": -0.249,
+    "burst_momentum": -0.277,
+    "micro_sweep": -0.03
+   },
+   "gross": {
+    "orb_micro": -0.027,
+    "vwap_fade": -0.235,
+    "burst_momentum": -0.277,
+    "micro_sweep": -0.02
+   }
+  },
+  {
+   "seed": 108,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.122,
+    "vwap_fade": -0.21,
+    "burst_momentum": -0.267,
+    "micro_sweep": -0.188
+   },
+   "gross": {
+    "orb_micro": -0.118,
+    "vwap_fade": -0.196,
+    "burst_momentum": -0.244,
+    "micro_sweep": -0.186
+   }
+  },
+  {
+   "seed": 109,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.139,
+    "vwap_fade": -0.122,
+    "burst_momentum": -0.191,
+    "micro_sweep": -0.097
+   },
+   "gross": {
+    "orb_micro": -0.136,
+    "vwap_fade": -0.109,
+    "burst_momentum": -0.187,
+    "micro_sweep": -0.095
+   }
+  },
+  {
+   "seed": 110,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.036,
+    "vwap_fade": -0.365,
+    "burst_momentum": -0.163,
+    "micro_sweep": -0.09
+   },
+   "gross": {
+    "orb_micro": -0.033,
+    "vwap_fade": -0.349,
+    "burst_momentum": -0.147,
+    "micro_sweep": -0.088
+   }
+  },
+  {
+   "seed": 111,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.157,
+    "vwap_fade": -0.186,
+    "burst_momentum": -0.111,
+    "micro_sweep": -0.05
+   },
+   "gross": {
+    "orb_micro": -0.153,
+    "vwap_fade": -0.173,
+    "burst_momentum": -0.099,
+    "micro_sweep": -0.035
+   }
+  },
+  {
+   "seed": 112,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.111,
+    "vwap_fade": -0.131,
+    "burst_momentum": -0.109,
+    "micro_sweep": -0.21
+   },
+   "gross": {
+    "orb_micro": -0.098,
+    "vwap_fade": -0.104,
+    "burst_momentum": -0.09,
+    "micro_sweep": -0.2
+   }
+  },
+  {
+   "seed": 113,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.074,
+    "vwap_fade": 0.013,
+    "burst_momentum": -0.374,
+    "micro_sweep": -0.098
+   },
+   "gross": {
+    "orb_micro": -0.063,
+    "vwap_fade": 0.053,
+    "burst_momentum": -0.339,
+    "micro_sweep": -0.079
+   }
+  },
+  {
+   "seed": 114,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.097,
+    "vwap_fade": -0.221,
+    "burst_momentum": -0.154,
+    "micro_sweep": -0.13
+   },
+   "gross": {
+    "orb_micro": -0.085,
+    "vwap_fade": -0.2,
+    "burst_momentum": -0.136,
+    "micro_sweep": -0.123
+   }
+  },
+  {
+   "seed": 115,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.135,
+    "vwap_fade": -0.187,
+    "burst_momentum": -0.066,
+    "micro_sweep": -0.114
+   },
+   "gross": {
+    "orb_micro": -0.127,
+    "vwap_fade": -0.181,
+    "burst_momentum": -0.06,
+    "micro_sweep": -0.113
+   }
+  },
+  {
+   "seed": 116,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.072,
+    "vwap_fade": -0.209,
+    "burst_momentum": -0.238,
+    "micro_sweep": -0.134
+   },
+   "gross": {
+    "orb_micro": -0.069,
+    "vwap_fade": -0.192,
+    "burst_momentum": -0.234,
+    "micro_sweep": -0.13
+   }
+  },
+  {
+   "seed": 117,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.083,
+    "vwap_fade": -0.257,
+    "burst_momentum": -0.338,
+    "micro_sweep": -0.179
+   },
+   "gross": {
+    "orb_micro": -0.079,
+    "vwap_fade": -0.243,
+    "burst_momentum": -0.324,
+    "micro_sweep": -0.173
+   }
+  },
+  {
+   "seed": 118,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.141,
+    "vwap_fade": -0.158,
+    "burst_momentum": -0.161,
+    "micro_sweep": -0.097
+   },
+   "gross": {
+    "orb_micro": -0.14,
+    "vwap_fade": -0.149,
+    "burst_momentum": -0.155,
+    "micro_sweep": -0.097
+   }
+  },
+  {
+   "seed": 119,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.058,
+    "vwap_fade": 0.001,
+    "burst_momentum": -0.073,
+    "micro_sweep": -0.121
+   },
+   "gross": {
+    "orb_micro": -0.053,
+    "vwap_fade": 0.013,
+    "burst_momentum": -0.062,
+    "micro_sweep": -0.113
+   }
+  },
+  {
+   "seed": 120,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.07,
+    "vwap_fade": -0.288,
+    "burst_momentum": -0.028,
+    "micro_sweep": -0.086
+   },
+   "gross": {
+    "orb_micro": -0.064,
+    "vwap_fade": -0.278,
+    "burst_momentum": -0.008,
+    "micro_sweep": -0.082
+   }
+  },
+  {
+   "seed": 121,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.086,
+    "vwap_fade": -0.281,
+    "burst_momentum": -0.299,
+    "micro_sweep": -0.136
+   },
+   "gross": {
+    "orb_micro": -0.083,
+    "vwap_fade": -0.269,
+    "burst_momentum": -0.293,
+    "micro_sweep": -0.124
+   }
+  },
+  {
+   "seed": 122,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.084,
+    "vwap_fade": -0.187,
+    "burst_momentum": -0.278,
+    "micro_sweep": -0.158
+   },
+   "gross": {
+    "orb_micro": -0.08,
+    "vwap_fade": -0.16,
+    "burst_momentum": -0.259,
+    "micro_sweep": -0.139
+   }
+  },
+  {
+   "seed": 123,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.113,
+    "vwap_fade": -0.115,
+    "burst_momentum": -0.234,
+    "micro_sweep": -0.223
+   },
+   "gross": {
+    "orb_micro": -0.111,
+    "vwap_fade": -0.103,
+    "burst_momentum": -0.224,
+    "micro_sweep": -0.218
+   }
+  },
+  {
+   "seed": 124,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.046,
+    "vwap_fade": -0.184,
+    "burst_momentum": -0.159,
+    "micro_sweep": -0.173
+   },
+   "gross": {
+    "orb_micro": -0.041,
+    "vwap_fade": -0.167,
+    "burst_momentum": -0.146,
+    "micro_sweep": -0.162
+   }
+  },
+  {
+   "seed": 125,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.045,
+    "vwap_fade": -0.215,
+    "burst_momentum": -0.15,
+    "micro_sweep": -0.059
+   },
+   "gross": {
+    "orb_micro": -0.04,
+    "vwap_fade": -0.199,
+    "burst_momentum": -0.134,
+    "micro_sweep": -0.048
+   }
+  },
+  {
+   "seed": 126,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.034,
+    "vwap_fade": -0.253,
+    "burst_momentum": -0.043,
+    "micro_sweep": -0.116
+   },
+   "gross": {
+    "orb_micro": -0.031,
+    "vwap_fade": -0.24,
+    "burst_momentum": -0.035,
+    "micro_sweep": -0.115
+   }
+  },
+  {
+   "seed": 127,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.128,
+    "vwap_fade": -0.121,
+    "burst_momentum": -0.208,
+    "micro_sweep": -0.157
+   },
+   "gross": {
+    "orb_micro": -0.123,
+    "vwap_fade": -0.093,
+    "burst_momentum": -0.188,
+    "micro_sweep": -0.156
+   }
+  },
+  {
+   "seed": 128,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.062,
+    "vwap_fade": -0.183,
+    "burst_momentum": -0.16,
+    "micro_sweep": -0.246
+   },
+   "gross": {
+    "orb_micro": -0.056,
+    "vwap_fade": -0.161,
+    "burst_momentum": -0.153,
+    "micro_sweep": -0.232
+   }
+  },
+  {
+   "seed": 129,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.123,
+    "vwap_fade": -0.326,
+    "burst_momentum": -0.093,
+    "micro_sweep": -0.209
+   },
+   "gross": {
+    "orb_micro": -0.122,
+    "vwap_fade": -0.31,
+    "burst_momentum": -0.081,
+    "micro_sweep": -0.199
+   }
+  },
+  {
+   "seed": 130,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.124,
+    "vwap_fade": -0.311,
+    "burst_momentum": -0.088,
+    "micro_sweep": -0.122
+   },
+   "gross": {
+    "orb_micro": -0.12,
+    "vwap_fade": -0.293,
+    "burst_momentum": -0.078,
+    "micro_sweep": -0.11
+   }
+  },
+  {
+   "seed": 131,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.075,
+    "vwap_fade": -0.23,
+    "burst_momentum": -0.261,
+    "micro_sweep": -0.19
+   },
+   "gross": {
+    "orb_micro": -0.071,
+    "vwap_fade": -0.212,
+    "burst_momentum": -0.245,
+    "micro_sweep": -0.177
+   }
+  },
+  {
+   "seed": 132,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.082,
+    "vwap_fade": -0.13,
+    "burst_momentum": 0.134,
+    "micro_sweep": -0.065
+   },
+   "gross": {
+    "orb_micro": -0.076,
+    "vwap_fade": -0.109,
+    "burst_momentum": 0.142,
+    "micro_sweep": -0.047
+   }
+  },
+  {
+   "seed": 133,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.033,
+    "vwap_fade": -0.287,
+    "burst_momentum": -0.147,
+    "micro_sweep": -0.175
+   },
+   "gross": {
+    "orb_micro": -0.029,
+    "vwap_fade": -0.272,
+    "burst_momentum": -0.133,
+    "micro_sweep": -0.168
+   }
+  },
+  {
+   "seed": 134,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.062,
+    "vwap_fade": -0.183,
+    "burst_momentum": -0.061,
+    "micro_sweep": -0.105
+   },
+   "gross": {
+    "orb_micro": -0.061,
+    "vwap_fade": -0.175,
+    "burst_momentum": -0.055,
+    "micro_sweep": -0.104
+   }
+  },
+  {
+   "seed": 135,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.067,
+    "vwap_fade": -0.333,
+    "burst_momentum": -0.033,
+    "micro_sweep": -0.163
+   },
+   "gross": {
+    "orb_micro": -0.059,
+    "vwap_fade": -0.31,
+    "burst_momentum": -0.012,
+    "micro_sweep": -0.158
+   }
+  },
+  {
+   "seed": 136,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.137,
+    "vwap_fade": -0.155,
+    "burst_momentum": -0.311,
+    "micro_sweep": -0.006
+   },
+   "gross": {
+    "orb_micro": -0.131,
+    "vwap_fade": -0.139,
+    "burst_momentum": -0.294,
+    "micro_sweep": 0.013
+   }
+  },
+  {
+   "seed": 137,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.074,
+    "vwap_fade": -0.245,
+    "burst_momentum": -0.08,
+    "micro_sweep": -0.045
+   },
+   "gross": {
+    "orb_micro": -0.073,
+    "vwap_fade": -0.233,
+    "burst_momentum": -0.071,
+    "micro_sweep": -0.034
+   }
+  },
+  {
+   "seed": 138,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.031,
+    "vwap_fade": -0.264,
+    "burst_momentum": -0.175,
+    "micro_sweep": -0.042
+   },
+   "gross": {
+    "orb_micro": -0.028,
+    "vwap_fade": -0.252,
+    "burst_momentum": -0.172,
+    "micro_sweep": -0.041
+   }
+  },
+  {
+   "seed": 139,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.093,
+    "vwap_fade": -0.086,
+    "burst_momentum": -0.175,
+    "micro_sweep": -0.155
+   },
+   "gross": {
+    "orb_micro": -0.087,
+    "vwap_fade": -0.063,
+    "burst_momentum": -0.164,
+    "micro_sweep": -0.138
+   }
+  },
+  {
+   "seed": 140,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.034,
+    "vwap_fade": -0.034,
+    "burst_momentum": -0.051,
+    "micro_sweep": -0.145
+   },
+   "gross": {
+    "orb_micro": -0.033,
+    "vwap_fade": -0.025,
+    "burst_momentum": -0.042,
+    "micro_sweep": -0.144
+   }
+  },
+  {
+   "seed": 141,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.096,
+    "vwap_fade": -0.084,
+    "burst_momentum": -0.135,
+    "micro_sweep": -0.264
+   },
+   "gross": {
+    "orb_micro": -0.093,
+    "vwap_fade": -0.074,
+    "burst_momentum": -0.127,
+    "micro_sweep": -0.252
+   }
+  },
+  {
+   "seed": 142,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.044,
+    "vwap_fade": -0.238,
+    "burst_momentum": -0.289,
+    "micro_sweep": -0.056
+   },
+   "gross": {
+    "orb_micro": -0.041,
+    "vwap_fade": -0.222,
+    "burst_momentum": -0.277,
+    "micro_sweep": -0.053
+   }
+  },
+  {
+   "seed": 143,
+   "pass": [],
+   "watch": [],
+   "exp": {
+    "orb_micro": -0.047,
+    "vwap_fade": -0.128,
+    "burst_momentum": -0.067,
+    "micro_sweep": -0.105
+   },
+   "gross": {
+    "orb_micro": -0.045,
+    "vwap_fade": -0.114,
+    "burst_momentum": -0.062,
+    "micro_sweep": -0.103
+   }
+  }
+ ],
+ "label": "[SYNTH\u00c9TIQUE]",
+ "persistence": 0.0
+}
