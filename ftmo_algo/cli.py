@@ -161,9 +161,17 @@ def _build_runner(a, label_hint=None):
     for s, d in dfs.items():
         shared.preload(s, d[d.index < cut])
     journal = Journal(a.journal)
-    fin = rep.get("final_config", {})
+    fin = dict(rep.get("final_config", {}))
+    ev = Path(a.out) / "evolved_config.json"
+    paused = set()
+    if ev.exists():      # configuration issue de l'évolution continue (promotions validées en ombre, pauses)
+        e = json.loads(ev.read_text())
+        for n, c in e.get("algos", {}).items():
+            fin[n] = c["variant"]
+            if c.get("status") == "PAUSE":
+                paused.add(n)
     cfg = SimConfig(risk_pct=a.risk, initial_balance=prof.initial_balance)
-    agents = [Agent(n, n, fin.get(n), syms, prof, cfg, news, journal, shared) for n in BASE_ALGOS]
+    agents = [Agent(n, n, fin.get(n), syms, prof, cfg, news, journal, shared) for n in BASE_ALGOS if n not in paused]
     feed = ReplayFeed(dfs, start=cut)
     synth = any(str(d.attrs.get("source", "")).startswith("SYNTH") for d in dfs.values())
     label = "SYNTHÉTIQUE" if synth else "REPLAY"
@@ -192,6 +200,7 @@ def _build_runner(a, label_hint=None):
 def cmd_dashboard(a):
     from .dashboard.server import serve
     runner = _build_runner(a)
+    runner.evo_dir = a.out
     th = threading.Thread(target=runner.run, daemon=True)
     th.start()
     print(f"dashboard : http://127.0.0.1:{a.port}  (badge {runner.label}, {len(runner.feed)} barres M5 à rejouer)")
@@ -216,6 +225,96 @@ def cmd_demo(a):
     print("Connexion vérifiée. Démarrage de la boucle démo : voir README (section démo).")
     from .live.demo import run_demo
     run_demo(a)
+
+
+def _evolve_once(a, cfg):
+    from .algos.library import BASE_ALGOS
+    from .evolve.engine import evolve_all, summarize, state_to_json
+    from .evolve.journal import EvoJournal
+    from .evolve.insights import algo_correlation
+    from .research.split import split_locked, final_evaluation
+    from .research.wf import build_ctxs, run_variants
+    from .research.pipeline import _summ
+    dfs = _data(a)
+    synth = any(str(d.attrs.get("source", "")).startswith("SYNTH") for d in dfs.values())
+    label = "SYNTHÉTIQUE" if synth else "VÉRIFIÉ sur données réelles"
+    out = Path(a.out); out.mkdir(exist_ok=True, parents=True)
+    rdata, locked = split_locked(dfs, 12)
+    news = _news(a)
+    print(f"[evolve] données {label}, verrou dès {rdata.lock_start:%Y-%m-%d} : l'évolution ne voit QUE l'avant-verrou", flush=True)
+    tv = run_variants(build_ctxs(rdata.dfs, news), BASE_ALGOS, workers=a.workers)
+    jpath = out / "evolution_journal.jsonl"
+    if jpath.exists() and not a.resume:
+        jpath.unlink()
+    state = json.loads((out / "evolution_state.json").read_text()) if a.resume and (out / "evolution_state.json").exists() else None
+    res = evolve_all(tv, cfg, EvoJournal(jpath, label), state, label=label)
+    sm = summarize(res)
+    best = {}
+    for al, d in tv.items():
+        k = res["algos"].get(al, {}).get("variant")
+        if k in d:
+            best[al] = d[k]
+    rep = {"label": f"[{label}]", "cfg": res["cfg"], "resume_de": res["last_epoch"], "resume": sm,
+           "correlation_algos": algo_correlation(best),
+           "note": ("Les trades sont pré-calculés (moteur pessimiste causal) ; le gain « évolutif − statique » compare le R mensuel "
+                    "de la boucle à la configuration initiale figée, sur les mêmes mois. Le filtre d'exclusion est appliqué "
+                    "a posteriori sur la liste de trades (approximation : un trade retiré ne libère pas de créneau).")}
+    (out / "evolution_summary.json").write_text(json.dumps(rep, indent=1, ensure_ascii=False, default=str))
+    (out / "evolution_state.json").write_text(json.dumps(state_to_json(res), indent=1, default=str))
+    (out / "evolved_config.json").write_text(json.dumps({"label": label, "asof": res["last_epoch"], "algos": {
+        n: {"variant": s["variant"], "excl": s["excl"], "status": s["status"], "health": s.get("health")}
+        for n, s in res["algos"].items()}}, indent=1, default=str))
+    return res, rep, tv, locked, label
+
+
+def cmd_evolve(a):
+    from .evolve.engine import EvolveCfg
+    cfg = EvolveCfg(shadow_months=a.shadow_months, train_months=a.train_months, seed=a.seed)
+    while True:
+        res, rep, tv, locked, label = _evolve_once(a, cfg)
+        print(f"\n=== ÉVOLUTION [{label}] jusqu'au {res['last_epoch']} ===")
+        for al, r in rep["resume"].items():
+            if al == "_portefeuille":
+                continue
+            print(f"{al:18s} config={r['config_finale']} statut={r['statut']} promos={r['promotions']} rejets={r['rejets']} "
+                  f"retours={r['retours_arriere']} pauses={r['pauses']} gain={r['gain_R_par_mois']:+.2f} R/mois {r['verdict_evolution']}")
+        p = rep["resume"].get("_portefeuille")
+        if p:
+            print(f"PORTEFEUILLE : évolutif {p['R_total_evolutif']} R vs statique {p['R_total_statique']} R sur {p['mois']} mois, "
+                  f"gain {p['gain_R_par_mois']:+.2f} R/mois IC95 {p['IC95_gain']} -> {p['verdict_evolution']}")
+        print(f"journal des changements : {a.out}/evolution_journal.jsonl")
+        if a.locked:
+            from .algos.library import BASE_ALGOS
+            from .evolve.engine import evolve_all, summarize
+            from .evolve.journal import EvoJournal
+            from .research.split import final_evaluation
+            from .research.wf import build_ctxs, run_variants
+
+            def _ev(full, lock_start):
+                tvf = run_variants(build_ctxs(full, _news(a)), BASE_ALGOS, workers=a.workers)
+                rf = evolve_all(tvf, cfg, EvoJournal(None, label), label=label)
+                return summarize(rf, since=lock_start)
+            out = final_evaluation(locked, _ev, a.out, "evolve_" + a.tag, force=a.force_relock)
+            (Path(a.out) / "evolution_locked.json").write_text(json.dumps(out, indent=1, ensure_ascii=False, default=str))
+            p = out.get("_portefeuille", {})
+            print(f"PÉRIODE VERROUILLÉE (évaluée une seule fois) : gain évolutif {p.get('gain_R_par_mois')} R/mois "
+                  f"IC95 {p.get('IC95_gain')} -> {p.get('verdict_evolution')}")
+        if not a.loop:
+            break
+        print(f"[evolve] prochaine itération dans {a.every_hours} h (Ctrl+C pour arrêter)", flush=True)
+        a.resume = True
+        time.sleep(a.every_hours * 3600)
+
+
+def cmd_evolve_cal(a):
+    from .evolve.scenarios import calibrate_evolve
+    r = calibrate_evolve(a.n)
+    Path(a.out).mkdir(exist_ok=True, parents=True)
+    (Path(a.out) / "evolve_calibration.json").write_text(json.dumps(r, indent=1, ensure_ascii=False))
+    print(r["label"])
+    for k, v in r["scenarios"].items():
+        print(f"{k:7s} gain moyen {v['gain_moyen_R_par_mois']:+.3f} R/mois (p5-p95 {v['gain_p5_p95']}) promos/série {v['promotions_par_serie']} "
+              f"UTILE {v['verdict_UTILE']}")
 
 
 def cmd_install(a):
@@ -252,6 +351,14 @@ def main(argv=None):
         s.add_argument("--max-bars", type=int, default=None); s.set_defaults(f=fn)
     s = sub.add_parser("demo"); _common(s); s.add_argument("--risk", type=float, default=0.5); s.add_argument("--minutes", type=int, default=60)
     s.add_argument("--journal", default="results/demo.sqlite"); s.set_defaults(f=cmd_demo)
+    s = sub.add_parser("evolve"); _common(s); s.add_argument("--shadow-months", type=int, default=2)
+    s.add_argument("--train-months", type=int, default=12); s.add_argument("--resume", action="store_true")
+    s.add_argument("--locked", action="store_true", help="évalue UNE fois la procédure sur la période verrouillée")
+    s.add_argument("--tag", default="run"); s.add_argument("--force-relock", action="store_true")
+    s.add_argument("--loop", action="store_true", help="relance périodique (sur votre machine, avec données fraîches)")
+    s.add_argument("--every-hours", type=float, default=24.0); s.set_defaults(f=cmd_evolve)
+    s = sub.add_parser("evolve-calibrate"); s.add_argument("--n", type=int, default=40); s.add_argument("--out", default="results")
+    s.set_defaults(f=cmd_evolve_cal)
     s = sub.add_parser("install"); s.add_argument("--only"); s.add_argument("--timeout", type=int, default=600)
     s.add_argument("--no-clone", action="store_true"); s.set_defaults(f=cmd_install)
     s = sub.add_parser("bench"); s.set_defaults(f=cmd_bench)

@@ -1,0 +1,135 @@
+{
+ "trend_pullback": {
+  "mois": 12,
+  "trades_evolutif": 33,
+  "trades_statique": 33,
+  "R_total_evolutif": -5.4,
+  "R_total_statique": -5.4,
+  "gain_R_par_mois": 0.0,
+  "IC95_gain": [
+   0.0,
+   0.0
+  ],
+  "verdict_evolution": "NON DÉMONTRÉ (IC95 contient 0)",
+  "config_finale": "pull_n=20|stop_atr=1.5@fixed3",
+  "exclusions": [],
+  "statut": "ACTIF",
+  "promotions": 0,
+  "rejets": 10,
+  "retours_arriere": 0,
+  "pauses": 0
+ },
+ "sweep_reversal": {
+  "mois": 12,
+  "trades_evolutif": 170,
+  "trades_statique": 176,
+  "R_total_evolutif": -47.1,
+  "R_total_statique": -46.1,
+  "gain_R_par_mois": -0.084,
+  "IC95_gain": [
+   -0.221,
+   0.0
+  ],
+  "verdict_evolution": "NON DÉMONTRÉ (IC95 contient 0)",
+  "config_finale": "stop_atr=1.6|wick_k=0.8@fixed3",
+  "exclusions": [],
+  "statut": "ACTIF",
+  "promotions": 1,
+  "rejets": 5,
+  "retours_arriere": 0,
+  "pauses": 0
+ },
+ "squeeze_breakout": {
+  "mois": 12,
+  "trades_evolutif": 58,
+  "trades_statique": 58,
+  "R_total_evolutif": 5.3,
+  "R_total_statique": 5.3,
+  "gain_R_par_mois": 0.0,
+  "IC95_gain": [
+   0.0,
+   0.0
+  ],
+  "verdict_evolution": "NON DÉMONTRÉ (IC95 contient 0)",
+  "config_finale": "donch_n=60|squeeze_q=0.1@fixed3_wkflat",
+  "exclusions": [],
+  "statut": "ACTIF",
+  "promotions": 0,
+  "rejets": 5,
+  "retours_arriere": 0,
+  "pauses": 0
+ },
+ "session_orb": {
+  "mois": 12,
+  "trades_evolutif": 124,
+  "trades_statique": 124,
+  "R_total_evolutif": -13.5,
+  "R_total_statique": -13.5,
+  "gain_R_par_mois": 0.0,
+  "IC95_gain": [
+   0.0,
+   0.0
+  ],
+  "verdict_evolution": "NON DÉMONTRÉ (IC95 contient 0)",
+  "config_finale": "adx_min=25|range_min=60@fixed3_wkflat",
+  "exclusions": [],
+  "statut": "ACTIF",
+  "promotions": 0,
+  "rejets": 6,
+  "retours_arriere": 0,
+  "pauses": 1
+ },
+ "meanrev_z": {
+  "mois": 12,
+  "trades_evolutif": 0,
+  "trades_statique": 24,
+  "R_total_evolutif": 0.0,
+  "R_total_statique": -13.1,
+  "gain_R_par_mois": 1.09,
+  "IC95_gain": [
+   -0.034,
+   2.268
+  ],
+  "verdict_evolution": "NON DÉMONTRÉ (IC95 contient 0)",
+  "config_finale": "adx_max=18|z_thr=2.0@be3",
+  "exclusions": [],
+  "statut": "PAUSE",
+  "promotions": 0,
+  "rejets": 9,
+  "retours_arriere": 0,
+  "pauses": 1
+ },
+ "regime_router": {
+  "mois": 12,
+  "trades_evolutif": 73,
+  "trades_statique": 73,
+  "R_total_evolutif": -17.6,
+  "R_total_statique": -17.6,
+  "gain_R_par_mois": 0.0,
+  "IC95_gain": [
+   0.0,
+   0.0
+  ],
+  "verdict_evolution": "NON DÉMONTRÉ (IC95 contient 0)",
+  "config_finale": "adx_range=16|adx_trend=28@fixed3",
+  "exclusions": [],
+  "statut": "ACTIF",
+  "promotions": 0,
+  "rejets": 4,
+  "retours_arriere": 0,
+  "pauses": 0
+ },
+ "_portefeuille": {
+  "mois": 12,
+  "trades_evolutif": 458,
+  "trades_statique": 488,
+  "R_total_evolutif": -78.3,
+  "R_total_statique": -90.3,
+  "gain_R_par_mois": 1.005,
+  "IC95_gain": [
+   -0.149,
+   2.191
+  ],
+  "verdict_evolution": "NON DÉMONTRÉ (IC95 contient 0)"
+ }
+}

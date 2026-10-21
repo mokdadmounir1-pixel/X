@@ -64,6 +64,18 @@ Edge **planté** (dérive de tendance persistante dans le générateur) pour vé
 `python -m ftmo_algo install` (venv `toolbox_env/`, Python 3.13.16, linux) : **37/38 outils installés ET importés**. Échec : MetaTrader5 (paquet disponible uniquement sous Windows (terminal MT5) : à installer sur votre). Sources de référence clonées dans `vendor/` : 8/8. Détail : `reports/synthetic_reference/toolbox_status.json`.
 Comparatifs mesurés (`bench`) : TA-Lib EMA 2.46× / ATR 6.8× plus rapide, écart numérique < 1e-12 ; la logistique maison est 2.4× plus rapide que scikit-learn avec des probabilités identiques à 1e-4. **Aucun outil intégré au cœur** : les gains de vitesse existent (TA-Lib) mais portent sur quelques millisecondes pour 200 000 barres, négligeables devant la simulation ; le cœur reste à 3 dépendances.
 
+## 3bis. Amélioration continue (`ftmo_algo/evolve/`) — ajout du 2026-10-21
+Boucle santé → recherche → ombre → promotion/probation/retour arrière → journal (voir README). Commande `evolve`, calibration `evolve-calibrate`, panneau dashboard, 6 tests (causalité, reprise d'état, pas de gain fabriqué sous le nul).
+**Mesures [SYNTHÉTIQUE] — tables de trades simulées (`reports/evolution/evolve_calibration.json`), 40 séries par scénario :**
+| scénario | gain évolutif − figé (R/mois) | promotions/série | verdict « UTILE » |
+|---|---|---|---|
+| nul (aucun avantage) | −0,03 (p5–p95 : −0,9 à +1,5) | 0,88 | **0/40** (aucun faux « utile ») |
+| stable (un champion robuste) | +0,67 | 0,35 | 5/40 |
+| dégradation (changement de régime) | +2,42 | 1,3 | 22/40 |
+Lecture : sous le nul la boucle ne fabrique pas de gain (moyenne ≈ 0, bruit symétrique) ; sous changement de régime elle aide en moyenne mais pas à tout coup (22/40 « utile » à IC95).
+Sur le marché synthétique complet (`evolve --years 4`, `reports/evolution/synthetic_example_*`) : un exemple de run et son évaluation unique sur la période verrouillée (non démontré, IC95 contient 0).
+**Non vérifié / limites :** (a) aucune donnée réelle ; (b) les trades sont pré-calculés puis tranchés par date (sans fuite, comme le walk-forward) mais l'exclusion de zones est appliquée **a posteriori** sur la liste de trades (un trade retiré ne libère pas de créneau) ; (c) les seuils de la boucle (marges, 80 %, 2 mois d'ombre) sont des choix a priori non optimisés ; (d) le mode `--loop` n'a jamais tourné sur données fraîches MT5 ; (e) les exclusions promues ne sont pas encore appliquées par les agents live (seules la variante et la pause le sont).
+
 ## 4. Algos rejetés et pourquoi
 Tous les algos échouent sur la marche aléatoire de référence — **ce n'est pas un rejet sur le fond** : sans edge à trouver, un FAIL est le bon résultat, et ce n'est pas une preuve contre les hypothèses sur marché réel. Ce que le dépôt prouve, c'est que le pipeline ne fabrique pas de faux edge. Rejets effectifs :
 - `micro_scalping` et `fx_liquidity_bot` (code historique) : remplacés, voir §1.

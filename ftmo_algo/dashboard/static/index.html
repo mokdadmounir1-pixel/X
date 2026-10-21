@@ -40,6 +40,7 @@ table{width:100%;border-collapse:collapse}td,th{padding:2px 5px;text-align:left;
 <section class="card c5"><h2>CIBLE MENSUELLE — R CUMULÉS VS CIBLE (+5 %)</h2><canvas id="tgt" width="640" height="260"></canvas><div class="legend" id="tinfo"></div></section>
 <section class="card c4"><h2>PROFIL PROP FIRM — JAUGES SUR L'ÉQUITÉ</h2><div id="gauges"></div><h2>PROCHAINES ANNONCES</h2><div id="news"></div></section>
 <section class="card c3"><h2>DONNÉES & OUTILS</h2><div id="dq"></div><div id="tools" class="dim"></div></section>
+<section class="card c12"><h2>AMÉLIORATION CONTINUE — CHAMPIONS, PAUSES, JOURNAL DES CHANGEMENTS</h2><div id="evo" class="dim">pas encore lancée : python -m ftmo_algo evolve</div></section>
 <section class="card c6"><h2>VERDICTS DE RECHERCHE</h2><div id="verd"></div></section>
 <section class="card c6"><h2>TAPE D'EXÉCUTION</h2><div class="tape" id="tape"></div></section>
 </main>
@@ -47,6 +48,11 @@ table{width:100%;border-collapse:collapse}td,th{padding:2px 5px;text-align:left;
 "use strict";
 const $=id=>document.getElementById(id);let S=null,symSel=null,seenNotif=0,notifOn=false;
 const fmt=(x,d=2)=>x==null||isNaN(x)?"–":Number(x).toFixed(d);
+async function evoPoll(){try{const E=await (await fetch("/api/evolution")).json();if(!E.present)return;const p=(E.resume||{})._portefeuille;
+ let h=`<div>${E.label} — évolution vs configuration figée : `+(p?`<b>${p.gain_R_par_mois>=0?"+":""}${p.gain_R_par_mois} R/mois</b> IC95 [${p.IC95_gain}] sur ${p.mois} mois → <b>${p.verdict_evolution}</b>`:"n/a")+`</div><table style="width:100%;font-size:12px"><tr><th align=left>algo</th><th align=left>champion</th><th>statut</th><th>promos</th><th>rejets</th><th>retours</th><th>pauses</th></tr>`;
+ for(const[k,v] of Object.entries(E.resume||{})){if(k[0]=="_")continue;h+=`<tr><td>${k}</td><td>${v.config_finale}${(v.exclusions||[]).length?" sauf "+v.exclusions:""}</td><td align=center class="${v.statut=="ACTIF"?"up":"dn"}">${v.statut}</td><td align=center>${v.promotions}</td><td align=center>${v.rejets}</td><td align=center>${v.retours_arriere}</td><td align=center>${v.pauses}</td></tr>`}
+ h+="</table><div style='margin-top:6px;max-height:140px;overflow:auto'>"+(E.journal||[]).slice().reverse().map(j=>`${j.asof.slice(0,10)} <b>${j.event}</b> ${j.algo} — ${j.raison||j.declencheur||""}`).join("<br>")+"</div>";$("evo").innerHTML=h}catch(e){}}
+setInterval(evoPoll,15000);evoPoll();
 async function poll(){let ok=false;try{const r=await fetch("/api/state"+(symSel?("?symbol="+symSel):""));S=await r.json();ok=true}catch(e){$("alert").style.display="block";$("alert").textContent="⚠ SERVEUR INJOIGNABLE"}
  if(ok){try{render()}catch(e){console.error("render:",e&&e.stack||e)}}}
 setInterval(poll,1000);poll();

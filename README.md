@@ -91,6 +91,27 @@ FTMO 2 étapes : perte jour 5 %, perte max 10 %, objectif 10 %, 4 jours min, res
 - Un résultat `[SYNTHÉTIQUE]` ne prouve **rien** sur le marché réel : il valide la mécanique (portes, absence de look-ahead, faux PASS) et rien d'autre.
 - Les limites connues (conversion de devise approximative, calendrier d'annonces réduit à la règle NFP sauf CSV fourni, test nul évalué sur la variante modale, spreads synthétiques) sont listées dans `ETAT_PROJET.md`.
 
+## Amélioration continue des stratégies (`evolve`)
+
+Les stratégies ne sont pas jugées une fois pour toutes : une boucle les surveille et les fait évoluer **sur preuve**.
+Chaque mois (pas configurable), pour chaque algo, avec uniquement les données antérieures à la date :
+1. **Santé** : l'espérance récente du champion est comparée à sa référence (z-score + CUSUM) → SAIN / DÉGRADÉ / **PAUSE** (l'algo cesse de trader tant qu'il ne redevient pas positif).
+2. **Recherche** : déclenchée par une dégradation ; sur un champion qui gagne, seulement tous les 3 pas et avec une avance d'entraînement nette (« peut-on gagner plus ? »). Candidats : autre variante, et/ou **exclusion de zones perdantes** (sessions, jours, instruments) trouvées par `insights` (permutation + correction Šidák).
+3. **Ombre** : le candidat est suivi **sans être tradé** pendant 2 mois ; il n'est promu que s'il bat le champion sur ces données neuves (avance ≥ 0,10 R/trade, probabilité bootstrap ≥ 80 %, espérance > 0, ≥ 12 trades), avec carence et ≤ 3 promotions/an.
+4. **Probation** : après promotion, retour arrière automatique si le nouveau fait pire que l'ancien.
+5. **Journal** (`evolution_journal.jsonl`) : chaque décision, ses chiffres et son statut ; les trouvailles d'`insights` sont des `[HYPOTHÈSE]` jamais appliquées sans passer l'ombre.
+
+Le compromis, simplement : plus la boucle bouge souvent, plus elle risque de coller au bruit (surapprentissage) ; les garde-fous ci-dessus la rendent lente et exigeante exprès. **Preuve de valeur** : la boucle est comparée à la configuration initiale figée sur les mêmes mois (gain en R/mois avec IC95) ; elle est jugée « utile » seulement si l'IC95 est > 0.
+
+```bash
+python -m ftmo_algo evolve --mt5 --instruments US500,EURUSD,XAUUSD --start 2020-01-01 --out results           # un passage
+python -m ftmo_algo evolve --mt5 ... --loop --every-hours 24 --resume                                          # en continu sur votre machine
+python -m ftmo_algo evolve --mt5 ... --locked --tag v1                                                         # évalue UNE fois la procédure sur la période verrouillée
+python -m ftmo_algo evolve-calibrate --n 40                                                                    # comportement sur scénarios nul / stable / dégradation
+```
+`paper`/`dashboard` utilisent automatiquement `results/evolved_config.json` (champions promus, algos en pause exclus). Le dashboard affiche le panneau « amélioration continue ».
+**Réel** : les promotions s'appliquent automatiquement en paper/démo ; un compte réel reste soumis à `gate` (décision humaine).
+
 ## Démo MT5 et passage au réel
 `python -m ftmo_algo demo` (sur votre machine Windows, terminal MT5 ouvert, **compte démo**) : mêmes agents, ordres réels avec SL/TP côté courtier,
 réconciliation prix demandé/exécuté/slippage, kill switch (gardien, flux coupé, écart d'exécution anormal, performance hors intervalle Monte Carlo → pause de l'agent).

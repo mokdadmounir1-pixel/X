@@ -25,6 +25,25 @@ def clean(o):
     return o
 
 
+def _evolution(d):
+    """Résumé de l'amélioration continue (fichiers écrits par `python -m ftmo_algo evolve`) + 25 derniers changements."""
+    if not d:
+        return {"present": False}
+    d = Path(d)
+    f = d / "evolution_summary.json"
+    if not f.exists():
+        return {"present": False}
+    out = {"present": True, **json.loads(f.read_text())}
+    jf = d / "evolution_journal.jsonl"
+    if jf.exists():
+        rows = [json.loads(x) for x in jf.read_text().splitlines() if x.strip()]
+        out["journal"] = [r for r in rows if r["event"] not in ("INSIGHT", "PROBATION_OK")][-25:]
+    cf = d / "evolved_config.json"
+    if cf.exists():
+        out["config"] = json.loads(cf.read_text())
+    return out
+
+
 def make_handler(runner):
     class H(BaseHTTPRequestHandler):
         def log_message(self, *a):
@@ -45,6 +64,8 @@ def make_handler(runner):
                 q = parse_qs(u.query)
                 st = runner.state(q.get("symbol", [None])[0], q.get("tf", ["M15"])[0])
                 return self._send(200, json.dumps(clean(st), default=str, allow_nan=False))
+            if u.path == "/api/evolution":
+                return self._send(200, json.dumps(clean(_evolution(getattr(runner, "evo_dir", None))), default=str, allow_nan=False))
             if u.path == "/favicon.ico":
                 return self._send(204, b"", "image/x-icon")
             return self._send(404, "{}")
