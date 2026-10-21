@@ -91,6 +91,9 @@ FTMO 2 étapes : perte jour 5 %, perte max 10 %, objectif 10 %, 4 jours min, res
 - Un résultat `[SYNTHÉTIQUE]` ne prouve **rien** sur le marché réel : il valide la mécanique (portes, absence de look-ahead, faux PASS) et rien d'autre.
 - Les limites connues (conversion de devise approximative, calendrier d'annonces réduit à la règle NFP sauf CSV fourni, test nul évalué sur la variante modale, spreads synthétiques) sont listées dans `ETAT_PROJET.md`.
 
+## Piloter depuis le dashboard
+Le panneau **COMMANDES** (en haut de la page) remplace la ligne de commande : lancer recherche / évolution continue / calibration / cible mensuelle (choix des instruments, des algos, de la source : synthétique, vos CSV ou MT5), suivre et arrêter les tâches (onglet *Tâches*, journal en direct), importer des CSV, changer de source et redémarrer l'affichage, activer le **verrou de gain**, arrêter/relancer chaque agent, tester la connexion MT5 démo. Les tâches tournent en fond sur la machine qui héberge le dashboard et survivent à son redémarrage. Les actions n'acceptent que des requêtes venant de la page elle-même (en-tête + origine), sur 127.0.0.1.
+
 ## Verrou de gain
 Deux niveaux, **désactivés par défaut** (le catalogue de référence est inchangé) :
 - **Par trade** (`--lock-exit` sur `research` / `evolve` / `paper`) : sorties `lock3` et `lock4`, un cliquet à paliers. Dès que le trade a atteint +1,5 R le stop passe à l'entrée, à +2,5 R il verrouille +1 R (`lock4` : paliers 1/2/3 R → −0,3/+0,5/+1,5 R). Le stop ne recule jamais ; côté vendeur le spread est payé. Ces variantes entrent dans la grille testée (donc dans le comptage DSR) et dans l'évolution continue.

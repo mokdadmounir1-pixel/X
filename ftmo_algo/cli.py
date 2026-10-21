@@ -24,6 +24,7 @@ def _common(p):
     p.add_argument("--workers", type=int, default=4)
     p.add_argument("--profile", default="ftmo_2step")
     p.add_argument("--news-csv", help="calendrier économique CSV (time,name)")
+    p.add_argument("--algos", default="", help="sous-ensemble d'algos (virgules) pour research/evolve")
     p.add_argument("--lock-exit", action="store_true", help="ajoute les sorties à verrou de gain par paliers (lock3, lock4) aux variantes testées")
 
 
@@ -59,7 +60,7 @@ def cmd_research(a):
     from .research.pipeline import research, to_json, print_table
     dfs = _data(a)
     rep = research(dfs, _news(a), a.workers, a.seed, null_B=a.null, profile=a.profile, out_dir=a.out,
-                   tag=a.tag, locked_force=a.force_relock)
+                   tag=a.tag, locked_force=a.force_relock, algos=[x for x in a.algos.split(",") if x] or None)
     port = rep["_internal"]["portfolio_trades"]
     res = rep["_internal"]["res"]
     Path(a.out).mkdir(exist_ok=True)
@@ -151,6 +152,9 @@ def _build_runner(a, label_hint=None):
     dfs = _data(a)
     news = _news(a) or NewsCalendar.default(min(d.index[0] for d in dfs.values()), max(d.index[-1] for d in dfs.values()))
     prof = PropProfile.load(a.profile)
+    sf = Path(a.out) / "dashboard_settings.json"
+    if sf.exists():       # réglages faits depuis l'interface (verrou de gain)
+        prof.profit_lock = json.loads(sf.read_text()).get("profit_lock", prof.profit_lock) or {}
     rep = {}
     f = Path(a.out) / "latest.json"
     if f.exists():
@@ -200,8 +204,11 @@ def _build_runner(a, label_hint=None):
 
 def cmd_dashboard(a):
     from .dashboard.server import serve
+    if a.start_delay:
+        time.sleep(a.start_delay)       # redémarrage depuis l'interface : laisse l'ancien processus libérer le port
     runner = _build_runner(a)
     runner.evo_dir = a.out
+    runner.cli_args = a
     th = threading.Thread(target=runner.run, daemon=True)
     th.start()
     print(f"dashboard : http://127.0.0.1:{a.port}  (badge {runner.label}, {len(runner.feed)} barres M5 à rejouer)")
@@ -243,7 +250,8 @@ def _evolve_once(a, cfg):
     rdata, locked = split_locked(dfs, 12)
     news = _news(a)
     print(f"[evolve] données {label}, verrou dès {rdata.lock_start:%Y-%m-%d} : l'évolution ne voit QUE l'avant-verrou", flush=True)
-    tv = run_variants(build_ctxs(rdata.dfs, news), BASE_ALGOS, workers=a.workers)
+    sel = [x for x in (a.algos or "").split(",") if x] or BASE_ALGOS
+    tv = run_variants(build_ctxs(rdata.dfs, news), sel, workers=a.workers)
     jpath = out / "evolution_journal.jsonl"
     if jpath.exists() and not a.resume:
         jpath.unlink()
@@ -292,7 +300,7 @@ def cmd_evolve(a):
             from .research.wf import build_ctxs, run_variants
 
             def _ev(full, lock_start):
-                tvf = run_variants(build_ctxs(full, _news(a)), BASE_ALGOS, workers=a.workers)
+                tvf = run_variants(build_ctxs(full, _news(a)), [x for x in (a.algos or "").split(",") if x] or BASE_ALGOS, workers=a.workers)
                 rf = evolve_all(tvf, cfg, EvoJournal(None, label), label=label)
                 return summarize(rf, since=lock_start)
             out = final_evaluation(locked, _ev, a.out, "evolve_" + a.tag, force=a.force_relock)
@@ -347,6 +355,7 @@ def main(argv=None):
     s.set_defaults(f=cmd_target)
     for nm, fn in (("dashboard", cmd_dashboard), ("paper", cmd_paper)):
         s = sub.add_parser(nm); _common(s); s.add_argument("--port", type=int, default=8767)
+        s.add_argument("--start-delay", type=float, default=0.0)
         s.add_argument("--speed", type=float, default=20.0); s.add_argument("--replay-days", type=int, default=20)
         s.add_argument("--risk", type=float, default=0.5); s.add_argument("--journal", default=":memory:")
         s.add_argument("--max-bars", type=int, default=None); s.set_defaults(f=fn)

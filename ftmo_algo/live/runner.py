@@ -161,7 +161,9 @@ class Runner:
                                "guardian": {"day_loss_pct": round((a.sim.g.day_ref - a.sim.last_equity) / a.profile.initial_balance * 100, 3),
                                             "limit_daily": a.profile.daily_loss_pct,
                                             "tot_loss_pct": round((a.profile.initial_balance - a.sim.last_equity) / a.profile.initial_balance * 100, 3),
-                                            "limit_total": a.profile.max_loss_pct, "blocked": a.sim.g.blocked_day or a.sim.g.blocked_all}})
+                                            "limit_total": a.profile.max_loss_pct, "blocked": a.sim.g.blocked_day or a.sim.g.blocked_all,
+                                            "gain_locked": a.sim.g.blocked_gain},
+                               "pause_reason": a.pause_reason})
             sym = sym_view or (self.agents[0].symbols[0] if self.agents else None)
             candles, levels = [], []
             a0 = next((a for a in self.agents if sym in a.ctx), None)
@@ -199,6 +201,7 @@ class Runner:
                     "candles": candles, "levels": levels, "vortex": vortex, "news": [{"t": t // 10**9, "name": n} for t, n in nxt],
                     "symbols": sorted({x for a in self.agents for x in a.symbols}), "notifications": list(self.notifier.items)[-30:], "verdicts": self.verdicts,
                     "data_quality": self.data_quality, "tools": self.tools_status, "target": tinfo,
+                    "profit_lock": dict(getattr(self.profile, "profit_lock", {}) or {}),
                     "profile": {"name": self.profile.name if self.profile else "", "daily": self.profile.daily_loss_pct if self.profile else 5,
                                 "total": self.profile.max_loss_pct if self.profile else 10,
                                 "verified": self.profile.verified_on if self.profile else ""}}

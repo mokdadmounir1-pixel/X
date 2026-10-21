@@ -23,6 +23,15 @@ table{width:100%;border-collapse:collapse}td,th{padding:2px 5px;text-align:left;
 .PASS{color:var(--g)}.WATCH{color:var(--a)}.FAIL{color:var(--r)}
 .gauge{height:9px;background:#111a25;border-radius:2px;overflow:hidden;margin:3px 0 7px}.gauge i{display:block;height:100%;background:var(--g)}
 .tape{max-height:230px;overflow:auto}.tape div{padding:1px 0;border-bottom:1px solid #0f1620}
+
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}.tabs button.on{background:#1d3a5a;color:#fff;border-color:#2f5f93}
+.pane{display:none}.pane.on{display:block}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:5px 0}
+label.f{display:flex;flex-direction:column;gap:2px;color:var(--dim);font-size:10.5px}
+input[type=text],input[type=number],textarea{background:#0a0f16;color:var(--tx);border:1px solid var(--line);border-radius:3px;padding:3px 6px;font:inherit;min-width:90px}
+button.go{background:#143a2a;color:var(--g);border-color:#1f5a40;font-weight:700}button.stop{background:#3a1220;color:var(--r);border-color:#5a1f33}
+.chips label{display:inline-flex;gap:4px;align-items:center;margin-right:10px;color:var(--tx)}
+#msg{margin:6px 0;min-height:16px}pre#log{background:#05070a;border:1px solid var(--line);padding:6px;max-height:220px;overflow:auto;white-space:pre-wrap;margin:6px 0 0}
+.ag button{margin-top:4px;font-size:11px}
 </style></head><body>
 <div id="alert">⚠ FLUX DE DONNÉES INTERROMPU — agents en pause</div>
 <header><h1>FTMO·ALGO / TERMINAL</h1><span id="badge" class="badge b-SYNTHETIQUE">…</span>
@@ -31,6 +40,36 @@ table{width:100%;border-collapse:collapse}td,th{padding:2px 5px;text-align:left;
 <button id="pause">⏸ Pause</button><label class="dim">vitesse <select id="speed"><option>1</option><option>5</option><option>20</option><option>100</option><option value="0">max</option></select></label>
 <button id="notif">🔔 Notifications</button></header>
 <main>
+<section class="card c12"><h2>COMMANDES — TOUT SE PILOTE ICI</h2>
+<div class="tabs" id="tabs"><button data-p="run" class="on">▶ Lancer</button><button data-p="data">Données</button><button data-p="lock">Verrou de gain</button><button data-p="mt5">MT5 démo</button><button data-p="jobs">Tâches</button></div>
+<div id="msg" class="dim"></div>
+<div class="pane on" id="p-run">
+ <div class="row"><label class="f">Action<select id="r-kind"></select></label><label class="f">Source de données<select id="r-src"><option value="synth">synthétique (test)</option><option value="csv">mes fichiers CSV</option><option value="mt5">MT5 (sur ce PC)</option></select></label>
+ <label class="f">Instruments<input type="text" id="r-ins" value="US500,EURUSD,XAUUSD" size="30"></label><label class="f">Années (synth.)<input type="number" id="r-years" value="4" step="0.5" min="0.5" max="12" style="width:70px"></label>
+ <label class="f">Processus<input type="number" id="r-workers" value="4" min="1" max="32" style="width:60px"></label></div>
+ <div class="row chips" id="r-algos"></div>
+ <div class="row chips"><label><input type="checkbox" id="r-lock"> sorties à verrou de gain (lock3/lock4)</label><label><input type="checkbox" id="r-loop"> évolution en continu (boucle)</label>
+ <label class="f">toutes les (h)<input type="number" id="r-every" value="24" step="1" min="0.1" style="width:60px"></label><label><input type="checkbox" id="r-locked"> évaluer UNE fois la période verrouillée</label></div>
+ <div class="row"><button class="go" id="r-go">▶ Lancer</button><span class="dim" id="r-desc"></span></div>
+ <div class="legend">Une recherche ou une évolution tourne sur la machine qui héberge le dashboard (la vôtre), en tâche de fond : vous suivez l'avancement dans l'onglet « Tâches ». Les résultats alimentent les panneaux « Verdicts » et « Amélioration continue ».</div></div>
+<div class="pane" id="p-data">
+ <div class="row"><label class="f">Importer un CSV (nom : INSTRUMENT_M5.csv, ex. EURUSD_M5.csv)<input type="file" id="d-file" accept=".csv" multiple></label><button id="d-up">⬆ Importer</button><span class="dim" id="d-info"></span></div>
+ <div class="legend" id="d-files"></div>
+ <div class="row"><b>Appliquer au dashboard (redémarre l'affichage) :</b><label class="f">Source<select id="d-src"><option value="synth">synthétique</option><option value="csv">mes fichiers CSV</option><option value="mt5">MT5</option></select></label>
+ <label class="f">Instruments<input type="text" id="d-ins" size="30"></label><label class="f">Risque %/trade<input type="number" id="d-risk" step="0.05" min="0.05" max="2" style="width:70px"></label>
+ <label class="f">Jours à rejouer<input type="number" id="d-replay" min="2" max="400" style="width:70px"></label><button class="go" id="d-apply">Appliquer et redémarrer</button></div>
+ <div class="legend">Après avoir changé de source ou d'instruments, le dashboard repart avec la dernière configuration validée (résultats de <i>recherche</i> et <i>évolution</i> pris en compte automatiquement). Les agents n'utilisent jamais la période verrouillée.</div></div>
+<div class="pane" id="p-lock">
+ <div class="row"><label class="f">Arrêt du jour à +X % du capital<input type="number" id="l-day" step="0.25" min="0" max="20" style="width:90px"></label>
+ <label class="f">Armement à +Y %<input type="number" id="l-arm" step="0.25" min="0" max="20" style="width:90px"></label>
+ <label class="f">Restitution max (0–0,95)<input type="number" id="l-gb" step="0.05" min="0" max="0.95" style="width:90px"></label>
+ <button class="go" id="l-apply">Activer / modifier</button><button id="l-off">Désactiver</button><span id="l-state" class="dim"></span></div>
+ <div class="legend">Verrou de gain journalier : plus aucune nouvelle entrée du jour une fois +X % atteint, ou si, après +Y % de gain, on en restitue la part indiquée. Les positions ouvertes gardent leur stop et leur cible. Les sorties à cliquet par trade se choisissent dans « Lancer » (option lock3/lock4).</div></div>
+<div class="pane" id="p-mt5">
+ <div class="row"><button id="m-test">Tester la connexion MT5 (compte DÉMO)</button><button class="go" id="m-run">▶ Lancer la boucle démo</button></div>
+ <div id="m-out" class="dim"></div><div class="legend">Le pont refuse tout compte non démo. Il faut : Windows, terminal MT5 ouvert et connecté au compte démo, <code>pip install MetaTrader5</code>. Le passage au réel reste une décision humaine (commande <code>gate</code>).</div></div>
+<div class="pane" id="p-jobs"><div id="j-list"></div><pre id="log">(cliquez une tâche pour voir son journal)</pre></div>
+</section>
 <section class="card c4"><h2>VORTEX — ÉTAT DU MARCHÉ ET DES AGENTS</h2><canvas id="vortex" width="520" height="400"></canvas>
 <div class="legend"><b>rotation</b> = volatilité courte/longue · <b>étirement axial</b> = force de tendance (ADX H1) · <b>cohérence</b> = accord entre agents (bras alignés) · <b>couleur</b> = direction (vert haussier, rouge baissier) · <b>nœuds orbitaux</b> = agents (allumés en position ou signal) · <b>pulsation</b> = trade ouvert/fermé</div>
 <div class="legend" id="vinfo"></div></section>
@@ -48,6 +87,42 @@ table{width:100%;border-collapse:collapse}td,th{padding:2px 5px;text-align:left;
 "use strict";
 const $=id=>document.getElementById(id);let S=null,symSel=null,seenNotif=0,notifOn=false;
 const fmt=(x,d=2)=>x==null||isNaN(x)?"–":Number(x).toFixed(d);
+
+const api=async(path,body)=>{const r=await fetch(path,{method:"POST",headers:{"X-Requested-With":"dashboard","Content-Type":"application/json"},body:JSON.stringify(body||{})});let j={};try{j=await r.json()}catch(e){}
+ if(!r.ok)throw new Error(j.error||("erreur "+r.status));return j};
+const say=(t,bad)=>{$("msg").textContent=t;$("msg").className=bad?"dn":"up"};
+let META=null,curJob=null;
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));document.querySelectorAll(".pane").forEach(p=>p.classList.toggle("on",p.id==="p-"+b.dataset.p))});
+async function loadMeta(){META=await (await fetch("/api/meta")).json();const k=$("r-kind");k.innerHTML=Object.entries(META.kinds).filter(([a])=>a!="demo").map(([a,l])=>`<option value="${a}">${a} — ${l}</option>`).join("");
+ $("r-algos").innerHTML="<span class='dim'>algos (vide = tous) :</span> "+META.algos.map(a=>`<label title="${a.hypothese.replace(/"/g,"'")}"><input type="checkbox" class="alg" value="${a.name}">${a.name}</label>`).join("");
+ const st=META.settings;$("d-ins").value=st.instruments||"";$("d-risk").value=st.risk||0.5;$("d-replay").value=st.replay_days||25;$("d-src").value=st.mt5?"mt5":st.data_dir?"csv":"synth";
+ $("r-src").value=$("d-src").value;$("r-ins").value=st.instruments||"US500,EURUSD,XAUUSD";$("r-workers").value=st.workers||4;
+ const pl=META.profit_lock||{};$("l-day").value=pl.day_gain_pct||"";$("l-arm").value=pl.arm_pct||"";$("l-gb").value=pl.giveback_frac||"";
+ $("d-files").innerHTML=`Dossier de données : <b>${META.data_dir}</b> — `+(META.files.length?META.files.map(f=>`${f.name} (${f.mb} Mo)`).join(", "):"aucun fichier importé");
+ $("r-desc").textContent="";}
+$("r-kind").onchange=()=>{$("r-desc").textContent=META.kinds[$("r-kind").value]};
+function params(){const algos=[...document.querySelectorAll(".alg:checked")].map(x=>x.value).join(",");
+ return {instruments:$("r-ins").value.trim(),source:$("r-src").value,years:+$("r-years").value,workers:+$("r-workers").value,algos,lock_exit:$("r-lock").checked,
+  loop:$("r-loop").checked,every_hours:+$("r-every").value,locked:$("r-locked").checked,data_dir:META.data_dir,start:"2020-01-01"}}
+$("r-go").onclick=async()=>{try{const k=$("r-kind").value;if(k=="evolve"&&$("r-locked").checked&&!confirm("La période verrouillée ne peut être évaluée qu'UNE fois. Continuer ?"))return;
+ const j=await api("/api/job/start",{kind:k,params:params()});say("Tâche lancée : "+j.id+" → onglet « Tâches »");curJob=j.id;jobsPoll()}catch(e){say(e.message,true)}};
+$("d-up").onclick=async()=>{const fs=$("d-file").files;if(!fs.length){say("choisissez un fichier .csv",true);return}
+ try{for(const f of fs){$("d-info").textContent="envoi de "+f.name+"…";const r=await fetch("/api/upload?name="+encodeURIComponent(f.name),{method:"POST",headers:{"X-Requested-With":"dashboard"},body:f});
+  const j=await r.json();if(!r.ok)throw new Error(j.error)}say("Fichiers importés dans "+META.data_dir);$("d-info").textContent="";loadMeta()}catch(e){say(e.message,true);$("d-info").textContent=""}};
+$("d-apply").onclick=async()=>{try{const j=await api("/api/restart",{source:$("d-src").value,instruments:$("d-ins").value.trim(),risk:$("d-risk").value,replay_days:$("d-replay").value,data_dir:META.data_dir});
+ say("Redémarrage… "+j.note);setTimeout(()=>location.reload(),9000)}catch(e){say(e.message,true)}};
+$("l-apply").onclick=async()=>{try{await api("/api/control",{profit_lock:{day_gain_pct:+$("l-day").value||0,arm_pct:+$("l-arm").value||0,giveback_frac:+$("l-gb").value||0}});say("Verrou de gain enregistré")}catch(e){say(e.message,true)}};
+$("l-off").onclick=async()=>{try{await api("/api/control",{profit_lock:{}});["l-day","l-arm","l-gb"].forEach(i=>$(i).value="");say("Verrou de gain désactivé")}catch(e){say(e.message,true)}};
+$("m-test").onclick=async()=>{$("m-out").textContent="test en cours…";try{const j=await api("/api/mt5");$("m-out").innerHTML=`<span class="${j.ok?"up":"dn"}">${j.ok?"✔":"✘"}</span> ${j.message}`}catch(e){$("m-out").textContent=e.message}};
+$("m-run").onclick=async()=>{try{const j=await api("/api/job/start",{kind:"demo",params:{...params(),source:"mt5"}});say("Boucle démo lancée : "+j.id);jobsPoll()}catch(e){say(e.message,true)}};
+async function jobsPoll(){try{const q=curJob?("?id="+curJob):"";const j=await (await fetch("/api/jobs"+q)).json();
+ $("j-list").innerHTML=`<table><tr><th>tâche</th><th>état</th><th>commande</th><th></th></tr>`+j.jobs.slice().reverse().map(x=>`<tr style="cursor:pointer" data-id="${x.id}"><td>${x.id}</td><td class="${x.status=="en cours"?"warn":x.status=="terminée"?"up":"dn"}">${x.status}</td><td class="dim">${x.cmd.slice(0,90)}</td><td>${x.status=="en cours"?`<button class="stop" data-stop="${x.id}">■ Arrêter</button>`:""}</td></tr>`).join("")+"</table>";
+ document.querySelectorAll("#j-list tr[data-id]").forEach(tr=>tr.onclick=e=>{if(e.target.dataset.stop)return;curJob=tr.dataset.id;jobsPoll()});
+ document.querySelectorAll("[data-stop]").forEach(b=>b.onclick=async()=>{try{await api("/api/job/stop",{id:b.dataset.stop});say("arrêt demandé")}catch(e){say(e.message,true)}});
+ if(j.log!=null){const L=$("log");const bot=L.scrollTop+L.clientHeight>=L.scrollHeight-8;L.textContent=j.log||"(vide)";if(bot)L.scrollTop=L.scrollHeight}}catch(e){}}
+setInterval(jobsPoll,3000);loadMeta().then(()=>{$("r-kind").onchange();jobsPoll()});
+function lockState(){const pl=S.profit_lock||{},on=Object.keys(pl).length,n=S.agents.filter(a=>a.guardian.gain_locked).length;$("l-state").textContent=on?`actif ${JSON.stringify(pl)} — agents verrouillés aujourd'hui : ${n}`:"désactivé"}
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-agent]");if(!b)return;try{await api("/api/control",{agent:b.dataset.agent,paused:b.dataset.pause=="1"});poll()}catch(er){say(er.message,true)}});
 async function evoPoll(){try{const E=await (await fetch("/api/evolution")).json();if(!E.present)return;const p=(E.resume||{})._portefeuille;
  let h=`<div>${E.label} — évolution vs configuration figée : `+(p?`<b>${p.gain_R_par_mois>=0?"+":""}${p.gain_R_par_mois} R/mois</b> IC95 [${p.IC95_gain}] sur ${p.mois} mois → <b>${p.verdict_evolution}</b>`:"n/a")+`</div><table style="width:100%;font-size:12px"><tr><th align=left>algo</th><th align=left>champion</th><th>statut</th><th>promos</th><th>rejets</th><th>retours</th><th>pauses</th></tr>`;
  for(const[k,v] of Object.entries(E.resume||{})){if(k[0]=="_")continue;h+=`<tr><td>${k}</td><td>${v.config_finale}${(v.exclusions||[]).length?" sauf "+v.exclusions:""}</td><td align=center class="${v.statut=="ACTIF"?"up":"dn"}">${v.statut}</td><td align=center>${v.promotions}</td><td align=center>${v.rejets}</td><td align=center>${v.retours_arriere}</td><td align=center>${v.pauses}</td></tr>`}
@@ -56,8 +131,8 @@ setInterval(evoPoll,15000);evoPoll();
 async function poll(){let ok=false;try{const r=await fetch("/api/state"+(symSel?("?symbol="+symSel):""));S=await r.json();ok=true}catch(e){$("alert").style.display="block";$("alert").textContent="⚠ SERVEUR INJOIGNABLE"}
  if(ok){try{render()}catch(e){console.error("render:",e&&e.stack||e)}}}
 setInterval(poll,1000);poll();
-$("pause").onclick=async()=>{await fetch("/api/control",{method:"POST",body:JSON.stringify({pause:!S.paused})});poll()};
-$("speed").onchange=async e=>{await fetch("/api/control",{method:"POST",body:JSON.stringify({speed:+e.target.value})})};
+$("pause").onclick=async()=>{try{await api("/api/control",{pause:!S.paused})}catch(e){say(e.message,true)}poll()};
+$("speed").onchange=async e=>{try{await api("/api/control",{speed:+e.target.value})}catch(er){say(er.message,true)}};
 $("sym").onchange=e=>{symSel=e.target.value;poll()};
 $("notif").onclick=()=>{if("Notification" in window)Notification.requestPermission().then(p=>{notifOn=p==="granted";$("notif").textContent=notifOn?"🔔 activées":"🔕 refusées"})};
 function render(){
@@ -68,14 +143,15 @@ function render(){
  const sel=$("sym");const syms=[...new Set(S.agents.flatMap(a=>[]))];
  if(!sel.options.length){(S.symbols||[S.symbol]).forEach(s=>{const o=document.createElement("option");o.textContent=s;sel.appendChild(o)});}
  if(!symSel&&S.symbol)sel.value=S.symbol;
- agents();chart();vortex();target();gauges();side();
+ agents();lockState();chart();vortex();target();gauges();side();
  S.notifications.filter(n=>n.id>seenNotif).forEach(n=>{seenNotif=Math.max(seenNotif,n.id);if(notifOn)try{new Notification(n.kind,{body:n.text})}catch(e){}});
 }
 function agents(){$("agents").innerHTML=S.agents.map(a=>{const c=a.cum_R>=0?"up":"dn",st=a.paused?"dn":(a.status.startsWith("bloqué")?"dn":(a.status=="en position"?"up":"dim"));
  const sp=spark(a.spark);return `<div class="ag"><div class="n">${a.name}</div><div class="${st}">${a.status}</div>
  <div><span class="${c}">${fmt(a.cum_R)}R</span> · <span class="${c}">${fmt(a.pct)}%</span> · n=${a.n} · E=${a.expectancy==null?"–":fmt(a.expectancy,3)}R</div>${sp}
  <div class="dim">setup: ${a.setup?(a.setup.grade+" "+(a.setup.side>0?"LONG":"SHORT")):"aucun"}</div>
- <div class="dim">eq ${fmt(a.equity,0)} · jour −${fmt(a.guardian.day_loss_pct)}%/${a.guardian.limit_daily}%</div></div>`}).join("")}
+ <div class="dim">eq ${fmt(a.equity,0)} · jour −${fmt(a.guardian.day_loss_pct)}%/${a.guardian.limit_daily}%</div>
+ <button data-agent="${a.name}" data-pause="${a.paused?0:1}">${a.paused?"▶ Relancer":"⏸ Arrêter"}</button>${a.paused&&a.pause_reason?`<div class="warn">${a.pause_reason}</div>`:""}</div>`}).join("")}
 function spark(v){if(!v.length)return '<svg width="190" height="26"></svg>';const mn=Math.min(0,...v),mx=Math.max(0.1,...v),w=190,h=26;
  const p=v.map((y,i)=>(i/(Math.max(1,v.length-1))*w).toFixed(1)+","+(h-(y-mn)/(mx-mn)*h).toFixed(1)).join(" ");
  return `<svg width="${w}" height="${h}"><polyline fill="none" stroke="${v[v.length-1]>=0?"#2ecc8f":"#ff5a6a"}" stroke-width="1.3" points="${p}"/></svg>`}

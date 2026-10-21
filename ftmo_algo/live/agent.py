@@ -97,7 +97,8 @@ class Agent:
                 self.journal.trade(self.name, tr)
         g = self.sim.g
         self.status = ("bloqué : " + g.reason) if (g.blocked_day or g.blocked_all) else \
-            ("en position" if self.sim.pos else "attente")
+            ("verrou de gain : plus d'entrée aujourd'hui" if g.blocked_gain and not self.sim.pos else
+             "en position" if self.sim.pos else "attente")
 
     def trades_df(self):
         return pd.DataFrame(self.sim.trades)
