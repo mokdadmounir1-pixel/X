@@ -55,8 +55,13 @@ def run_bench(out="results/toolbox_bench.json"):
     for k, v in list(res.items()):
         if isinstance(v, dict) and "t_core_s" in v:
             v["speedup_tool_vs_core"] = round(v["t_core_s"] / max(v["t_tool_s"], 1e-9), 2)
-            v["integration"] = ("intégrable (gain de vitesse >2× mesuré)" if v["speedup_tool_vs_core"] > 2 else
-                                "non intégré : pas de gain mesuré suffisant ; le cœur reste sans dépendance")
+            if v["speedup_tool_vs_core"] > 2 and v["t_core_s"] > 0.5:
+                v["integration"] = "intégrable : gain de vitesse >2× sur un noyau qui compte (>0,5 s)"
+            elif v["speedup_tool_vs_core"] > 2:
+                v["integration"] = (f"gain réel ({v['speedup_tool_vs_core']}×) mais absolu négligeable ({v['t_core_s']*1000:.0f} ms pour "
+                                    "200 000 barres, <1 % du temps de recherche) : NON intégré, le cœur reste sans dépendance")
+            else:
+                v["integration"] = "non intégré : pas de gain mesuré ; le cœur reste sans dépendance"
     res["_rule"] = "intégration au cœur uniquement si gain mesuré (vitesse ou exactitude) ; sinon le cœur reste minimal"
     Path(ROOT / out).parent.mkdir(exist_ok=True)
     Path(ROOT / out).write_text(json.dumps(res, indent=1))

@@ -254,6 +254,7 @@ BASE_ALGOS = [n for n, a in ALGOS.items() if not getattr(a, "meta", False)]
 EXIT_VARIANTS = {
     "fixed3": ExitCfg("fixed", rr=3.0, time_stop=96),
     "fixed4": ExitCfg("fixed", rr=4.0, time_stop=96),
+    "fixed3_wkflat": ExitCfg("fixed", rr=3.0, time_stop=96, weekend_flat=True),   # fermeture avant week-end
     "be3": ExitCfg("be", rr=3.0, time_stop=96, be_at=1.0),
     "partial4": ExitCfg("partial", rr=4.0, time_stop=96, partial_at=1.5, partial_frac=0.5),
     "trail_atr": ExitCfg("trail_atr", rr=8.0, time_stop=192, atr_k=2.5, trail_after=1.0),

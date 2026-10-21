@@ -73,6 +73,16 @@ def cmd_research(a):
     p = rep["portfolio"]
     print(f"\nPortefeuille : {p.get('verdict')} membres={p.get('members')} {p.get('note','')}")
     print(f"scoring : {rep['scoring']['decision']}")
+    cal = sorted(Path(a.out).glob("calibration*.json"))
+    if cal:
+        n = fp = 0
+        for f in cal:
+            c = json.loads(f.read_text()); n += c["n_series"]; fp += sum(1 for d in c["detail"] if d["pass"])
+        ub = 1 - 0.05 ** (1 / n) if fp == 0 else None
+        print(f"taux de faux PASS (calibration, {n} séries sans edge) : {fp}/{n} = {fp/n:.1%}"
+              + (f" ; borne haute à 95 % ≈ {ub:.1%}" if ub else "") + " [SYNTHÉTIQUE]")
+    else:
+        print("taux de faux PASS : non publié (lancer `calibrate`)")
     print(f"résultats : {a.out}/latest.json  (hash données {rep['data_hash']}, graine {rep['seed']}, v{rep['version']})")
 
 
@@ -158,8 +168,11 @@ def _build_runner(a, label_hint=None):
     synth = any(str(d.attrs.get("source", "")).startswith("SYNTH") for d in dfs.values())
     label = "SYNTHÉTIQUE" if synth else "REPLAY"
     pooled = np.concatenate([np.array(v.get("oos_r", []), float) for v in rep.get("algos", {}).values()]) if rep else np.array([])
-    band = []
+    band, streak95 = [], 0
     if len(pooled) >= 20:
+        from .research.stats import mc_paths
+        _, _, stk = mc_paths(pooled, a.risk, length=min(len(pooled), 150), paths=1000)
+        streak95 = int(np.percentile(stk, 95))
         rng = np.random.default_rng(0)
         K = 60
         S = np.cumsum(rng.choice(pooled, size=(1500, K)), axis=1)
@@ -171,7 +184,7 @@ def _build_runner(a, label_hint=None):
     runner = Runner(agents, feed, journal, label, a.speed, news=news, profile=prof, kill=KillSwitch(
         {n: np.array(rep["algos"][n].get("oos_r", []), float) for n in rep.get("algos", {})} if rep else {}),
         data_quality=[quality_report(d, s) for s, d in dfs.items()], tools_status=tools, shared=shared,
-        target_info={"risk_pct": a.risk, "target_R": 5.0 / a.risk, "band": band, "streak95": 8} if band else {})
+        target_info={"risk_pct": a.risk, "target_R": 5.0 / a.risk, "band": band, "streak95": streak95} if band else {})
     runner.verdicts = {k: rep.get(k) for k in ("algos", "locked", "label", "data_hash")} if rep else {}
     return runner
 

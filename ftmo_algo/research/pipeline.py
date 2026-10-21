@@ -73,6 +73,18 @@ def research(dfs: dict, news=None, workers=1, seed=0, cfg: GateCfg | None = None
                       "scoring SUPPRIMÉ (A+ > A > B non prouvé hors échantillon) : tous les grades sont tradés"}
     grade_min = 1 if mono else 0
     log(f"[research] scoring A+={ge[2]:.3f} A={ge[1]:.3f} B={ge[0]:.3f} -> {rep['scoring']['decision']}")
+    # ---- étude des sorties : espérance OOS moyenne par type de sortie (sans sélection => non biaisée)
+    ex_stat = {}
+    for a in algos:
+        for k, df in tv[a].items():
+            if len(df) == 0:
+                continue
+            e = k.split("@")[1]
+            m = in_windows(df.entry_t.to_numpy(), folds)
+            ex_stat.setdefault(e, []).append(df.r.to_numpy()[m])
+    rep["exit_study"] = {e: _summ(np.concatenate(v)) for e, v in ex_stat.items()}
+    rep["exit_study"]["_note"] = ("moyenne sur toutes les variantes de paramètres, fenêtres OOS uniquement ; "
+                                  "fixed3_wkflat = fermeture forcée avant le week-end vs fixed3 = conservation")
     # ---- walk-forward final par algo
     res, n_tests = {}, len(algos) + 1
     for a in algos:
