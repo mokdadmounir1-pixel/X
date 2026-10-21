@@ -168,7 +168,8 @@ def make_surrogate(df: pd.DataFrame, seed: int, demean=True) -> pd.DataFrame:
     lo_ = lc - bs
     out = df.copy()
     out["open"], out["close"] = np.exp(lo_), np.exp(lc)
-    out["high"], out["low"] = np.exp(lo_ + ups), np.exp(lo_ + dns)
+    out["high"] = np.maximum(np.exp(lo_ + ups), np.maximum(out["open"], out["close"]))   # cohérence OHLC après dérive retirée
+    out["low"] = np.minimum(np.exp(lo_ + dns), np.minimum(out["open"], out["close"]))
     out.attrs.update(df.attrs); out.attrs["source"] = "SURROGATE(" + str(df.attrs.get("source")) + ")"
     return out
 

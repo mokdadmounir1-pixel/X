@@ -90,6 +90,8 @@ def recommend(trades: pd.DataFrame, prof: PropProfile, target_pct=5.0, max_viola
     rows = [monthly_mc(trades, rk, prof, paths=paths, seed=seed, target_pct=target_pct) for rk in RISKS]
     if rows[0].get("status") != "ok":
         return {"status": rows[0].get("status"), "grid": []}
+    if float(trades["r"].mean()) <= 0:
+        return {"status": "espérance OOS ≤ 0 : aucun risque recommandé (ne pas trader)", "grid": rows, "recommended": None}
     safe = [x for x in rows if x["p_violation"] < max_violation]
     if not safe:
         return {"status": "aucun risque de la grille ne respecte P(violation)<5 %", "grid": rows, "recommended": None}

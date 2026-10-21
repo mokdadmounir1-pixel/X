@@ -24,8 +24,17 @@ def _norm_cols(df: pd.DataFrame) -> pd.DataFrame:
     df = df.rename(columns={c: str(c).strip().lower().replace("<", "").replace(">", "") for c in df.columns})
     ren = {"o": "open", "h": "high", "l": "low", "c": "close", "vol": "volume", "tick_volume": "volume",
            "tickvol": "volume", "real_volume": "volume", "gmt time": "time", "timestamp": "time",
-           "datetime": "time", "date": "time", "local time": "time"}
+           "datetime": "time", "local time": "time"}
     return df.rename(columns={k: v for k, v in ren.items() if k in df.columns})
+
+
+def _parse_time(col: pd.Series) -> pd.Series:
+    for fmt in ("%d.%m.%Y %H:%M:%S.%f", "%d.%m.%Y %H:%M:%S", "%Y.%m.%d %H:%M:%S", "%Y.%m.%d %H:%M", "%Y-%m-%d %H:%M:%S",
+                "%Y-%m-%d %H:%M:%S%z", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%d %H:%M"):
+        t = pd.to_datetime(col, format=fmt, errors="coerce")
+        if t.notna().mean() > 0.99:
+            return t
+    return pd.to_datetime(col, errors="coerce", utc=False)
 
 
 def load_csv(path: str, tz: str | None = None, side: str = "bid", instrument: str = "") -> pd.DataFrame:
@@ -36,21 +45,14 @@ def load_csv(path: str, tz: str | None = None, side: str = "bid", instrument: st
     sep = max([",", ";", "\t"], key=head.count)
     df = pd.read_csv(io.StringIO(raw), sep=sep)
     df = _norm_cols(df)
-    if "time" not in df.columns and {"date", "time"} <= set(df.columns):
-        pass
-    if "time" not in df.columns:  # MT5 : <DATE> <TIME> séparés
-        if "date" in df.columns:
-            df["time"] = df["date"].astype(str)
-    if "date" in df.columns and "time" in df.columns and df["time"].astype(str).str.len().max() <= 8:
+    if "date" in df.columns and "time" in df.columns:        # MT5 : <DATE> et <TIME> séparés
         df["time"] = df["date"].astype(str) + " " + df["time"].astype(str)
-    t = pd.to_datetime(df["time"], utc=False, errors="coerce", dayfirst=("." in str(df["time"].iloc[0])[:5] and
-                       str(df["time"].iloc[0])[2] == "."))
-    src_tz = tz
-    if src_tz is None:
-        s = str(df["time"].iloc[0])
-        src_tz = "UTC"
-        if "GMT" in s and ("+" in s[-5:] or "-" in s[-5:]):
-            src_tz = "UTC"
+    elif "date" in df.columns:
+        df["time"] = df["date"].astype(str)
+    if "time" not in df.columns:
+        raise ValueError(f"colonne temporelle introuvable dans {path} (colonnes: {list(df.columns)})")
+    t = _parse_time(df["time"])
+    src_tz = tz or "UTC"
     if t.dt.tz is None:
         t = t.dt.tz_localize(src_tz, ambiguous="infer", nonexistent="shift_forward") if src_tz != "UTC" \
             else t.dt.tz_localize("UTC")

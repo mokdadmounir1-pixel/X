@@ -47,7 +47,8 @@ table{width:100%;border-collapse:collapse}td,th{padding:2px 5px;text-align:left;
 "use strict";
 const $=id=>document.getElementById(id);let S=null,symSel=null,seenNotif=0,notifOn=false;
 const fmt=(x,d=2)=>x==null||isNaN(x)?"–":Number(x).toFixed(d);
-async function poll(){try{const r=await fetch("/api/state"+(symSel?("?symbol="+symSel):""));S=await r.json();render();}catch(e){$("alert").style.display="block";$("alert").textContent="⚠ SERVEUR INJOIGNABLE";}}
+async function poll(){let ok=false;try{const r=await fetch("/api/state"+(symSel?("?symbol="+symSel):""));S=await r.json();ok=true}catch(e){$("alert").style.display="block";$("alert").textContent="⚠ SERVEUR INJOIGNABLE"}
+ if(ok){try{render()}catch(e){console.error("render:",e&&e.stack||e)}}}
 setInterval(poll,1000);poll();
 $("pause").onclick=async()=>{await fetch("/api/control",{method:"POST",body:JSON.stringify({pause:!S.paused})});poll()};
 $("speed").onchange=async e=>{await fetch("/api/control",{method:"POST",body:JSON.stringify({speed:+e.target.value})})};
@@ -60,6 +61,7 @@ function render(){
  $("prof").textContent=S.profile.name+" · vérifié le "+S.profile.verified; $("pause").textContent=S.paused?"▶ Reprendre":"⏸ Pause";
  const sel=$("sym");const syms=[...new Set(S.agents.flatMap(a=>[]))];
  if(!sel.options.length){(S.symbols||[S.symbol]).forEach(s=>{const o=document.createElement("option");o.textContent=s;sel.appendChild(o)});}
+ if(!symSel&&S.symbol)sel.value=S.symbol;
  agents();chart();vortex();target();gauges();side();
  S.notifications.filter(n=>n.id>seenNotif).forEach(n=>{seenNotif=Math.max(seenNotif,n.id);if(notifOn)try{new Notification(n.kind,{body:n.text})}catch(e){}});
 }
@@ -81,13 +83,13 @@ function chart(){const c=$("chart"),x=c.getContext("2d"),W=c.width,H=c.height;x.
  x.fillStyle="#6b7a8c";for(let i=0;i<5;i++){const v=lo+(hi-lo)*i/4;x.fillText(fmt(v,v<10?5:1),W-60,Y(v)+3)}
  $("linfo").innerHTML=S.levels.length?S.levels.map(l=>`<b>${l.agent}</b> ${l.side>0?"LONG":"SHORT"} entrée ${fmt(l.entry,5)} stop ${fmt(l.stop,5)} cible ${fmt(l.target,5)} · <b>RR net ≈ ${l.rr}</b>`).join("<br>"):"aucune position ouverte sur ce symbole";}
 let ang=0,pulses=[],lastEv=0,P=null;
-function vortex(){const c=$("vortex"),x=c.getContext("2d"),W=c.width,H=c.height,v=S.vortex;x.fillStyle="rgba(5,7,10,.28)";x.fillRect(0,0,W,H);
+function vortex(){const c=$("vortex"),x=c.getContext("2d"),W=c.width,H=c.height,v=S.vortex;x.fillStyle="rgba(5,7,10,.22)";x.fillRect(0,0,W,H);const gr=x.createRadialGradient(W/2,H/2,5,W/2,H/2,150);gr.addColorStop(0,"rgba(120,140,200,.10)");gr.addColorStop(1,"rgba(0,0,0,0)");x.fillStyle=gr;x.fillRect(0,0,W,H);
  if(!P){P=Array.from({length:520},(_,i)=>({a:Math.random()*6.283,r:Math.random(),z:Math.random()*2-1,s:Math.random()}))}
  const rot=0.004+0.03*Math.min(2.5,v.vol_ratio),stretch=0.45+1.9*Math.min(1,v.trend),noise=(1-v.coherence)*0.55;
  const col=v.direction>0?[46,204,143]:(v.direction<0?[255,90,106]:[140,150,170]);ang+=rot;
  P.forEach(p=>{const arm=Math.floor(p.s*5),base=arm*1.2566,th=ang*(1.6-p.r)+base+p.r*4.2+(Math.random()-.5)*noise*3;const rr=18+p.r*165;
   const xx=W/2+Math.cos(th)*rr*(1+ (Math.random()-.5)*noise*.8),yy=H/2+Math.sin(th)*rr*.34*stretch+p.z*stretch*110*(1-p.r*.6);
-  const a=.25+.6*(1-p.r);x.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${a})`;x.fillRect(xx,yy,1.8,1.8)});
+  const a=.55+.45*(1-p.r);x.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${a})`;const sz=1.6+2.2*(1-p.r);x.fillRect(xx,yy,sz,sz)});
  const N=v.nodes;N.forEach((n,i)=>{const th=ang*.5*(i%2?-1:1)+i*6.283/Math.max(1,N.length),R=190,xx=W/2+Math.cos(th)*R,yy=H/2+Math.sin(th)*R*.38*stretch;
   x.beginPath();x.arc(xx,yy,n.lit?7:3.5,0,6.283);x.fillStyle=n.lit?(n.dir>0?"#2ecc8f":n.dir<0?"#ff5a6a":"#f5b94a"):"#2a3544";x.fill();
   if(n.lit){x.strokeStyle="rgba(255,255,255,.35)";x.stroke()}x.fillStyle="#6b7a8c";x.font="9px monospace";x.fillText(n.name.slice(0,10),xx+9,yy+3);
@@ -104,9 +106,9 @@ function target(){const c=$("tgt"),x=c.getContext("2d"),W=c.width,H=c.height,t=S
  x.strokeStyle="#f5b94a";x.setLineDash([6,4]);x.beginPath();x.moveTo(30,Y(t.target_R));x.lineTo(W-10,Y(t.target_R));x.stroke();x.setLineDash([]);x.fillStyle="#f5b94a";x.fillText("cible "+fmt(t.target_R,1)+"R (=5 %)",40,Y(t.target_R)-4);
  x.strokeStyle="#fff";x.lineWidth=2;x.beginPath();t.actual.forEach((v,k)=>k?x.lineTo(X(k),Y(v)):x.moveTo(X(k),Y(v)));x.stroke();x.lineWidth=1;
  $("tinfo").innerHTML=`mois en cours : <b>${fmt(t.cum_R)}R</b> = <b>${fmt(t.cum_pct)}%</b> (cible 5 % = ${fmt(t.target_R,1)}R à ${t.risk_pct}% de risque) · série de pertes en cours <b>${t.streak}</b> vs 95e pct attendu <b>${t.streak95}</b><br>zone bleue = intervalle Monte Carlo 5–95 % (R cumulés après k trades)`}
-function gauges(){const a=S.agents[0];if(!a){$("gauges").textContent="";return}$("gauges").innerHTML=S.agents.slice(0,8).map(a=>{const g=a.guardian,d=Math.max(0,g.day_loss_pct)/g.limit_daily*100,t=Math.max(0,g.tot_loss_pct)/g.limit_total*100;
- const cl=v=>v>70?"#ff5a6a":v>45?"#f5b94a":"#2ecc8f";return `<div class="dim">${a.name} · perte jour (équité) ${fmt(g.day_loss_pct)}% / ${g.limit_daily}%</div><div class="gauge"><i style="width:${Math.min(100,d)}%;background:${cl(d)}"></i></div>
- <div class="dim">perte max ${fmt(g.tot_loss_pct)}% / ${g.limit_total}%</div><div class="gauge"><i style="width:${Math.min(100,t)}%;background:${cl(t)}"></i></div>`}).join("");
+function gauges(){if(!S.agents.length){$("gauges").textContent="";return}const cl=v=>v>70?"#ff5a6a":v>45?"#f5b94a":"#2ecc8f";
+ $("gauges").innerHTML='<div class="legend">barre du haut = perte du jour / limite '+S.profile.daily+' % · barre du bas = perte max / limite '+S.profile.total+' % (équité, flottant inclus, reset minuit Prague)</div>'+S.agents.map(a=>{const g=a.guardian,d=Math.max(0,g.day_loss_pct)/g.limit_daily*100,t=Math.max(0,g.tot_loss_pct)/g.limit_total*100;
+ return `<div style="display:grid;grid-template-columns:110px 1fr 70px;gap:6px;align-items:center"><span class="dim">${a.name.slice(0,14)}</span><div><div class="gauge" style="margin:1px 0"><i style="width:${Math.min(100,d)}%;background:${cl(d)}"></i></div><div class="gauge" style="margin:1px 0"><i style="width:${Math.min(100,t)}%;background:${cl(t)}"></i></div></div><span class="dim">${fmt(g.day_loss_pct)}% / ${fmt(g.tot_loss_pct)}%</span></div>`}).join("");
  $("news").innerHTML=S.news.length?S.news.map(n=>{const m=Math.round((n.t-S.now)/60);return `<div>${n.name} — dans <b>${m>=1440?Math.floor(m/1440)+"j ":""}${Math.floor((m%1440)/60)}h${String(m%60).padStart(2,"0")}</b></div>`}).join(""):'<span class="dim">aucune annonce connue (calendrier : règle NFP seulement)</span>'}
 function side(){$("dq").innerHTML=S.data_quality.map(q=>`<div>${q.instrument}: ${q.years} ans · ${q.bars} barres · trous ${q.gaps_intraday} · aberr. ${q.outlier_bars} ${q.synthetic?'<span class="dn">SYNTH.</span>':''}</div>`).join("")||'<span class="dim">–</span>';
  $("tools").innerHTML="<br>outils open source :<br>"+(Object.entries(S.tools).map(([k,v])=>`<span class="${v.status=="ok"?"up":"dn"}">${k}</span>`).join(" ")||"statut non généré (python -m ftmo_algo install)");

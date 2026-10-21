@@ -11,9 +11,9 @@ from .wf import make_surrogate
 
 
 def _one(args):
-    kind, seed, names, years, real, null_B = args
+    kind, seed, names, years, real, null_B, pers = args
     if kind == "random_walk":
-        dfs = make_universe(names, seed=1000 + seed, years=years, persistence=0.0)
+        dfs = make_universe(names, seed=1000 + seed, years=years, persistence=pers)
     else:   # série réelle mélangée : signes de blocs d'un jour inversés -> structure détruite, vol conservée
         dfs = {k: make_surrogate(d, 555 + seed + i) for i, (k, d) in enumerate(real.items())}
     rep = research(dfs, workers=1, seed=seed, null_B=null_B, do_locked=False, verbose=False)
@@ -24,10 +24,10 @@ def _one(args):
 
 
 def calibrate(names=("US500", "EURUSD", "XAUUSD"), n_series=20, years=4.0, real=None, null_B=99, workers=4,
-              out="results/calibration.json"):
-    jobs = [("random_walk", s, list(names), years, None, null_B) for s in range(n_series)]
+              out="results/calibration.json", seed0=0, persistence=0.0):
+    jobs = [("random_walk", seed0 + s, list(names), years, None, null_B, persistence) for s in range(n_series)]
     if real:
-        jobs += [("real_shuffled", s, None, None, real, null_B) for s in range(max(4, n_series // 5))]
+        jobs += [("real_shuffled", s, None, None, real, null_B, 0.0) for s in range(max(4, n_series // 5))]
     with mp.get_context("fork").Pool(workers) as pool:
         res = pool.map(_one, jobs, chunksize=1)
     n_algo = 8

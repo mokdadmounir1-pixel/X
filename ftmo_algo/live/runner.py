@@ -136,8 +136,7 @@ class Runner:
             if not self.step():
                 break
             n += 1
-            if self.speed > 0:
-                time.sleep(max(0.0, 0.02 / self.speed))
+            time.sleep(max(0.003, 0.02 / self.speed) if self.speed > 0 else 0.003)   # cède le verrou au serveur HTTP
         return n
 
     # --------------------------------------------------------------- état pour le dashboard

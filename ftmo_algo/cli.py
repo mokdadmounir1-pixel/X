@@ -79,7 +79,7 @@ def cmd_research(a):
 def cmd_calibrate(a):
     from .research.calibrate import calibrate
     real = _data(a) if (a.data_dir or a.mt5) else None
-    r = calibrate(tuple(a.instruments.split(",")), a.n, a.years, real, a.null, a.workers, f"{a.out}/calibration.json")
+    r = calibrate(tuple(a.instruments.split(",")), a.n, a.years, real, a.null, a.workers, f"{a.out}/{a.name}.json", a.seed0, a.persistence)
     print(f"{r['label']} séries: {r['kinds']}")
     print(f"taux de faux PASS par série : {r['false_pass_rate_per_series']:.1%} | par test algo : {r['false_pass_rate_per_algo_test']:.1%} "
           f"| faux WATCH par série : {r['false_watch_rate_per_series']:.1%} | espérance OOS moyenne : {r['mean_oos_expectancy_R']} R")
@@ -229,7 +229,7 @@ def main(argv=None):
     s = sub.add_parser("research"); _common(s); s.add_argument("--null", type=int, default=99)
     s.add_argument("--tag", default="run"); s.add_argument("--force-relock", action="store_true"); s.set_defaults(f=cmd_research)
     s = sub.add_parser("calibrate"); _common(s); s.add_argument("--n", type=int, default=20); s.add_argument("--null", type=int, default=99)
-    s.set_defaults(f=cmd_calibrate)
+    s.add_argument("--seed0", type=int, default=0); s.add_argument("--name", default="calibration"); s.set_defaults(f=cmd_calibrate)
     s = sub.add_parser("target"); _common(s); s.add_argument("--all", action="store_true"); s.add_argument("--paths", type=int, default=2000)
     s.set_defaults(f=cmd_target)
     for nm, fn in (("dashboard", cmd_dashboard), ("paper", cmd_paper)):

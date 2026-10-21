@@ -9,6 +9,22 @@ from urllib.parse import urlparse, parse_qs
 STATIC = Path(__file__).parent / "static"
 
 
+def clean(o):
+    """JSON strict : NaN/Inf -> null, types numpy -> natifs."""
+    if isinstance(o, dict):
+        return {str(k): clean(v) for k, v in o.items()}
+    if isinstance(o, (list, tuple)):
+        return [clean(v) for v in o]
+    if hasattr(o, "item") and not isinstance(o, (str, bytes)):
+        try:
+            o = o.item()
+        except Exception:
+            return str(o)
+    if isinstance(o, float) and (o != o or o in (float("inf"), float("-inf"))):
+        return None
+    return o
+
+
 def make_handler(runner):
     class H(BaseHTTPRequestHandler):
         def log_message(self, *a):
@@ -28,7 +44,9 @@ def make_handler(runner):
             if u.path == "/api/state":
                 q = parse_qs(u.query)
                 st = runner.state(q.get("symbol", [None])[0], q.get("tf", ["M15"])[0])
-                return self._send(200, json.dumps(st, default=lambda o: o.item() if hasattr(o, "item") else str(o)))
+                return self._send(200, json.dumps(clean(st), default=str, allow_nan=False))
+            if u.path == "/favicon.ico":
+                return self._send(204, b"", "image/x-icon")
             return self._send(404, "{}")
 
         def do_POST(self):
