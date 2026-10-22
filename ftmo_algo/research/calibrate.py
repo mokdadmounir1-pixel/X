@@ -16,7 +16,7 @@ def _one(args):
         dfs = make_universe(names, seed=1000 + seed, years=years, persistence=pers)
     else:   # série réelle mélangée : signes de blocs d'un jour inversés -> structure détruite, vol conservée
         dfs = {k: make_surrogate(d, 555 + seed + i) for i, (k, d) in enumerate(real.items())}
-    rep = research(dfs, workers=1, seed=seed, null_B=null_B, do_locked=False, verbose=False)
+    rep = research(dfs, workers=1, seed=seed, null_B=null_B, do_locked=False, verbose=False, registry=False)
     passes = [a for a, r in rep["algos"].items() if r["verdict"] == "PASS"]
     watch = [a for a, r in rep["algos"].items() if r["verdict"] == "WATCH"]
     return {"kind": kind, "seed": seed, "pass": passes, "watch": watch, "scoring_kept": rep["scoring"]["monotone"],

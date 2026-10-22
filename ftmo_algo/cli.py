@@ -133,6 +133,10 @@ def cmd_target(a):
         if out.get("recommended"):
             b = out["recommended"]
             print(f"   => risque recommandé {b['risk_pct']}% (P(violation)<5 %) ; {out['verdict']}")
+            from .target import stress_table
+            print("   stress (espérance dégradée par trade) :", "; ".join(
+                f"{x['shift_R_par_trade']:+.2f}R -> P(violation) {x['p_violation']:.1%}, P(mois>=5%) {x['p_month_ge_target']:.1%}"
+                for x in stress_table(tr, prof, b["risk_pct"], paths=min(a.paths, 1500), seed=a.seed)))
         else:
             print("   =>", out["status"])
     if not any(v["verdict"] == "PASS" for v in rep["algos"].values()) and not a.all:

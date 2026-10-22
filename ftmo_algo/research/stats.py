@@ -83,3 +83,31 @@ def deflated_sharpe(r, trial_srs, n_trials) -> float:
     sr0 = math.sqrt(v) * ((1 - g) * ND.inv_cdf(1 - 1 / max(n_trials, 2)) + g * ND.inv_cdf(1 - 1 / (max(n_trials, 2) * math.e)))
     den = math.sqrt(max(1e-9, 1 - sk * sr + (ku - 1) / 4 * sr * sr))
     return float(ND.cdf((sr - sr0) * math.sqrt(n - 1) / den))
+
+
+def stationary_indices(n, length, mean_block, rng, paths):
+    """Indices d'un bootstrap stationnaire (Politis-Romano) : blocs de longueur géométrique, circulaire."""
+    p = 1.0 / max(1.0, mean_block)
+    idx = np.empty((paths, length), np.int64)
+    idx[:, 0] = rng.integers(0, n, paths)
+    new = rng.random((paths, length)) < p
+    jump = rng.integers(0, n, (paths, length))
+    for k in range(1, length):
+        idx[:, k] = np.where(new[:, k], jump[:, k], (idx[:, k - 1] + 1) % n)
+    return idx
+
+
+def reality_check(daily: np.ndarray, B=2000, mean_block=5, seed=0):
+    """White (2000) Reality Check sur une matrice (jours × stratégies) de rendements quotidiens en R (benchmark 0) :
+    p-value de H0 « aucune stratégie n'a une espérance > 0 », en tenant compte du fait qu'on retient la meilleure."""
+    d = np.asarray(daily, float)
+    n, k = d.shape
+    if n < 30 or k == 0:
+        return {"p": None, "best": None, "n_days": int(n)}
+    mu = d.mean(0)
+    stat = float(np.sqrt(n) * mu.max())
+    rng = np.random.default_rng(seed)
+    idx = stationary_indices(n, n, mean_block, rng, B)
+    boot = np.sqrt(n) * (d[idx].mean(1) - mu).max(1)
+    return {"p": round(float((1 + (boot >= stat).sum()) / (B + 1)), 4), "best": int(mu.argmax()),
+            "best_mean_R_per_day": round(float(mu.max()), 4), "n_days": int(n)}

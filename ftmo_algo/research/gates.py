@@ -5,6 +5,12 @@ import numpy as np
 from . import stats as st
 
 
+# Portes ÉLIMINATOIRES (un échec = pas d'edge utilisable, quelle que soit la performance) vs STATISTIQUES (qualité de l'estimation).
+GATE_CLASS = {"g1_n_oos": "éliminatoire", "g2_expectancy": "statistique", "g3_profit_factor": "statistique",
+              "g4_null": "éliminatoire", "g5_costs_x2": "éliminatoire", "g6_monte_carlo_p5": "éliminatoire",
+              "g7_top3_share": "statistique", "g8_plateau": "statistique", "g9_loss_streak": "éliminatoire"}
+
+
 @dataclass
 class GateCfg:
     min_trades: int = 60
@@ -55,10 +61,15 @@ def null_gate(obs: float, null: np.ndarray, n_tests: int, cfg: GateCfg):
 
 def verdict(g: dict, dsr_p: float, years: float, cfg: GateCfg, exp: float):
     fails = [k for k, v in g.items() if not v[0]]
+    elim = [k for k in fails if GATE_CLASS.get(k) == "éliminatoire"
+            and not (isinstance(g[k][1], str) and g[k][1].startswith("non évalué"))]
     if not fails and dsr_p >= cfg.dsr_min:
         if years < cfg.min_years:
             return "WATCH", f"plafonné : {years:.1f} an(s) de données < {cfg.min_years:.0f} requis"
         return "PASS", ""
-    if exp > 0 and len(fails) + (dsr_p < cfg.dsr_min) <= 2:
-        return "WATCH", "échoue : " + ",".join(fails + (["dsr"] if dsr_p < cfg.dsr_min else []))
-    return "FAIL", "échoue : " + ",".join(fails + (["dsr"] if dsr_p < cfg.dsr_min else []))
+    why = "échoue : " + ",".join(fails + (["dsr"] if dsr_p < cfg.dsr_min else []))
+    if elim:
+        why += " | ÉLIMINATOIRE(S) : " + ",".join(elim)
+    if exp > 0 and not elim and len(fails) + (dsr_p < cfg.dsr_min) <= 2:
+        return "WATCH", why
+    return "FAIL", why

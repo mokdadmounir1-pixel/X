@@ -51,10 +51,11 @@ def _month(r, day, counts, rng, risk, prof: PropProfile, eq0, daily_guard, total
 
 
 def monthly_mc(trades: pd.DataFrame, risk_pct: float, prof: PropProfile, paths=3000, horizon_months=3, seed=0,
-               target_pct=5.0):
+               target_pct=5.0, shift_r=0.0):
     if len(trades) < 10:
         return {"status": "échantillon insuffisant (< 10 trades)"}
     r, day, counts = _prep(trades)
+    r = r + shift_r                      # stress : espérance dégradée de shift_r R par trade (coûts réels plus élevés, edge érodé)
     rng = np.random.default_rng(seed)
     g = prof.guardian
     dg = prof.daily_loss_pct / 100 * g["daily_frac"] if prof.daily_loss_pct > 0 else 1e9
@@ -101,3 +102,10 @@ def recommend(trades: pd.DataFrame, prof: PropProfile, target_pct=5.0, max_viola
             "max_safe_risk": max(x["risk_pct"] for x in safe),
             "verdict": ("cible atteignable (P>50 %)" if reachable else
                         f"cible NON atteignable de façon fiable ; rendement mensuel réaliste médian {best['median_month_pct']} %")}
+
+
+def stress_table(trades: pd.DataFrame, prof: PropProfile, risk_pct: float, shifts=(0.0, -0.05, -0.10, -0.20), paths=1500, seed=0):
+    """Que devient le risque de violation si l'espérance réelle est plus basse que la mesure OOS ? (exécution réelle ≠ simulation)"""
+    return [{"shift_R_par_trade": sh, **{k: v for k, v in monthly_mc(trades, risk_pct, prof, paths=paths, seed=seed, shift_r=sh).items()
+                                          if k in ("status", "p_violation", "p_month_ge_target", "median_month_pct", "p_challenge_3m")}}
+            for sh in shifts]

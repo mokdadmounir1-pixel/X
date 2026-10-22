@@ -29,6 +29,8 @@ class SimConfig:
     stop_on_breach: bool = True
     use_guardian: bool = True
     initial_balance: float = 100000.0
+    ambiguity: str = "stop"         # stop et cible dans la même barre sans données plus fines : stop (pessimiste) | target | random
+    vol_slip: float = 0.0            # >0 : le slippage grossit avec l'amplitude de la barre (1 + k·max(0, range/ATR − 1), plafonné à 4)
 
 
 @dataclass
@@ -67,6 +69,7 @@ class Pos:
     worst_r: float = 0.0
     best_r: float = 0.0
     last_j: int = 0
+    amb: bool = False
 
 
 class Sim:
@@ -90,6 +93,16 @@ class Sim:
         self.dead = False
 
     # ------------------------------------------------------------------ utilitaires
+    def _vf(self, mk, j):
+        """Facteur de slippage lié à l'amplitude de la barre (1 si désactivé)."""
+        k = self.cfg.vol_slip
+        if k <= 0:
+            return 1.0
+        a = mk.atr[j]
+        if not np.isfinite(a) or a <= 0:
+            return 1.0
+        return 1.0 + k * min(3.0, max(0.0, (mk.h[j] - mk.l[j]) / a - 1.0))
+
     def _rej(self, why, **kw):
         self.rej[why] = self.rej.get(why, 0) + 1
         self.events.append({"type": "reject", "why": why, **kw})
@@ -230,7 +243,7 @@ class Sim:
         cfg, spec = self.cfg, mk.spec
         side = od["side"]; ex = od["ex"]
         spr = mk.spr[j] * cfg.cost_mult * mk.news_mult[j]
-        slip = spec.slippage * cfg.cost_mult * mk.news_mult[j] * (1.0 if mk.news_mult[j] == 1.0 else 1.5)
+        slip = spec.slippage * cfg.cost_mult * mk.news_mult[j] * (1.0 if mk.news_mult[j] == 1.0 else 1.5) * self._vf(mk, j)
         o = mk.o[j]
         entry = o + spr + slip if side > 0 else o - slip   # long : ask ; short : bid
         stop = od["stop"]
@@ -289,7 +302,7 @@ class Sim:
         cfg, spec, ex = self.cfg, mk.spec, p.ex
         o, h, l, c = mk.o[j], mk.h[j], mk.l[j], mk.c[j]
         spr = mk.spr[j] * cfg.cost_mult * mk.news_mult[j]
-        slip = spec.slippage * cfg.cost_mult * mk.news_mult[j]
+        slip = spec.slippage * cfg.cost_mult * mk.news_mult[j] * self._vf(mk, j)
         sd = p.side
         entered_now = p.bars == 0 and mk.t[j] == p.entry_t
         # swaps (nuits traversées en entrant dans la barre)
@@ -315,7 +328,7 @@ class Sim:
         part_px = p.entry + sd * ex.partial_at * p.r_dist
         part_hit = ex.mode == "partial" and not p.partial_done and ((hi >= part_px) if sd > 0 else (lo <= part_px))
         if stop_hit and (tgt_hit or part_hit):
-            first = self._fine_first(mk, j, sd, S, T if tgt_hit else part_px, spr)
+            first = self._fine_first(mk, j, sd, S, T if tgt_hit else part_px, spr, p)
             if first != "target":
                 return self._exit(p, S - sd * slip, "stop", mk, j)
         elif stop_hit:
@@ -359,11 +372,19 @@ class Sim:
             px = c - slip if sd > 0 else c + spr + slip
             return self._exit(p, px, "weekend", mk, j)
 
-    def _fine_first(self, mk: Market, j: int, sd, S, T, spr):
+    def _ambiguous(self, p, mk, j):
+        """Ordre inconnu (stop et cible dans la même barre, pas de donnée plus fine) : politique `cfg.ambiguity`."""
+        p.amb = True
+        pol = self.cfg.ambiguity
+        if pol == "random":
+            pol = "target" if ((int(mk.t[j]) // 10**9 + p.entry_t // 10**9) * 2654435761) % 2 else "stop"
+        return pol
+
+    def _fine_first(self, mk: Market, j: int, sd, S, T, spr, p=None):
         """Si des données plus fines existent, détermine quel niveau est touché en premier."""
         f = mk.fine
         if not f:
-            return "stop"
+            return self._ambiguous(p, mk, j) if p is not None else "stop"
         a = np.searchsorted(f["t"], mk.t[j]); b = np.searchsorted(f["t"], mk.tc[j])
         for k in range(a, b):
             hh, ll = f["h"][k], f["l"][k]
@@ -372,7 +393,7 @@ class Sim:
             else:
                 s_hit, t_hit = hh + spr >= S, ll + spr <= T
             if s_hit and t_hit:
-                return "stop"
+                return self._ambiguous(p, mk, j) if p is not None else "stop"
             if s_hit:
                 return "stop"
             if t_hit:
@@ -401,7 +422,7 @@ class Sim:
                             "entry": p.entry, "exit": px, "lots": p.lots0, "risk_usd": p.risk_usd,
                             "pnl": net, "r": r, "gross_r": (p.pnl) / p.risk_usd if p.risk_usd else 0.0,
                             "mae_r": p.worst_r, "mfe_r": p.best_r,
-                            "bars": p.bars + 1, "reason": reason, "grade": p.grade, "sig_t": p.sig_t,
+                            "bars": p.bars + 1, "reason": reason, "grade": p.grade, "sig_t": p.sig_t, "amb": p.amb,
                             "feat": p.feat, "r_dist": p.r_dist})
         self.events.append({"type": "close", "key": p.key, "t": int(mk.t[j]) if at_open else int(mk.tc[j]), "px": px, "reason": reason, "r": r,
                             "pnl": net})

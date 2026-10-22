@@ -47,7 +47,9 @@ def analyze(df: pd.DataFrame, alpha=0.10, B=999, min_bucket=15, seed=0) -> dict:
     out = {"n": int(len(df)), "buckets": [], "exclude": [], "positive": []}
     if len(df) < 40:
         return out
+    df = df.sort_values("entry_t")
     r = df.r.to_numpy("float64")
+    half = np.arange(len(r)) < len(r) // 2           # stabilité : la zone doit être perdante dans les DEUX moitiés
     rng = np.random.default_rng(seed)
     lab = labels(df)
     cands = [(k, v, lab[k] == v) for k in lab for v in np.unique(lab[k])]
@@ -66,7 +68,10 @@ def analyze(df: pd.DataFrame, alpha=0.10, B=999, min_bucket=15, seed=0) -> dict:
         row = {"tag": f"{k}:{v}", "n": int(m.sum()), "mean_R": round(obs, 3), "reste_R": round(rest, 3),
                "p_bas": round(p_low, 4), "p_haut": round(p_high, 4)}
         out["buckets"].append(row)
-        if p_low < a_adj and obs < 0 and rest > obs:
+        h1, h2 = r[m & half], r[m & ~half]
+        stable = len(h1) >= 5 and len(h2) >= 5 and h1.mean() < 0 and h2.mean() < 0
+        row["stable_2_moities"] = bool(stable)
+        if p_low < a_adj and obs < 0 and rest > obs and stable:
             out["exclude"].append(row["tag"])
         if p_high < a_adj and obs > rest:
             out["positive"].append(row["tag"])

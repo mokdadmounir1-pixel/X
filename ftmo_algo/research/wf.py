@@ -13,7 +13,7 @@ from ..engine.guardian import PropProfile
 from ..timeutil import ns
 
 _G: dict = {}
-KEEP = ["sym", "entry_t", "exit_t", "r", "gross_r", "grade", "mae_r", "mfe_r", "bars", "reason", "risk_usd", "pnl"]
+KEEP = ["sym", "entry_t", "exit_t", "r", "gross_r", "grade", "mae_r", "mfe_r", "bars", "reason", "risk_usd", "pnl", "amb"]
 
 
 def vkey(params: dict, exit_name: str) -> str:
@@ -39,8 +39,9 @@ def build_ctxs(dfs: dict, news=None, with_fine=True) -> dict[str, Ctx]:
     return out
 
 
-def sim_trades(ctx: Ctx, sig, cost_mult=1.0, risk_pct=0.5, grades=(2, 1, 0)) -> pd.DataFrame:
-    cfg = SimConfig(risk_pct=risk_pct, cost_mult=cost_mult, use_guardian=False, grades=grades)
+def sim_trades(ctx: Ctx, sig, cost_mult=1.0, risk_pct=0.5, grades=(2, 1, 0), ambiguity="stop", vol_slip=0.0) -> pd.DataFrame:
+    cfg = SimConfig(risk_pct=risk_pct, cost_mult=cost_mult, use_guardian=False, grades=grades, ambiguity=ambiguity,
+                    vol_slip=vol_slip)
     sim = Sim({ctx.sym: ctx.mk}, cfg, PropProfile())
     tr = sim.run([sig]).trades
     if len(tr) == 0:
@@ -149,6 +150,50 @@ def in_windows(entry_t: np.ndarray, folds):
 
 
 # ---------------------------------------------------------------- surrogates (test nul)
+def make_surrogate_stationary(df: pd.DataFrame, seed: int, mean_block=48) -> pd.DataFrame:
+    """Bootstrap stationnaire des barres (écart, corps, mèches) par blocs de ~4 h, dérive retirée : détruit la structure
+    au-delà du bloc (tendance multi-heures/jours, ordre des séances) en conservant la distribution des barres et la
+    vol à l'intérieur des blocs. Complémentaire du test par inversion de signe (ne répond pas à la même question)."""
+    from .stats import stationary_indices
+    rng = np.random.default_rng(seed)
+    o, h, l, c = (df[k].to_numpy("float64") for k in ("open", "high", "low", "close"))
+    n = len(o)
+    gap = np.r_[0.0, np.log(o[1:] / c[:-1])]
+    body = np.log(c / o); up = np.log(h / o); dn = np.log(l / o)
+    mu = (gap + body).mean()
+    gap = gap - mu / 2; body = body - mu / 2
+    idx = stationary_indices(n, n, mean_block, rng, 1)[0]
+    gs, bs, ups, dns = gap[idx], body[idx], up[idx], dn[idx]
+    lc = np.log(o[0]) + np.cumsum(gs + bs)
+    lo_ = lc - bs
+    out = df.copy()
+    out["open"], out["close"] = np.exp(lo_), np.exp(lc)
+    out["high"] = np.maximum(np.exp(lo_ + ups), np.maximum(out["open"], out["close"]))
+    out["low"] = np.minimum(np.exp(lo_ + dns), np.minimum(out["open"], out["close"]))
+    out.attrs.update(df.attrs); out.attrs["source"] = "SURROGATE(" + str(df.attrs.get("source")) + ")"
+    return out
+
+
+def shift_signals(sig, close: np.ndarray, k: int):
+    """Décale les signaux de k barres en conservant leurs distances RELATIVES (stop/cible en % du prix de signal)."""
+    from copy import copy
+    n = len(sig.side)
+    s2 = copy(sig)
+    s2.side = np.zeros(n, np.int8); s2.stop = np.full(n, np.nan); s2.target = np.full(n, np.nan); s2.grade = np.zeros(n, np.int8)
+    if sig.feat is not None:
+        s2.feat = np.zeros_like(sig.feat)
+    src = np.flatnonzero(sig.side != 0)
+    dst = src + k
+    ok = (dst >= 0) & (dst < n)
+    src, dst = src[ok], dst[ok]
+    s2.side[dst] = sig.side[src]; s2.grade[dst] = sig.grade[src]
+    s2.stop[dst] = close[dst] * sig.stop[src] / close[src]
+    s2.target[dst] = close[dst] * sig.target[src] / close[src]
+    if sig.feat is not None:
+        s2.feat[dst] = sig.feat[src]
+    return s2
+
+
 def make_surrogate(df: pd.DataFrame, seed: int, demean=True) -> pd.DataFrame:
     """Inversion de signe aléatoire par blocs (1 jour) des rendements log, dérive retirée : détruit toute
     structure directionnelle exploitable en conservant volatilité, saisonnalité, spreads."""
@@ -183,8 +228,9 @@ def cands_default(ctxs, algos, workers=1):
 
 
 def _null_job(args):
-    b, dfs, jobs, news = args
-    ctxs = build_ctxs({s: make_surrogate(d, 7919 * b + i) for i, (s, d) in enumerate(dfs.items())}, news, with_fine=False)
+    b, dfs, jobs, news, kind = args
+    mk_s = make_surrogate_stationary if kind == "stationary" else make_surrogate
+    ctxs = build_ctxs({s: mk_s(d, 7919 * b + i) for i, (s, d) in enumerate(dfs.items())}, news, with_fine=False)
     res = {}
     for (algo, params, ex, wins) in jobs:
         if algo == "ml_filter":
@@ -207,8 +253,8 @@ def _null_job(args):
     return res
 
 
-def null_distribution(dfs, jobs, B=99, workers=1, news=None):
-    args = [(b, dfs, jobs, news) for b in range(B)]
+def null_distribution(dfs, jobs, B=99, workers=1, news=None, kind="signflip"):
+    args = [(b, dfs, jobs, news, kind) for b in range(B)]
     if workers > 1:
         with mp.get_context("fork").Pool(workers) as pool:
             out = pool.map(_null_job, args, chunksize=1)
