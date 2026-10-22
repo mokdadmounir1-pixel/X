@@ -1,0 +1,11 @@
+[synthetic-null] [SYNTHETIQUE] meilleur IS: (20,) SR_ann=0.07  PSR(0)=0.596  DSR(N=6)=0.373
+   TEST FINAL: n=1133 SR_ann=-0.39 IC95%=[-1.15,0.40] PSR(0)=0.207
+   PORTES (DSR>=0.95, PSR_oos>=0.95, IC>0): REJETE -> pas de deploiement
+   Sim FTMO (bootstrap OOS): P1 pass=0.19 (daily 0.00, max 0.00, timeout 0.81) | P2 pass=0.40 | les deux=0.08
+registre: (True, 'ok') essais: 7
+
+[synthetic-edge] [SYNTHETIQUE] meilleur IS: (20,) SR_ann=0.77  PSR(0)=0.994  DSR(N=6)=0.865
+   TEST FINAL: n=1133 SR_ann=0.31 IC95%=[-0.50,1.12] PSR(0)=0.746
+   PORTES (DSR>=0.95, PSR_oos>=0.95, IC>0): REJETE -> pas de deploiement
+   Sim FTMO (bootstrap OOS): P1 pass=0.50 (daily 0.00, max 0.00, timeout 0.50) | P2 pass=0.66 | les deux=0.33
+registre: (True, 'ok') essais: 7
