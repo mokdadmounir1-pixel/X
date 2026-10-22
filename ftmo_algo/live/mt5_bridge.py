@@ -1,6 +1,7 @@
 """Pont d'exécution MT5 (compte DÉMO uniquement). Les ordres partent du MÊME moteur (événements `open` de
 Sim), avec stop et cible posés côté courtier dès l'entrée. Le passage au réel n'est JAMAIS automatique."""
 from __future__ import annotations
+import os
 import time
 from collections import deque
 from .gate import real_account_conditions
@@ -28,7 +29,7 @@ def diagnose() -> tuple[bool, str]:
 
 
 class MT5Bridge:
-    def __init__(self, magic=26100, deviation=20, max_slip_mult=3.0, allow_real=False):
+    def __init__(self, magic=26100, deviation=20, max_slip_mult=3.0, allow_real=False, allowed_server=None):
         import MetaTrader5 as mt5
         self.mt5, self.magic, self.deviation = mt5, magic, deviation
         if not mt5.initialize():
@@ -38,6 +39,16 @@ class MT5Bridge:
         if not self.demo and not allow_real:
             raise BridgeError("compte NON démo : refus. Le passage au réel n'est jamais automatique "
                               "(voir live.gate.real_account_conditions).")
+        # défense en profondeur : un serveur FTMO (challenge / compte financé) est refusé d'office, et si
+        # FTMO_ALGO_ALLOWED_SERVER (ou `allowed_server`) est défini, SEUL ce serveur est accepté.
+        server = (getattr(ai, "server", "") or "")
+        want = allowed_server or os.environ.get("FTMO_ALGO_ALLOWED_SERVER")
+        if want and server != want:
+            raise BridgeError(f"serveur « {server} » ≠ serveur autorisé « {want} » : refus")
+        if "ftmo" in server.lower() and not want:
+            raise BridgeError(f"serveur « {server} » : compte FTMO (challenge/financé) refusé par le pont. Pour l'autoriser "
+                              "il faut définir explicitement FTMO_ALGO_ALLOWED_SERVER (décision humaine).")
+        self.server = server
         self.fills = deque(maxlen=200)
         self.rejected = 0
         self.max_slip_mult = max_slip_mult

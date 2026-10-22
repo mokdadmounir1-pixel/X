@@ -68,3 +68,29 @@ def test_dashboard_page_renders_without_js_error_and_shows_flux_alert():
         b.close()
     srv.shutdown()
     assert errs == [], errs
+
+
+def _fake_mt5(monkeypatch, server, demo=True):
+    import sys, types
+    m = types.ModuleType("MetaTrader5")
+    m.ACCOUNT_TRADE_MODE_DEMO, m.ACCOUNT_TRADE_MODE_REAL = 0, 2
+    m.initialize = lambda *a, **k: True
+    m.last_error = lambda: (0, "")
+    m.account_info = lambda: types.SimpleNamespace(trade_mode=0 if demo else 2, server=server, login=1, balance=10000, currency="EUR", leverage=100)
+    monkeypatch.setitem(sys.modules, "MetaTrader5", m)
+
+
+def test_bridge_refuses_real_ftmo_and_unlisted_servers(monkeypatch):
+    from ftmo_algo.live.mt5_bridge import MT5Bridge, BridgeError
+    monkeypatch.delenv("FTMO_ALGO_ALLOWED_SERVER", raising=False)
+    _fake_mt5(monkeypatch, "MetaQuotes-Demo")
+    assert MT5Bridge().server == "MetaQuotes-Demo"
+    _fake_mt5(monkeypatch, "MetaQuotes-Demo", demo=False)
+    with pytest.raises(BridgeError): MT5Bridge()                       # compte réel
+    _fake_mt5(monkeypatch, "FTMO-Server3")
+    with pytest.raises(BridgeError, match="FTMO"): MT5Bridge()         # challenge / financé
+    _fake_mt5(monkeypatch, "MetaQuotes-Demo")
+    monkeypatch.setenv("FTMO_ALGO_ALLOWED_SERVER", "Autre-Demo")
+    with pytest.raises(BridgeError, match="autorisé"): MT5Bridge()
+    monkeypatch.setenv("FTMO_ALGO_ALLOWED_SERVER", "MetaQuotes-Demo")
+    assert MT5Bridge().server == "MetaQuotes-Demo"

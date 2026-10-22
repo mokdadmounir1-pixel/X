@@ -126,7 +126,7 @@ python -m ftmo_algo evolve-calibrate --n 40                                     
 ## Démo MT5 et passage au réel
 `python -m ftmo_algo demo` (sur votre machine Windows, terminal MT5 ouvert, **compte démo**) : mêmes agents, ordres réels avec SL/TP côté courtier,
 réconciliation prix demandé/exécuté/slippage, kill switch (gardien, flux coupé, écart d'exécution anormal, performance hors intervalle Monte Carlo → pause de l'agent).
-Le pont **refuse tout compte non démo**. Le passage à un réel/challenge payant est une décision humaine : conditions affichées par `python -m ftmo_algo gate`
+Le pont **refuse tout compte non démo** et tout serveur dont le nom contient « FTMO » (challenge / compte financé) ; `FTMO_ALGO_ALLOWED_SERVER=MetaQuotes-Demo` (variable d'environnement) restreint en plus le pont à ce seul serveur. Le passage à un réel/challenge payant est une décision humaine : conditions affichées par `python -m ftmo_algo gate`
 (verdict PASS + période verrouillée positive + ≥ 4 semaines de démo avec assez de trades + écart démo/backtest dans la norme).
 
 ## Boîte à outils open source
