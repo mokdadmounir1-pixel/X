@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 from ..instruments import Spec
-from ..timeutil import ns
+from ..timeutil import ns, server_clock
 from ..indicators import atr_arr
 from .news import NewsCalendar
 
@@ -34,6 +34,9 @@ class Market:
     gap_next: np.ndarray  # True si la barre est la dernière avant une fermeture longue
     news_block_next: np.ndarray = None  # blocage d'annonce pour l'OUVERTURE de la barre suivante (connu à la clôture)
     fine: dict | None = None   # données plus fines pour résoudre stop/cible dans la même barre
+    srv_min_c: np.ndarray = None   # minute du jour (heure serveur) À LA CLÔTURE de la barre
+    srv_dow_c: np.ndarray = None   # jour de semaine (lundi=0) à la clôture, heure serveur
+    srv_day_c: np.ndarray = None   # identifiant de jour serveur à la clôture
 
     def bar_ns(self) -> int:
         return int(np.median(np.diff(self.t))) if self.n > 2 else 900_000_000_000
@@ -78,8 +81,10 @@ def build_market(sym: str, df: pd.DataFrame, spec: Spec, news: NewsCalendar | No
     else:
         cl = pd.DatetimeIndex(t + bar, tz="UTC") if False else pd.to_datetime(t + bar, utc=True)
         gap = np.asarray((cl.weekday == 4) & (cl.hour * 60 + cl.minute >= 22 * 60 - 5))
+    smin, sdow, sday = server_clock(t + bar)
     return Market(sym, spec, df, len(df), t, t + bar, o, h, l, c, spr, a, s, sh, nb, nm, pday, roll, gap,
-                  news_block_next=nbn, fine=_fine_index(fine) if fine is not None else None)
+                  news_block_next=nbn, fine=_fine_index(fine) if fine is not None else None,
+                  srv_min_c=smin, srv_dow_c=sdow, srv_day_c=sday)
 
 
 def _fine_index(fine: pd.DataFrame) -> dict:

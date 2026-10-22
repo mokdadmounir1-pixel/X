@@ -70,6 +70,7 @@ class Pos:
     best_r: float = 0.0
     last_j: int = 0
     amb: bool = False
+    sday: int = -1          # jour serveur (à la clôture de la barre d'entrée) : sert à la clôture forcée quotidienne
 
 
 class Sim:
@@ -213,6 +214,11 @@ class Sim:
         # 4) nouveaux signaux à la clôture de la barre j
         if not self.dead:
             for s in self.sig.get(sym, []):
+                xs = getattr(s, "xs", None)
+                if xs is not None and xs[j]:     # sortie sur signal (indicateur) : exécutée à l'ouverture suivante
+                    for p in self.pos:
+                        if p.key == (s.algo, s.sym) and not p.exit_next and ((xs[j] & 1 and p.side > 0) or (xs[j] & 2 and p.side < 0)):
+                            p.exit_next = "signal_sortie"
                 if s.side[j] != 0:
                     self._signal(s, mk, j)
 
@@ -233,7 +239,8 @@ class Sim:
         self.pending.append({"key": key, "sym": s.sym, "algo": s.algo, "side": int(s.side[j]), "stop": float(s.stop[j]),
                              "target": float(s.target[j]), "grade": int(s.grade[j]), "ex": s.exit,
                              "feat": None if s.feat is None else s.feat[j].copy(), "sig_t": int(mk.t[j]),
-                             "ref": float(mk.c[j]), "allow_news": s.allow_news})
+                             "ref": float(mk.c[j]), "allow_news": s.allow_news, "min_rr": s.min_rr_net,
+                             "risk_mult": 1.0 if s.risk_mult is None or not np.isfinite(s.risk_mult[j]) else float(s.risk_mult[j])})
         self.events.append({"type": "signal", "key": key, "side": int(s.side[j]), "t": int(mk.tc[j]),
                             "grade": int(s.grade[j]), "stop": float(s.stop[j]), "target": float(s.target[j]),
                             "ref": float(mk.c[j])})
@@ -261,10 +268,11 @@ class Sim:
             return self._rej("cible_invalide", key=od["key"])
         exit_slip = slip
         rr_net = (reward - comm_unit - (spr if side < 0 else 0.0)) / (r_dist + exit_slip + comm_unit + (spr if side < 0 else 0.0))
-        if rr_net < cfg.min_rr_net:
+        min_rr = cfg.min_rr_net if od.get("min_rr") is None else od["min_rr"]
+        if rr_net < min_rr:
             return self._rej("rr_net", key=od["key"], rr=round(rr_net, 2))
         base = self.balance if cfg.compound else self.prof.initial_balance
-        risk_usd = base * cfg.risk_pct / 100
+        risk_usd = base * cfg.risk_pct / 100 * od.get("risk_mult", 1.0)
         per_lot = (r_dist + exit_slip + (spr if side < 0 else 0.0)) * value + spec.commission_lot * cfg.cost_mult
         lots = math.floor(risk_usd / per_lot / spec.lot_step + 1e-9) * spec.lot_step
         cap = cfg.leverage * self.balance / max(value * entry, 1e-9)
@@ -288,7 +296,7 @@ class Sim:
         self.balance -= comm
         p = Pos(od["key"], mk.sym, od["algo"], side, lots, lots, entry, stop, tgt, r_dist, value, real_risk,
                 int(mk.t[j]), od["grade"], od["feat"], ex, comm=comm, last_close=mk.c[j], sig_t=od["sig_t"],
-                last_j=j, spr_last=spr)
+                last_j=j, spr_last=spr, sday=int(mk.srv_day_c[j]) if mk.srv_day_c is not None else -1)
         self.pos.append(p)
         self.g.trading_days.add(int(mk.pday[j]))
         dk = (od["key"], self.g.day)
@@ -357,6 +365,15 @@ class Sim:
                 ns_ = p.entry + sd * lvl * p.r_dist + (0.0 if sd > 0 else spr)    # court : côté ask, spread payé
                 if sd * (ns_ - p.stop) > 0:
                     p.stop = ns_
+        if ex.px_be_trig > 0 and fav >= ex.px_be_trig:       # break-even en unités de prix (EA importés)
+            ns_ = p.entry + sd * ex.px_be_lock + (0.0 if sd > 0 else spr)
+            if sd * (ns_ - p.stop) > 0 and sd * (c - ns_) > 0:
+                p.stop = ns_
+        if ex.px_trail_dist > 0 and fav >= ex.px_trail_start:   # trailing en unités de prix, évalué à la CLÔTURE
+            ns_ = (c - ex.px_trail_dist) if sd > 0 else (c + ex.px_trail_dist + spr)
+            if (sd * (ns_ - p.stop) >= max(ex.px_trail_step, 1e-12) and sd * (c - ns_) > 0
+                    and (not ex.px_trail_above_entry or sd * (ns_ - p.entry) > 0)):
+                p.stop = ns_
         if ex.mode in ("trail_atr", "trail_struct") and mfe_r >= ex.trail_after:
             p.trail_on = True
         if p.trail_on:
@@ -371,6 +388,13 @@ class Sim:
         elif ex.weekend_flat and mk.gap_next[j]:
             px = c - slip if sd > 0 else c + spr + slip
             return self._exit(p, px, "weekend", mk, j)
+        elif (ex.flat_srv_min >= 0 or ex.flat_fri_srv_min >= 0) and mk.srv_min_c is not None:
+            fm = ex.flat_fri_srv_min if (ex.flat_fri_srv_min >= 0 and mk.srv_dow_c[j] == 4) else ex.flat_srv_min
+            same_day = mk.srv_day_c[j] == p.sday
+            late = (fm >= 0 and same_day and mk.srv_min_c[j] >= fm) or (p.sday >= 0 and mk.srv_day_c[j] > p.sday)
+            if late:      # clôture à HH:MM heure serveur (jamais d'overnight) : au prix de clôture de la barre
+                px = c - slip if sd > 0 else c + spr + slip
+                return self._exit(p, px, "cloture_session", mk, j)
 
     def _ambiguous(self, p, mk, j):
         """Ordre inconnu (stop et cible dans la même barre, pas de donnée plus fine) : politique `cfg.ambiguity`."""

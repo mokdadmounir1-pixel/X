@@ -45,7 +45,7 @@ class Ctx:
         self.local_day = (ns(loc.tz_localize(None).normalize()) // 86_400_000_000_000)
         self.utc_hour = m15.index.hour.to_numpy() + m15.index.minute.to_numpy() / 60
         # HTF sans fuite
-        offs = "22h" if self.spec.kind in ("fx_usdq", "fx_usdb", "fx_jpy", "metal") else "0h"
+        offs = "22h" if self.spec.kind in ("fx_usdq", "fx_usdb", "fx_jpy", "fx_cross", "metal") else "0h"
         self.h1, self.h4, self.d1 = (_htf_series(m15, "H1"), _htf_series(m15, "H4"), _htf_series(m15, "D1", offs))
         tc = mk.tc
         self.ix1, self.ix4, self.ixd = (align_htf(tc, x) for x in (self.h1, self.h4, self.d1))

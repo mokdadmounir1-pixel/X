@@ -11,12 +11,13 @@ from .wf import make_surrogate
 
 
 def _one(args):
-    kind, seed, names, years, real, null_B, pers = args
+    kind, seed, names, years, real, null_B, pers, algos = args
     if kind == "random_walk":
         dfs = make_universe(names, seed=1000 + seed, years=years, persistence=pers)
     else:   # série réelle mélangée : signes de blocs d'un jour inversés -> structure détruite, vol conservée
         dfs = {k: make_surrogate(d, 555 + seed + i) for i, (k, d) in enumerate(real.items())}
-    rep = research(dfs, workers=1, seed=seed, null_B=null_B, do_locked=False, verbose=False, registry=False)
+    rep = research(dfs, workers=1, seed=seed, null_B=null_B, do_locked=False, verbose=False, registry=False,
+                   algos=list(algos) if algos else None)
     passes = [a for a, r in rep["algos"].items() if r["verdict"] == "PASS"]
     watch = [a for a, r in rep["algos"].items() if r["verdict"] == "WATCH"]
     return {"kind": kind, "seed": seed, "pass": passes, "watch": watch, "scoring_kept": rep["scoring"]["monotone"],
@@ -24,13 +25,13 @@ def _one(args):
 
 
 def calibrate(names=("US500", "EURUSD", "XAUUSD"), n_series=20, years=4.0, real=None, null_B=99, workers=4,
-              out="results/calibration.json", seed0=0, persistence=0.0):
-    jobs = [("random_walk", seed0 + s, list(names), years, None, null_B, persistence) for s in range(n_series)]
+              out="results/calibration.json", seed0=0, persistence=0.0, algos=None):
+    jobs = [("random_walk", seed0 + s, list(names), years, None, null_B, persistence, algos) for s in range(n_series)]
     if real:
-        jobs += [("real_shuffled", s, None, None, real, null_B, 0.0) for s in range(max(4, n_series // 5))]
+        jobs += [("real_shuffled", s, None, None, real, null_B, 0.0, algos) for s in range(max(4, n_series // 5))]
     with mp.get_context("fork").Pool(workers) as pool:
         res = pool.map(_one, jobs, chunksize=1)
-    n_algo = 8
+    n_algo = max(len(r["exp"]) for r in res)          # algos testés (le méta-algo ml_filter compris)
     fam = sum(1 for r in res if r["pass"]) / len(res)
     per_test = sum(len(r["pass"]) for r in res) / (len(res) * n_algo)
     rep = {"n_series": len(res), "kinds": {k: sum(1 for r in res if r["kind"] == k) for k in {r["kind"] for r in res}},

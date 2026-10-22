@@ -10,7 +10,7 @@ from ..timeutil import ns
 
 BASE = {"US500": (4500, .16), "US100": (15000, .22), "US30": (35000, .15), "GER40": (16000, .17),
         "XAUUSD": (2000, .15), "EURUSD": (1.08, .07), "GBPUSD": (1.26, .08), "AUDUSD": (.66, .09),
-        "USDJPY": (150, .09), "GBPJPY": (190, .11), "BTCUSD": (30000, .55)}
+        "USDJPY": (150, .09), "AUDCAD": (.90, .06), "GBPJPY": (190, .11), "BTCUSD": (30000, .55)}
 FREQ = "5min"
 
 

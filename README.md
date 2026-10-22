@@ -45,7 +45,7 @@ ftmo_algo/
   instruments.py        specs (lots, spreads, commissions, swaps, groupes corrélés) — défauts [HYPOTHÈSE] à écraser par MT5 symbol_info
   data/                 loaders (MT5, CSV auto-détecté, ccxt), synth (synthétique), quality (rapport + MTF sans fuite)
   engine/               sim.py (moteur pessimiste unique), market.py, guardian.py (règles prop firm), news.py
-  algos/                context.py (séries causales partagées), library.py (8 algos), base.py (interface commune)
+  algos/                context.py (séries causales partagées), library.py (8 algos), leo.py (14 algos portés des EA MT5 de Leo, voir LEO.md), base.py (interface commune)
   research/             wf.py (variantes, walk-forward, surrogates), gates.py, stats.py, ml.py, split.py (verrou),
                         pipeline.py, calibrate.py
   target.py             cible mensuelle (mesure, jamais objectif d'optimisation)
@@ -63,6 +63,11 @@ legacy/                 ancien code (micro_scalping, fx_liquidity_bot) conservé
 - Taille par risque fixe, arrondie au pas de lot réel, levier plafonné ; plafond de risque par groupe corrélé (US500/US100/US30 = un groupe) ; RR net < 2,5 refusé avant l'entrée.
 - Gardien interne à 70 % des limites officielles, calculé sur l'**équité** (flottant inclus), reset à minuit **Prague** ; réserve de risque avant chaque entrée.
 - Fermeture avant week-end : option `weekend_flat` (variantes de sortie testées).
+
+### Les algos de Leo (`algos/leo.py`, détail et écarts dans `LEO.md`)
+14 algos `leo_*` portés des EA MT5 : Range Breakout, Bandito, Happy Gold, Double Croisement, Hybride MM/SuperTrend, Cloud EMA/ATR, Gold Scalping et le
+SuperSelector (6 modules + sélecteur). Ils passent par **le même moteur pessimiste, les mêmes 9 portes, la même période verrouillée** que les autres algos, avec leurs
+propres sorties (SL/TP, break-even, trailing, clôture à l'heure serveur, sortie sur indicateur). Ils apparaissent dans le dashboard sans changement d'interface.
 
 ### Les 8 algos (`algos/library.py` : hypothèse économique et invalidation écrites dans chaque classe)
 `trend_pullback`, `sweep_reversal`, `squeeze_breakout`, `session_orb` (le breakout d'ouverture n'a droit à aucune faveur),

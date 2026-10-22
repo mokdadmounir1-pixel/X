@@ -250,7 +250,10 @@ class MLFilter(Algo):
 
 ALGOS = {c.name: c() for c in (TrendPullback, SweepReversal, SqueezeBreakout, SessionORB, MeanReversionZ,
                               NewsMomentum, RegimeRouter, MLFilter)}
+from .leo import LEO_CLASSES          # algos portés des EA de Leo (import ici : leo.py ne dépend pas de ce module)
+ALGOS.update({c.name: c() for c in LEO_CLASSES})
 BASE_ALGOS = [n for n, a in ALGOS.items() if not getattr(a, "meta", False)]
+LEO_ALGOS = [n for n, a in ALGOS.items() if a.family == "leo"]
 EXIT_VARIANTS = {
     "fixed3": ExitCfg("fixed", rr=3.0, time_stop=96),
     "fixed4": ExitCfg("fixed", rr=4.0, time_stop=96),
@@ -259,7 +262,18 @@ EXIT_VARIANTS = {
     "partial4": ExitCfg("partial", rr=4.0, time_stop=96, partial_at=1.5, partial_frac=0.5),
     "trail_atr": ExitCfg("trail_atr", rr=8.0, time_stop=192, atr_k=2.5, trail_after=1.0),
     "trail_struct": ExitCfg("trail_struct", rr=8.0, time_stop=192, trail_after=1.0),
+    # marqueur : les algos « leo » portent LEURS sorties (SL/TP/BE/trailing/clôture de session de l'EA) ; cette valeur n'est
+    # jamais utilisée telle quelle et n'est proposée qu'aux algos qui la déclarent (voir exit_names)
+    "native": ExitCfg("fixed", rr=20.0, time_stop=0),
 }
+
+
+def exit_names(algo: str) -> list[str]:
+    """Sorties testées pour un algo : celles qu'il déclare (`exits`), sinon tout le catalogue sauf « native »."""
+    a = ALGOS[algo]
+    if a.exits:
+        return [k for k in EXIT_VARIANTS if k in a.exits]
+    return [k for k in EXIT_VARIANTS if k != "native"]
 
 
 def enable_lock_exit():

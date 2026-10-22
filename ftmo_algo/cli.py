@@ -91,7 +91,8 @@ def cmd_research(a):
 def cmd_calibrate(a):
     from .research.calibrate import calibrate
     real = _data(a) if (a.data_dir or a.mt5) else None
-    r = calibrate(tuple(a.instruments.split(",")), a.n, a.years, real, a.null, a.workers, f"{a.out}/{a.name}.json", a.seed0, a.persistence)
+    r = calibrate(tuple(a.instruments.split(",")), a.n, a.years, real, a.null, a.workers, f"{a.out}/{a.name}.json", a.seed0, a.persistence,
+                  [x for x in (a.algos or "").split(",") if x] or None)
     print(f"{r['label']} séries: {r['kinds']}")
     print(f"taux de faux PASS par série : {r['false_pass_rate_per_series']:.1%} | par test algo : {r['false_pass_rate_per_algo_test']:.1%} "
           f"| faux WATCH par série : {r['false_watch_rate_per_series']:.1%} | espérance OOS moyenne : {r['mean_oos_expectancy_R']} R")

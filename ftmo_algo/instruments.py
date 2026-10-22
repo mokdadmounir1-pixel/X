@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, replace
 
 USDJPY_REF = 150.0  # taux de référence figé pour convertir les P&L JPY (approximation)
+USDCAD_REF = 1.37   # idem pour les P&L en CAD (AUDCAD) ; [HYPOTHÈSE] à remplacer par la conversion MT5 réelle
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,8 @@ SPECS: dict[str, Spec] = {s.name: s for s in [
     Spec("XAUUSD", "metal", 100.0, spread=0.25, slippage=0.1, commission_lot=0.0, tz="Europe/London",
          group="METALS", session_open=(8, 0), session_tz="Europe/London", tick=0.01, swap_long=-15.0, swap_short=5.0),
     _fx("EURUSD", 0.00008, "USD_FX"), _fx("GBPUSD", 0.00010, "USD_FX"), _fx("AUDUSD", 0.00010, "USD_FX"),
+    replace(_fx("AUDCAD", 0.00014, "CAD_FX", kind="fx_cross", tz="Australia/Sydney", so=(8, 0), swl=-2.0, sws=-1.0),
+            usd_per_unit=100000.0 / USDCAD_REF),           # AUDCAD : cotée en CAD, 1 lot = 100 000 AUD
     Spec("USDJPY", "fx_jpy", 100000.0 / USDJPY_REF, spread=0.008, slippage=0.003, commission_lot=7.0,
          tz="Asia/Tokyo", group="JPY_FX", session_open=(9, 0), session_tz="Asia/Tokyo", tick=0.001,
          swap_long=3.0, swap_short=-6.0),

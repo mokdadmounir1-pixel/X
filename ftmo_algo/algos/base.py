@@ -19,6 +19,15 @@ class ExitCfg:
     max_rr: float = 8.0
     weekend_flat: bool = False
     lock_steps: tuple = ((1.5, 0.0), (2.5, 1.0))   # mode « lock » : (MFE atteint en R, gain verrouillé en R)
+    # --- sorties « natives » (algos importés d'EA MT5) ; toutes inactives par défaut : comportement inchangé
+    flat_srv_min: int = -1          # clôture forcée à cette minute du jour (HEURE SERVEUR) ; -1 = désactivée
+    flat_fri_srv_min: int = -1      # idem le vendredi si >= 0 (sinon flat_srv_min)
+    px_be_trig: float = 0.0         # break-even : gain (unités de prix) qui déclenche le verrou ; 0 = off
+    px_be_lock: float = 0.0         # gain verrouillé au-delà de l'entrée (unités de prix)
+    px_trail_start: float = 0.0     # trailing : gain minimal avant activation (unités de prix)
+    px_trail_dist: float = 0.0      # trailing : distance du stop au prix (unités de prix) ; 0 = off
+    px_trail_step: float = 0.0      # trailing : pas minimal de resserrement (unités de prix)
+    px_trail_above_entry: bool = False   # le stop suiveur ne peut être posé qu'au-delà du prix d'entrée
 
 
 @dataclass
@@ -35,6 +44,9 @@ class Signals:
     allow_news: bool = False
     max_per_day: int = 2
     params: dict = field(default_factory=dict)
+    min_rr_net: float | None = None     # plancher de RR net propre à l'algo (None = celui de SimConfig) ; RR natif d'un EA importé
+    risk_mult: np.ndarray | None = None # multiplicateur de risque par signal (None = 1) ; paliers « core/expérimental »
+    xs: np.ndarray | None = None        # int8 : bit 1 = fermer les LONGS à l'ouverture suivante, bit 2 = fermer les SHORTS
 
     def idx(self):
         return np.flatnonzero(self.side != 0)
@@ -53,6 +65,10 @@ class Algo:
     grid: dict = {}            # nom -> liste de valeurs (la grille entière est comptée dans le DSR)
     default: dict = {}
     timeframes = ("M15", "H1", "H4", "D1")
+    family = "base"            # « leo » pour les algos portés des EA de Leo
+    exits = None               # None = toutes les sorties testées ; sinon tuple de noms (ex. ("native",))
+    default_exit = "fixed3"    # sortie utilisée par défaut (filtre ML, agents live sans variante choisie)
+    native_symbols = ()        # instruments pour lesquels la source a été conçue (indicatif)
 
     def combos(self):
         keys = list(self.grid)

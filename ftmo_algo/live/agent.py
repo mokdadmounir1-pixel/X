@@ -55,7 +55,7 @@ class Agent:
     def __init__(self, name: str, algo: str, variant: str | None, symbols: list[str], profile: PropProfile,
                  cfg: SimConfig, news=None, journal=None, shared: SharedData | None = None, sink=None):
         self.name, self.algo, self.symbols = name, algo, symbols
-        self.params, self.exit_name = parse_vkey(variant) if variant else (ALGOS[algo].default, "fixed3")
+        self.params, self.exit_name = parse_vkey(variant) if variant else (ALGOS[algo].default, ALGOS[algo].default_exit)
         self.profile, self.cfg, self.journal = profile, cfg, journal
         self.own_shared = shared is None
         self.shared = shared or SharedData(symbols, news, None)

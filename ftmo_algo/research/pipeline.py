@@ -13,10 +13,10 @@ from ..engine.guardian import PropProfile
 from ..engine.sim import Sim, SimConfig
 from . import stats as st
 from .stats import reality_check
-from .gates import GateCfg, GATE_CLASS, cheap_gates, null_gate, verdict
+from .gates import GateCfg, GATE_CLASS, cheap_gates, null_gate, null_resolution, verdict
 from .ml import ml_filter
 from .split import split_locked, final_evaluation
-from .wf import (shift_signals, make_surrogate_stationary, build_ctxs, run_variants, make_folds, walk_forward, modal_variant, in_windows, parse_vkey,
+from .wf import (dvkey, shift_signals, make_surrogate_stationary, build_ctxs, run_variants, make_folds, walk_forward, modal_variant, in_windows, parse_vkey,
                  vkey, null_distribution, sim_trades, KEEP, cands_default, portfolio_sim)
 from .. import __version__
 from ..registry import TrialRegistry, family_key, experiment_id
@@ -93,6 +93,12 @@ def research(dfs: dict, news=None, workers=1, seed=0, cfg: GateCfg | None = None
                                   "fixed3_wkflat = fermeture forcée avant le week-end vs fixed3 = conservation")
     # ---- walk-forward final par algo
     res, n_tests = {}, len(algos) + 1
+    nres = null_resolution(n_tests, null_B, cfg)
+    if nres["relevé"]:
+        log(f"[research] {n_tests} tests : alpha corrigé {nres['alpha_par_test']} -> {nres['null_B']} surrogates et "
+            f"{2 * nres['jours_de_decalage']} décalages (sinon p_min = {1 / (null_B + 1):.4f} >= alpha : test infranchissable)")
+    null_B, shift_days = nres["null_B"], nres["jours_de_decalage"]
+    rep["null_resolution"] = nres
     for a in algos:
         oos, chosen = walk_forward(tv[a], folds, grade_min=grade_min)
         res[a] = {"oos": oos, "chosen": chosen}
@@ -140,11 +146,11 @@ def research(dfs: dict, news=None, workers=1, seed=0, cfg: GateCfg | None = None
             row["ml_folds"] = ml_info
             # coût x2 du filtre ML : même sélection, coûts doublés
             if len(ml_oos):
-                only = {x: {vkey(ALGOS[x].default, "fixed3")} for x in cands.algo.unique()}
+                only = {x: {dvkey(x)} for x in cands.algo.unique()}
                 c2 = run_variants(ctxs, list(only), cost_mult=2.0, only=only, workers=1)
                 keep = []
                 for x in only:
-                    df = c2[x][vkey(ALGOS[x].default, "fixed3")]
+                    df = c2[x][dvkey(x)]
                     if len(df):
                         key = set(zip(ml_oos[ml_oos.algo == x].sym, ml_oos[ml_oos.algo == x].entry_t))
                         keep.append(df[[(s, t_) in key for s, t_ in zip(df.sym, df.entry_t)]].r.to_numpy())
@@ -183,7 +189,7 @@ def research(dfs: dict, news=None, workers=1, seed=0, cfg: GateCfg | None = None
             if a in nd2:
                 battery["bootstrap_stationnaire_4h"] = null_gate(obs, nd2[a][:, 0], n_tests, cfg)
                 p0, e0 = parse_vkey(res[a]["row"]["modal_variant"])
-                battery["decalage_des_signaux"] = _shift_gate(ctxs, a, p0, e0, folds, grade_min, obs, n_tests, cfg, workers)
+                battery["decalage_des_signaux"] = _shift_gate(ctxs, a, p0, e0, folds, grade_min, obs, n_tests, cfg, workers, days=shift_days)
             ok = all(v[0] for v in battery.values())
             res[a]["gates"]["g4_null"] = (ok, {k: v[1] for k, v in battery.items()}, {k: v[2] for k, v in battery.items()})
             res[a]["row"]["null"] = {"obs": obs, "null_mean": round(float(nd[a][:, 0].mean()), 3),

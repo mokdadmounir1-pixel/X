@@ -52,6 +52,19 @@ def cheap_gates(r: np.ndarray, r_cost2: np.ndarray | None, nb_exp: list[float] |
     return g
 
 
+def null_resolution(n_tests: int, null_B: int, cfg: GateCfg, margin: float = 1.25, base_shift_days: int = 50) -> dict:
+    """Le test nul est corrigé de Šidák sur le nombre d'algos testés : alpha = 1-(1-α)^(1/n). Avec B tirages le plus petit
+    p possible est 1/(B+1) : si 1/(B+1) >= alpha le test ne peut JAMAIS être franchi, quel que soit l'edge. On relève donc B (et le
+    nombre de décalages du test de décalage, 2 par jour) pour que le plus petit p reste sous alpha avec `margin` de marge.
+    Inchangé pour ≤ 9 algos (99 tirages suffisaient)."""
+    alpha = 1 - (1 - cfg.null_alpha) ** (1 / max(n_tests, 1))
+    need = int(np.ceil(margin / alpha)) - 1
+    B = max(int(null_B), need)
+    days = max(int(base_shift_days), int(np.ceil(need / 2)))
+    return {"n_tests": int(n_tests), "alpha_par_test": round(alpha, 5), "null_B_demande": int(null_B), "null_B": B,
+            "jours_de_decalage": days, "p_min_atteignable": round(1 / (B + 1), 5), "relevé": B > null_B or days > base_shift_days}
+
+
 def null_gate(obs: float, null: np.ndarray, n_tests: int, cfg: GateCfg):
     B = len(null)
     p = (1 + int((null >= obs).sum())) / (1 + B)

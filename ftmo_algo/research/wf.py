@@ -6,7 +6,7 @@ from dataclasses import dataclass, field, replace
 import numpy as np
 import pandas as pd
 from ..algos.context import Ctx
-from ..algos.library import ALGOS, EXIT_VARIANTS
+from ..algos.library import ALGOS, EXIT_VARIANTS, exit_names
 from ..data.quality import resample_ohlc
 from ..engine.sim import Sim, SimConfig
 from ..engine.guardian import PropProfile
@@ -18,6 +18,11 @@ KEEP = ["sym", "entry_t", "exit_t", "r", "gross_r", "grade", "mae_r", "mfe_r", "
 
 def vkey(params: dict, exit_name: str) -> str:
     return "|".join(f"{k}={params[k]}" for k in sorted(params)) + "@" + exit_name
+
+
+def dvkey(algo: str) -> str:
+    """Clé de la variante PAR DÉFAUT d'un algo (paramètres par défaut, sa sortie par défaut)."""
+    return vkey(ALGOS[algo].default, ALGOS[algo].default_exit)
 
 
 def parse_vkey(k: str):
@@ -55,14 +60,16 @@ def _task(args):
     a = ALGOS[algo]
     out = {}
     combos = a.combos() if a.grid else [a.default]
-    exits = EXIT_VARIANTS
+    exits = {k: EXIT_VARIANTS[k] for k in exit_names(algo)}
     for p in combos:
         todo = [e for e in exits if only is None or vkey(p, e) in only]
         if not todo:
             continue
         sig0 = a.generate(ctx, p, exits[todo[0]])      # les signaux ne dépendent pas de la sortie
         for e in todo:
-            out[vkey(p, e)] = sim_trades(ctx, replace(sig0, exit=exits[e]), cost_mult, grades=grades)
+            # « native » : l'algo porte SES sorties (SL/TP/BE/trailing/clôture de session) ; le catalogue ne les écrase pas
+            sig = sig0 if e == "native" else replace(sig0, exit=exits[e])
+            out[vkey(p, e)] = sim_trades(ctx, sig, cost_mult, grades=grades)
     return algo, sym, out
 
 
@@ -182,6 +189,10 @@ def shift_signals(sig, close: np.ndarray, k: int):
     s2.side = np.zeros(n, np.int8); s2.stop = np.full(n, np.nan); s2.target = np.full(n, np.nan); s2.grade = np.zeros(n, np.int8)
     if sig.feat is not None:
         s2.feat = np.zeros_like(sig.feat)
+    if sig.risk_mult is not None:
+        s2.risk_mult = np.ones(n)
+    if sig.xs is not None:
+        s2.xs = np.zeros(n, np.int8)
     src = np.flatnonzero(sig.side != 0)
     dst = src + k
     ok = (dst >= 0) & (dst < n)
@@ -191,6 +202,12 @@ def shift_signals(sig, close: np.ndarray, k: int):
     s2.target[dst] = close[dst] * sig.target[src] / close[src]
     if sig.feat is not None:
         s2.feat[dst] = sig.feat[src]
+    if sig.risk_mult is not None:
+        s2.risk_mult[dst] = sig.risk_mult[src]
+    if sig.xs is not None:
+        okx = (np.flatnonzero(sig.xs != 0) + k)
+        okx = okx[(okx >= 0) & (okx < n)]
+        s2.xs[okx] = sig.xs[okx - k]
     return s2
 
 
@@ -221,7 +238,7 @@ def make_surrogate(df: pd.DataFrame, seed: int, demean=True) -> pd.DataFrame:
 
 def cands_default(ctxs, algos, workers=1):
     """Candidats du filtre ML : chaque algo de base à ses paramètres PAR DÉFAUT (non optimisés) et sortie fixed3."""
-    only = {a: {vkey(ALGOS[a].default, "fixed3")} for a in algos if ALGOS[a].default}
+    only = {a: {dvkey(a)} for a in algos if ALGOS[a].default}
     tr = run_variants(ctxs, list(only), only=only, workers=workers)
     parts = [df.assign(algo=a) for a in only for df in tr[a].values() if len(df)]
     return pd.concat(parts, ignore_index=True) if parts else pd.DataFrame(columns=KEEP + ["feat", "algo"])
