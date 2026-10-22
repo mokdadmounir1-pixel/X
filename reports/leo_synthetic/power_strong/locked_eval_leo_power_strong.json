@@ -1,0 +1,133 @@
+{
+ "tag": "leo_power_strong",
+ "lock_start": "2025-01-02 21:55:00+00:00",
+ "forced": false,
+ "result": {
+  "leo_range_breakout": {
+   "n": 354,
+   "expectancy_R": 0.06,
+   "pf": 1.14,
+   "win_rate": 0.28,
+   "total_R": 21.4,
+   "variant": "end_min=360|sl_pct=0.5@native",
+   "verdict_research": "FAIL"
+  },
+  "leo_bandito": {
+   "n": 230,
+   "expectancy_R": -0.589,
+   "pf": 0.01,
+   "win_rate": 0.03,
+   "total_R": -135.5,
+   "variant": "bb_dev=2.5|tp_pips=100@native",
+   "verdict_research": "FAIL"
+  },
+  "leo_happy_gold": {
+   "n": 27,
+   "expectancy_R": -0.146,
+   "pf": 0.02,
+   "win_rate": 0.111,
+   "total_R": -3.9,
+   "variant": "direction=0|n_conf=16@native",
+   "verdict_research": "FAIL"
+  },
+  "leo_double_croisement": {
+   "n": 49,
+   "expectancy_R": -0.276,
+   "pf": 0.17,
+   "win_rate": 0.245,
+   "total_R": -13.5,
+   "variant": "d_slow=15|sl_atr=3.0@native",
+   "verdict_research": "FAIL"
+  },
+  "leo_hybride_supertrend": {
+   "n": 34,
+   "expectancy_R": -0.287,
+   "pf": 0.27,
+   "win_rate": 0.294,
+   "total_R": -9.8,
+   "variant": "sl_atr=1.5|st_mult=2.0@native",
+   "verdict_research": "FAIL"
+  },
+  "leo_cloud_ema_atr": {
+   "n": 160,
+   "expectancy_R": -0.505,
+   "pf": 0.13,
+   "win_rate": 0.163,
+   "total_R": -80.7,
+   "variant": "preset=1|sl_atr=1.0@native",
+   "verdict_research": "FAIL"
+  },
+  "leo_gold_scalping": {
+   "n": 746,
+   "expectancy_R": -0.581,
+   "pf": 0.1,
+   "win_rate": 0.123,
+   "total_R": -433.5,
+   "variant": "adx_min=30.0|piv=3@native",
+   "verdict_research": "FAIL"
+  },
+  "leo_ss_monday": {
+   "n": 285,
+   "expectancy_R": 0.542,
+   "pf": 2.25,
+   "win_rate": 0.46,
+   "total_R": 154.5,
+   "variant": "sl_k=1.0|tp_k=2.5@native",
+   "verdict_research": "FAIL"
+  },
+  "leo_ss_lcrb": {
+   "n": 12,
+   "expectancy_R": -0.204,
+   "pf": 0.62,
+   "win_rate": 0.417,
+   "total_R": -2.5,
+   "variant": "sl_k=1.5|tp_k=1.5@native",
+   "verdict_research": "FAIL"
+  },
+  "leo_ss_volshock": {
+   "n": 68,
+   "expectancy_R": -0.292,
+   "pf": 0.44,
+   "win_rate": 0.397,
+   "total_R": -19.9,
+   "variant": "sl_k=1.6|tp_k=2.5@native",
+   "verdict_research": "FAIL"
+  },
+  "leo_ss_ldr": {
+   "n": 321,
+   "expectancy_R": 0.014,
+   "pf": 1.03,
+   "win_rate": 0.349,
+   "total_R": 4.5,
+   "variant": "sl_k=1.1|tp_k=2.7@native",
+   "verdict_research": "FAIL"
+  },
+  "leo_ss_ibi": {
+   "n": 521,
+   "expectancy_R": 0.206,
+   "pf": 1.43,
+   "win_rate": 0.411,
+   "total_R": 107.3,
+   "variant": "sl_k=1.0|tp_k=2.5@native",
+   "verdict_research": "FAIL"
+  },
+  "leo_ss_eef": {
+   "n": 175,
+   "expectancy_R": -0.018,
+   "pf": 0.97,
+   "win_rate": 0.383,
+   "total_R": -3.1,
+   "variant": "sl_k=1.2|tp_k=2.7@native",
+   "verdict_research": "FAIL"
+  },
+  "leo_superselector": {
+   "n": 221,
+   "expectancy_R": 0.552,
+   "pf": 2.69,
+   "win_rate": 0.606,
+   "total_R": 122.0,
+   "variant": "min_score=80.0@native",
+   "verdict_research": "FAIL"
+  }
+ }
+}

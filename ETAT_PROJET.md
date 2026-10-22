@@ -87,6 +87,13 @@ Ajouts : ambiguïté intrabar explicite (`ambiguity`, fourchette stop-d'abord / 
 **Faux PASS avec la nouvelle batterie :** la batterie ne peut que durcir la porte 4 (conjonction de tests), le taux ne peut donc pas augmenter par ce mécanisme ; recalibrage sur 12 marches aléatoires (`reports/synthetic_reference/calibration_battery.json`) : **0/12 faux PASS** ; avec n = 12 la borne haute à 95 % est ≈ 22 % : cela ne prouve rien de fin, seulement l'absence de dérive grossière (la calibration 0/60 de référence reste la mesure principale).
 **Non fait :** résolution par ticks bid/ask, SPA de Hansen, permutation par régimes comparables, validation sur instruments non utilisés à la conception, modèle de slippage lié au type d'ordre/liquidité (seule la démo le mesure). **Gel :** aucun nouvel algo avant les premiers résultats sur données réelles.
 
+## 3quinquies. Algos de Leo (14 EA MT5 portés) — ajout du 2026-10-22 — voir `LEO.md`
+- 14 algos `leo_*` dans `algos/leo.py`, mêmes moteur / portes / période verrouillée / dashboard (21 algos listés). Sorties natives (`native`), clôture à l'heure serveur, BE/trailing en prix, sortie sur signal, RR et risque par signal : champs additifs, comportement existant inchangé (156 tests existants verts).
+- **Bogue de recherche corrigé** : `run_variants` écrasait la sortie du signal par celle du catalogue (positions tenues des mois). Détecté par la recherche de bout en bout, pas par les tests unitaires.
+- **Régression évitée** : alpha de Šidák < 1/(B+1) rendait le test nul infranchissable dès 11 algos testés ; `gates.null_resolution` relève B et les décalages (inchangé ≤ 9 algos). `calibrate` ne code plus « 8 algos ».
+- Résultats `[SYNTHÉTIQUE]` : calibration 0/20 faux PASS (après correction), puissance : edge trouvé par plusieurs algos, aucun PASS (porte 9 et test nul « signe par jour »). Rien de `[VÉRIFIÉ]` : pas de données réelles ici.
+- Non reçus / non portés : `06_…`, DCA intelligent, Moyenne mobile, AUDCAD commun.
+
 ## 4. Algos rejetés et pourquoi
 Tous les algos échouent sur la marche aléatoire de référence — **ce n'est pas un rejet sur le fond** : sans edge à trouver, un FAIL est le bon résultat, et ce n'est pas une preuve contre les hypothèses sur marché réel. Ce que le dépôt prouve, c'est que le pipeline ne fabrique pas de faux edge. Rejets effectifs :
 - `micro_scalping` et `fx_liquidity_bot` (code historique) : remplacés, voir §1.

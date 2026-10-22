@@ -66,6 +66,25 @@ Tous les champs sont additifs et neutres par défaut ; `test_engine`, `test_repl
 Un bogue réel a été trouvé par la recherche de bout en bout (pas par les tests unitaires) et corrigé : `run_variants` remplaçait la sortie du signal par celle du
 catalogue, ce qui supprimait la clôture de session et laissait les positions ouvertes des mois. Test de non-régression : `test_research_path_keeps_native_exits`.
 
+## Résultats `[SYNTHÉTIQUE]` (validation de la mécanique, pas de la rentabilité)
+
+Données générées (XAUUSD, AUDCAD, US30), 14 algos `leo_*`. Fichiers : `reports/leo_synthetic/`.
+
+- **Calibration** (`calibration_leo.json`) : 20 marches aléatoires indépendantes × 4 ans, chaîne complète (walk-forward, 9 portes, test nul à
+  résolution relevée, DSR) : **0 faux PASS, 0 faux WATCH** ; espérance OOS moyenne −0,12 R (les coûts). 20 séries bornent mal un taux
+  (borne haute à 95 % ≈ 14 %) : ne pas en déduire un taux nul. Un premier passage de cette calibration avait donné le même 0/20 **sans valeur**, car avec
+  15 tests le test nul était infranchissable (voir ci-dessous) ; il a été refait après correction.
+- **Puissance** (`power_strong/`, edge planté fort, persistance 0,3) : plusieurs algos de Leo trouvent l'edge (Range Breakout +1,32 R, PF 6,7 ;
+  SS Monday +0,42 R ; SS IBI +0,38 R ; SS EEF +0,30 R ; SuperSelector +0,16 R) et la **période verrouillée** le confirme pour Range Breakout (+0,06 R), SS Monday (+0,54 R), SS IBI (+0,21 R) et
+  SuperSelector (+0,55 R). **Aucun PASS** : les modules SuperSelector échouent à la porte 9 (séries de pertes p95 trop longues pour le profil FTMO, risque
+  0,5 %/trade), et le Range Breakout, seul à passer toutes les autres portes, est écarté par le test nul « signe aléatoire par jour ». Bandito, Gold Scalping, Cloud, Happy Gold,
+  Double Croisement, Hybride : espérance ≤ 0 même avec un edge de tendance planté (leur logique est de retour à la moyenne, de pivot court ou de filtre lent, pas de tendance intrajournalière).
+- **Test nul** : avec 15 tests l'alpha de Šidák vaut 0,007 alors que 99 tirages ne donnent jamais un p < 0,01 : **aucun algo ne pouvait franchir la porte**, quel que soit l'edge.
+  `null_resolution` relève maintenant les tirages (178) et les décalages ; le Range Breakout passe alors le bootstrap stationnaire et le décalage (p = 0,0056). Inchangé pour ≤ 9 algos.
+- **Limite connue du protocole (non modifiée)** : un algo symétrique long/short et purement intrajournalier est son propre miroir sous « signe aléatoire par jour » :
+  son espérance sous le nul égale (ici dépasse) l'observée, p ≈ 1. Cette porte ne peut donc pas valider un edge intrajournalier ; pour ces algos, la preuve repose sur le bootstrap, le décalage,
+  les coûts ×2 et surtout la période verrouillée sur données réelles. La changer modifierait toutes les conclusions publiées : décision à prendre explicitement.
+
 ## Hypothèses à vérifier sur votre machine
 
 1. **Heure serveur** : `SERVER_TZ = "Europe/Athens"` (GMT+2/+3, bascule NY). Si votre courtier diffère, changez-le dans `timeutil.py` ; tous les horaires en dépendent.
