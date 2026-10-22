@@ -1,0 +1,26 @@
+jours IS=935 OOS=540  N variantes=13
+  ORB_15_EOD         IS SR_ann=  0.30  PnL_total=   18.8%  jours_trade=777
+  ORB_15_2R          IS SR_ann=  0.28  PnL_total=   12.0%  jours_trade=777
+  ORB_30_EOD         IS SR_ann=  0.78  PnL_total=   41.0%  jours_trade=778
+  ORB_30_2R          IS SR_ann=  0.39  PnL_total=   16.1%  jours_trade=778
+  ORB_60_EOD         IS SR_ann=  0.63  PnL_total=   25.8%  jours_trade=777
+  ORB_60_2R          IS SR_ann=  0.40  PnL_total=   13.9%  jours_trade=777
+  IDM_30_30          IS SR_ann= -0.92  PnL_total=  -16.1%  jours_trade=754
+  TSMOM_20-60-120    IS SR_ann=  0.60  PnL_total=   22.9%  jours_trade=644
+  TSMOM_10-30-90     IS SR_ann=  0.45  PnL_total=   15.8%  jours_trade=674
+  TSMOM_40-120-250   IS SR_ann=  0.49  PnL_total=   16.8%  jours_trade=514
+  TSMOM_60           IS SR_ann=  0.72  PnL_total=   33.3%  jours_trade=704
+  TSMOM_20           IS SR_ann=  0.48  PnL_total=   23.8%  jours_trade=744
+  TSMOM_120          IS SR_ann=  0.37  PnL_total=   18.1%  jours_trade=644
+
+RETENU (IS): ORB_30_EOD  SR_ann=0.78  PSR(0)=0.939  DSR(N=13)=0.548
+TEST FINAL ORB_30_EOD: n=540 jours  SR_ann=0.33  IC95%=[-0.90,1.53]  PSR(0)=0.688  PnL=8.9% (a risque 0.25%/trade)
+  concentration: top 5% des jours = 37% des gains ; pire jour=-1.26% ; pire intra-jour=-2.59%
+PORTES: REJETE -> aucun deploiement justifie par ces donnees
+
+-- Choix du multiplicateur de risque sur IS UNIQUEMENT, puis simulation FTMO sur OOS --
+  risque x1 (0.25%/trade): IS p1=0.67 fail=0.00 both=0.52 | OOS p1=0.48 fail=0.00 both=0.31
+  risque x2 (0.50%/trade): IS p1=0.50 fail=0.07 both=0.31 | OOS p1=0.39 fail=0.12 both=0.20
+  risque x3 (0.75%/trade): IS p1=0.38 fail=0.18 both=0.19 | OOS p1=0.31 fail=0.22 both=0.15
+  risque x4 (1.00%/trade): IS p1=0.15 fail=0.74 both=0.04 | OOS p1=0.18 fail=0.66 both=0.05
+registre: (True, 'ok') essais: 14

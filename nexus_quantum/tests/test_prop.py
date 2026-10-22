@@ -69,3 +69,15 @@ def test_csv_loader_validates(tmp_path):
 def test_align_intersection():
     d, o = align({"A": (["1", "2", "3"], [1, 2, 3]), "B": (["2", "3", "4"], [5, 6, 7])})
     assert d == ["2", "3"] and o["A"] == [2, 3] and o["B"] == [5, 6]
+
+
+def test_intraday_worst_triggers_daily_fail_even_if_day_closes_green():
+    R, G = FtmoRules(), Governor()
+    # clot +1% mais pire point intra-jour -6% => perte jour FTMO franchie (equity flottante)
+    assert run_phase([(0.01, -0.06)], R, G, 0.10, random.Random(0)) == "FAIL_DAILY"
+
+
+def test_risk_scale_multiplies_exposure():
+    R, G = FtmoRules(), Governor()
+    assert run_phase([(0.02, -0.03)], R, G, 0.10, random.Random(0), max_days=20, scale=1.0) != "FAIL_DAILY"
+    assert run_phase([(0.02, -0.03)], R, G, 0.10, random.Random(0), max_days=20, scale=2.0) == "FAIL_DAILY"
