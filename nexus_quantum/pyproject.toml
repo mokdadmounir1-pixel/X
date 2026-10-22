@@ -1,0 +1,13 @@
+[project]
+name = "nexus-quantum"
+version = "0.1.0"
+description = "NEXUS QUANTUM - infrastructure quantitative (projet independant)"
+requires-python = ">=3.11"
+dependencies = []  # coeur volontairement stdlib-only (auditabilite, zero supply-chain)
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

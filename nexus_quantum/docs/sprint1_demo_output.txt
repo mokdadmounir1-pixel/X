@@ -1,0 +1,22 @@
+== A. DSR sur bruit pur [SYNTHETIQUE] ==
+N=    1  meilleur SR annualise= 0.08  PSR(0)=0.554  DSR=0.554
+N=   10  meilleur SR annualise= 0.51  PSR(0)=0.812  DSR=0.308
+N=  100  meilleur SR annualise= 1.41  PSR(0)=0.992  DSR=0.513
+N= 1000  meilleur SR annualise= 1.95  PSR(0)=1.000  DSR=0.522
+
+== B. Point mort par aller-retour [HYPOTHESE: tarifs a verifier] ==
+optimiste   cout A/R= 2.35 USD  breakeven=1.88 ticks | x2 stress= 4.70 USD
+central     cout A/R= 3.58 USD  breakeven=2.86 ticks | x2 stress= 7.15 USD
+pessimiste  cout A/R= 6.55 USD  breakeven=5.24 ticks | x2 stress=13.10 USD
+
+== C. Edge brut requis/trade, scenario central, 200 USD/mois de couts fixes ==
+    50 trades/mois -> edge brut requis   7.58 USD/contrat (6.06 ticks)
+   500 trades/mois -> edge brut requis   3.98 USD/contrat (3.18 ticks)
+  5000 trades/mois -> edge brut requis   3.62 USD/contrat (2.89 ticks)
+ 50000 trades/mois -> edge brut requis   3.58 USD/contrat (2.86 ticks)
+
+== D. Probabilite de ruine (equity<=50%) en 1000 trades, p=0.5, R=1.0 (edge nul) [SYNTHETIQUE] ==
+risque/trade=0.5% -> P(ruine)=0.000
+risque/trade=1.0% -> P(ruine)=0.037
+risque/trade=2.0% -> P(ruine)=0.373
+risque/trade=5.0% -> P(ruine)=0.856
