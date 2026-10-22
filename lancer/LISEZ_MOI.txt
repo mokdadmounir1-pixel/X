@@ -1,0 +1,4 @@
+Double-clique sur LANCER_TOUT.bat (MetaTrader 5 ouvert et connecte a ton compte DEMO).
+Puis, quand la fenetre "Recherche reelle" est terminee : LANCER_EVOLUTION.bat.
+LANCER_DEMO.bat passe des ordres sur le compte DEMO : il demande de taper OUI.
+Si le dossier ne contient pas ces fichiers : ouvre une invite de commandes dans Documents\X et tape : git pull

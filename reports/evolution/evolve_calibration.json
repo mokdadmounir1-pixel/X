@@ -1,0 +1,41 @@
+{
+ "label": "[SYNTHÉTIQUE] tables de trades simulées, pas de marché",
+ "scenarios": {
+  "nul": {
+   "series": 40,
+   "gain_moyen_R_par_mois": -0.026,
+   "gain_p5_p95": [
+    -0.915,
+    1.493
+   ],
+   "promotions_par_serie": 0.88,
+   "retours_arriere_par_serie": 0.25,
+   "pauses_par_serie": 0.45,
+   "verdict_UTILE": "0/40"
+  },
+  "stable": {
+   "series": 40,
+   "gain_moyen_R_par_mois": 0.668,
+   "gain_p5_p95": [
+    -0.035,
+    4.838
+   ],
+   "promotions_par_serie": 0.35,
+   "retours_arriere_par_serie": 0.1,
+   "pauses_par_serie": 0.15,
+   "verdict_UTILE": "5/40"
+  },
+  "decay": {
+   "series": 40,
+   "gain_moyen_R_par_mois": 2.424,
+   "gain_p5_p95": [
+    -0.153,
+    4.927
+   ],
+   "promotions_par_serie": 1.3,
+   "retours_arriere_par_serie": 0.1,
+   "pauses_par_serie": 0.68,
+   "verdict_UTILE": "22/40"
+  }
+ }
+}

@@ -1,3 +1,10 @@
 __pycache__/
 *.pyc
 .venv/
+.pytest_cache/
+results/
+data_cache/
+vendor/
+toolbox_env/
+*.sqlite
+results_*/

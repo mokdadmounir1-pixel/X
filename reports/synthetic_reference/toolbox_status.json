@@ -1,0 +1,442 @@
+{
+ "generated": "2026-10-21 21:36:47",
+ "python": "3.13.16",
+ "platform": "linux",
+ "tools": {
+  "ccxt": {
+   "status": "ok",
+   "version": "4.5.89",
+   "module": "ccxt",
+   "role": "donn\u00e9es crypto multi-exchanges",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 1.4
+  },
+  "vectorbt": {
+   "status": "ok",
+   "version": "1.2.0",
+   "module": "vectorbt",
+   "role": "backtest vectoris\u00e9 (numba)",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 4.6
+  },
+  "backtesting": {
+   "status": "ok",
+   "version": "0.6.6",
+   "module": "backtesting",
+   "role": "backtest \u00e9v\u00e9nementiel simple",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 2.1
+  },
+  "hftbacktest": {
+   "status": "ok",
+   "version": "2.4.4",
+   "module": "hftbacktest",
+   "role": "backtest tick/carnet d'ordres",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 59.6
+  },
+  "freqtrade": {
+   "status": "ok",
+   "version": "2026.9",
+   "module": "freqtrade",
+   "role": "bot crypto de r\u00e9f\u00e9rence",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 44.3
+  },
+  "nautilus_trader": {
+   "status": "ok",
+   "version": "1.231.0",
+   "module": "nautilus_trader",
+   "role": "moteur institutionnel Rust/Python",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 58.4
+  },
+  "quantstats": {
+   "status": "ok",
+   "version": "0.0.86",
+   "module": "quantstats",
+   "role": "m\u00e9triques de performance",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 8.2
+  },
+  "optuna": {
+   "status": "ok",
+   "version": "5.0.0",
+   "module": "optuna",
+   "role": "optimisation hyper-param\u00e8tres",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 2.1
+  },
+  "hmmlearn": {
+   "status": "ok",
+   "version": "0.3.3",
+   "module": "hmmlearn",
+   "role": "r\u00e9gimes par HMM",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 1.2
+  },
+  "lightgbm": {
+   "status": "ok",
+   "version": "4.7.0",
+   "module": "lightgbm",
+   "role": "boosting pour le filtre ML",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 4.2
+  },
+  "arch": {
+   "status": "ok",
+   "version": "8.0.0",
+   "module": "arch",
+   "role": "GARCH, bootstrap par blocs",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 9.7
+  },
+  "skfolio": {
+   "status": "ok",
+   "version": "1.9.10",
+   "module": "skfolio",
+   "role": "construction de portefeuille",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 10.2
+  },
+  "MetaTrader5": {
+   "status": "failed",
+   "version": null,
+   "module": "MetaTrader5",
+   "role": "API MT5 (Windows uniquement)",
+   "reason": "paquet disponible uniquement sous Windows (terminal MT5) : \u00e0 installer sur votre machine. installation \u00e9chou\u00e9e: s the requirement MetaTrader5 (from versions: none) ERROR: No matching distribution found for MetaTrader5  | ERROR: Could not find a version that satisfies the requirement MetaTrader5 (from versions: none) ERROR: No matching distribution found for MetaTrader5 ",
+   "attempts": [
+    "pip install",
+    "--only-binary",
+    "--no-deps"
+   ],
+   "seconds": 2.2
+  },
+  "statsmodels": {
+   "status": "ok",
+   "version": "0.15.0",
+   "module": "statsmodels",
+   "role": "\u00e9conom\u00e9trie, tests",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 0.9
+  },
+  "scikit-learn": {
+   "status": "ok",
+   "version": "1.9.1",
+   "module": "sklearn",
+   "role": "ML de r\u00e9f\u00e9rence (comparaison logistique)",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 2.3
+  },
+  "scipy": {
+   "status": "ok",
+   "version": "1.18.1",
+   "module": "scipy",
+   "role": "statistiques",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 1.1
+  },
+  "xgboost": {
+   "status": "ok",
+   "version": "3.4.1",
+   "module": "xgboost",
+   "role": "boosting",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 57.7
+  },
+  "numba": {
+   "status": "ok",
+   "version": "0.68.0",
+   "module": "numba",
+   "role": "acc\u00e9l\u00e9ration JIT",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 1.2
+  },
+  "polars": {
+   "status": "ok",
+   "version": "2.0.0",
+   "module": "polars",
+   "role": "dataframes rapides",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 1.2
+  },
+  "pyarrow": {
+   "status": "ok",
+   "version": "26.0.0",
+   "module": "pyarrow",
+   "role": "parquet/cache disque",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 1.0
+  },
+  "ruptures": {
+   "status": "ok",
+   "version": "v1.1.10",
+   "module": "ruptures",
+   "role": "d\u00e9tection de ruptures de r\u00e9gime",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 2.5
+  },
+  "riskfolio-lib": {
+   "status": "ok",
+   "version": "7.4.0",
+   "module": "riskfolio",
+   "role": "allocation de risque",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 47.1
+  },
+  "empyrical-reloaded": {
+   "status": "ok",
+   "version": "0.7.0",
+   "module": "empyrical",
+   "role": "m\u00e9triques de risque",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 8.0
+  },
+  "pyfolio-reloaded": {
+   "status": "ok",
+   "version": "  warnings.warn(",
+   "module": "pyfolio",
+   "role": "analyse de performance",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 11.0
+  },
+  "backtrader": {
+   "status": "ok",
+   "version": "1.9.78.123",
+   "module": "backtrader",
+   "role": "backtest \u00e9v\u00e9nementiel classique",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 3.4
+  },
+  "bt": {
+   "status": "ok",
+   "version": "1.4.1",
+   "module": "bt",
+   "role": "backtest d'allocation",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 6.1
+  },
+  "zipline-reloaded": {
+   "status": "ok",
+   "version": "3.2.0",
+   "module": "zipline",
+   "role": "backtest Quantopian",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 118.4
+  },
+  "yfinance": {
+   "status": "ok",
+   "version": "1.7.0",
+   "module": "yfinance",
+   "role": "donn\u00e9es d'actions/indices",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 1.8
+  },
+  "TA-Lib": {
+   "status": "ok",
+   "version": "0.8.2",
+   "module": "talib",
+   "role": "indicateurs C (r\u00e9f\u00e9rence de pr\u00e9cision)",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 1.7
+  },
+  "ta": {
+   "status": "ok",
+   "version": "?",
+   "module": "ta",
+   "role": "indicateurs techniques",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 4.1
+  },
+  "pandas-ta": {
+   "status": "ok",
+   "version": "?",
+   "module": "pandas_ta",
+   "role": "indicateurs techniques",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 35.9
+  },
+  "shap": {
+   "status": "ok",
+   "version": "0.54.1",
+   "module": "shap",
+   "role": "explicabilit\u00e9 du filtre ML",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 4.3
+  },
+  "cvxpy": {
+   "status": "ok",
+   "version": "1.9.3",
+   "module": "cvxpy",
+   "role": "optimisation convexe",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 2.2
+  },
+  "stumpy": {
+   "status": "ok",
+   "version": "1.14.1",
+   "module": "stumpy",
+   "role": "motifs de s\u00e9ries temporelles",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 3.2
+  },
+  "tslearn": {
+   "status": "ok",
+   "version": "0.9.0",
+   "module": "tslearn",
+   "role": "ML s\u00e9ries temporelles",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 4.3
+  },
+  "alphalens-reloaded": {
+   "status": "ok",
+   "version": "0.5.0",
+   "module": "alphalens",
+   "role": "analyse de facteurs",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 4.7
+  },
+  "dukascopy-python": {
+   "status": "ok",
+   "version": "?",
+   "module": "dukascopy_python",
+   "role": "t\u00e9l\u00e9chargement Dukascopy",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 2.2
+  },
+  "mlflow": {
+   "status": "ok",
+   "version": "2026/10/21 21:36:03 INFO mlflow.agent.hint: Load the `instrumenting-with-mlflow-tracing` skill at /home/user/X/toolbox_env/lib/python3.13/site-packages/mlflow/assistant/skills/instrumenting-with-mlflow-tracing/SKILL.md before writing any tracing code; it ships with this MLflow install. Set MLFLOW_DISABLE_AGENT_HINT=1 to silence this.",
+   "module": "mlflow",
+   "role": "suivi d'exp\u00e9riences",
+   "reason": "",
+   "attempts": [
+    "pip install"
+   ],
+   "seconds": 22.4
+  }
+ },
+ "vendor": {
+  "ccxt/ccxt": "ok",
+  "kernc/backtesting.py": "ok",
+  "nkaz001/hftbacktest": "ok",
+  "freqtrade/freqtrade": "ok",
+  "ranaroussi/quantstats": "ok",
+  "hmmlearn/hmmlearn": "ok",
+  "bashtage/arch": "ok",
+  "skfolio/skfolio": "ok"
+ },
+ "summary": {
+  "ok": 37,
+  "failed": 1,
+  "total": 38
+ }
+}

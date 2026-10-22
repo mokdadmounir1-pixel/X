@@ -1,0 +1,216 @@
+{
+ "label": "[SYNTHÉTIQUE]",
+ "cfg": {
+  "train_months": 12,
+  "step_months": 1,
+  "shadow_months": 2,
+  "health_months": 3,
+  "probation_months": 2,
+  "embargo_days": 5,
+  "min_train_n": 25,
+  "shrink": 15,
+  "min_recent_n": 15,
+  "z_degrade": 1.64,
+  "pause_z": 2.33,
+  "ref_shrink": 0.5,
+  "margin_degraded": 0.02,
+  "margin_opportunity": 0.1,
+  "explore_every": 3,
+  "min_shadow_n": 12,
+  "promote_margin": 0.1,
+  "promote_prob": 0.8,
+  "max_promotions_per_year": 3,
+  "cooldown_months": 2,
+  "use_filters": true,
+  "insight_alpha": 0.1,
+  "insight_B": 499,
+  "seed": 0
+ },
+ "resume_de": "2024-01-01 00:00:00+00:00",
+ "resume": {
+  "trend_pullback": {
+   "mois": 22,
+   "trades_evolutif": 52,
+   "trades_statique": 52,
+   "R_total_evolutif": 56.2,
+   "R_total_statique": 56.2,
+   "gain_R_par_mois": 0.0,
+   "IC95_gain": [
+    0.0,
+    0.0
+   ],
+   "verdict_evolution": "NON DÉMONTRÉ (IC95 contient 0)",
+   "config_finale": "pull_n=20|stop_atr=1.0@trail_struct",
+   "exclusions": [],
+   "statut": "ACTIF",
+   "promotions": 0,
+   "rejets": 2,
+   "retours_arriere": 0,
+   "pauses": 0
+  },
+  "sweep_reversal": {
+   "mois": 24,
+   "trades_evolutif": 204,
+   "trades_statique": 180,
+   "R_total_evolutif": 22.0,
+   "R_total_statique": -19.2,
+   "gain_R_par_mois": 1.718,
+   "IC95_gain": [
+    0.448,
+    3.327
+   ],
+   "verdict_evolution": "UTILE (IC95 > 0)",
+   "config_finale": "stop_atr=1.6|wick_k=0.4@trail_atr",
+   "exclusions": [],
+   "statut": "ACTIF",
+   "promotions": 1,
+   "rejets": 4,
+   "retours_arriere": 0,
+   "pauses": 0
+  },
+  "squeeze_breakout": {
+   "mois": 24,
+   "trades_evolutif": 1033,
+   "trades_statique": 1033,
+   "R_total_evolutif": 3010.4,
+   "R_total_statique": 3010.4,
+   "gain_R_par_mois": 0.0,
+   "IC95_gain": [
+    0.0,
+    0.0
+   ],
+   "verdict_evolution": "NON DÉMONTRÉ (IC95 contient 0)",
+   "config_finale": "donch_n=60|squeeze_q=0.3@trail_atr",
+   "exclusions": [],
+   "statut": "ACTIF",
+   "promotions": 0,
+   "rejets": 0,
+   "retours_arriere": 0,
+   "pauses": 0
+  },
+  "session_orb": {
+   "mois": 24,
+   "trades_evolutif": 636,
+   "trades_statique": 636,
+   "R_total_evolutif": 2025.2,
+   "R_total_statique": 2025.2,
+   "gain_R_par_mois": 0.0,
+   "IC95_gain": [
+    0.0,
+    0.0
+   ],
+   "verdict_evolution": "NON DÉMONTRÉ (IC95 contient 0)",
+   "config_finale": "adx_min=25|range_min=90@trail_atr",
+   "exclusions": [],
+   "statut": "ACTIF",
+   "promotions": 0,
+   "rejets": 0,
+   "retours_arriere": 0,
+   "pauses": 0
+  },
+  "meanrev_z": {
+   "mois": 24,
+   "trades_evolutif": 112,
+   "trades_statique": 112,
+   "R_total_evolutif": -78.1,
+   "R_total_statique": -78.1,
+   "gain_R_par_mois": 0.0,
+   "IC95_gain": [
+    0.0,
+    0.0
+   ],
+   "verdict_evolution": "NON DÉMONTRÉ (IC95 contient 0)",
+   "config_finale": "adx_max=26|z_thr=2.0@be3",
+   "exclusions": [],
+   "statut": "ACTIF",
+   "promotions": 0,
+   "rejets": 6,
+   "retours_arriere": 0,
+   "pauses": 0
+  },
+  "regime_router": {
+   "mois": 24,
+   "trades_evolutif": 978,
+   "trades_statique": 978,
+   "R_total_evolutif": 2319.2,
+   "R_total_statique": 2319.2,
+   "gain_R_par_mois": 0.0,
+   "IC95_gain": [
+    0.0,
+    0.0
+   ],
+   "verdict_evolution": "NON DÉMONTRÉ (IC95 contient 0)",
+   "config_finale": "adx_range=16|adx_trend=22@trail_atr",
+   "exclusions": [],
+   "statut": "ACTIF",
+   "promotions": 0,
+   "rejets": 0,
+   "retours_arriere": 0,
+   "pauses": 0
+  },
+  "_portefeuille": {
+   "mois": 24,
+   "trades_evolutif": 3015,
+   "trades_statique": 2991,
+   "R_total_evolutif": 7354.9,
+   "R_total_statique": 7313.7,
+   "gain_R_par_mois": 1.718,
+   "IC95_gain": [
+    0.433,
+    3.323
+   ],
+   "verdict_evolution": "UTILE (IC95 > 0)"
+  }
+ },
+ "correlation_algos": {
+  "trend_pullback": {
+   "trend_pullback": 1.0,
+   "sweep_reversal": -0.04,
+   "squeeze_breakout": -0.07,
+   "session_orb": -0.05,
+   "meanrev_z": -0.03,
+   "regime_router": -0.04
+  },
+  "sweep_reversal": {
+   "trend_pullback": -0.04,
+   "sweep_reversal": 1.0,
+   "squeeze_breakout": 0.07,
+   "session_orb": 0.04,
+   "meanrev_z": -0.01,
+   "regime_router": 0.07
+  },
+  "squeeze_breakout": {
+   "trend_pullback": -0.07,
+   "sweep_reversal": 0.07,
+   "squeeze_breakout": 1.0,
+   "session_orb": 0.19,
+   "meanrev_z": 0.1,
+   "regime_router": 0.75
+  },
+  "session_orb": {
+   "trend_pullback": -0.05,
+   "sweep_reversal": 0.04,
+   "squeeze_breakout": 0.19,
+   "session_orb": 1.0,
+   "meanrev_z": 0.05,
+   "regime_router": 0.16
+  },
+  "meanrev_z": {
+   "trend_pullback": -0.03,
+   "sweep_reversal": -0.01,
+   "squeeze_breakout": 0.1,
+   "session_orb": 0.05,
+   "meanrev_z": 1.0,
+   "regime_router": 0.08
+  },
+  "regime_router": {
+   "trend_pullback": -0.04,
+   "sweep_reversal": 0.07,
+   "squeeze_breakout": 0.75,
+   "session_orb": 0.16,
+   "meanrev_z": 0.08,
+   "regime_router": 1.0
+  }
+ },
+ "note": "Les trades sont pré-calculés (moteur pessimiste causal) ; le gain « évolutif − statique » compare le R mensuel de la boucle à la configuration initiale figée, sur les mêmes mois. Le filtre d'exclusion est appliqué a posteriori sur la liste de trades (approximation : un trade retiré ne libère pas de créneau)."
+}

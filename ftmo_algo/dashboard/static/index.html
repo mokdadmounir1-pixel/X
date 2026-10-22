@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>FTMO ALGO — Terminal</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#07090d;--panel:#0d1219;--line:#1b2531;--tx:#c9d4e0;--dim:#6b7a8c;--g:#2ecc8f;--r:#ff5a6a;--a:#f5b94a;--b:#4aa8ff;--v:#a78bfa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:12px/1.35 ui-monospace,Menlo,Consolas,monospace}
+header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);background:#090d13;flex-wrap:wrap}
+h1{font-size:13px;letter-spacing:.18em;margin:0;color:#fff}.badge{padding:3px 9px;border-radius:3px;font-weight:700;letter-spacing:.1em;font-size:11px}
+.b-DEMO{background:#143a2a;color:var(--g)}.b-SIMULATION{background:#3a2e12;color:var(--a)}.b-REPLAY{background:#12304a;color:var(--b)}.b-SYNTHETIQUE{background:#3a1220;color:var(--r)}
+#alert{display:none;background:#5a0f1a;color:#fff;padding:6px 12px;font-weight:700;text-align:center;letter-spacing:.1em}
+button,select{background:#111a25;color:var(--tx);border:1px solid var(--line);padding:3px 8px;border-radius:3px;font:inherit;cursor:pointer}
+main{display:grid;grid-template-columns:repeat(12,1fr);gap:8px;padding:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px;min-width:0}
+.card h2{margin:0 0 6px;font-size:10px;letter-spacing:.16em;color:var(--dim);font-weight:600}
+.c4{grid-column:span 4}.c3{grid-column:span 3}.c5{grid-column:span 5}.c6{grid-column:span 6}.c8{grid-column:span 8}.c12{grid-column:span 12}.c7{grid-column:span 7}
+@media(max-width:1000px){.c3,.c4,.c5,.c6,.c7,.c8{grid-column:span 12}}
+canvas{width:100%;display:block;background:#05070a;border-radius:3px}
+.legend{color:var(--dim);font-size:10.5px;margin-top:5px}.legend b{color:var(--tx)}
+.agents{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px}
+.ag{border:1px solid var(--line);padding:6px;border-radius:3px;background:#0a0f16}.ag .n{font-weight:700;color:#fff}
+.up{color:var(--g)}.dn{color:var(--r)}.dim{color:var(--dim)}.warn{color:var(--a)}
+table{width:100%;border-collapse:collapse}td,th{padding:2px 5px;text-align:left;border-bottom:1px solid #121a24;white-space:nowrap}th{color:var(--dim);font-weight:600}
+.PASS{color:var(--g)}.WATCH{color:var(--a)}.FAIL{color:var(--r)}
+.gauge{height:9px;background:#111a25;border-radius:2px;overflow:hidden;margin:3px 0 7px}.gauge i{display:block;height:100%;background:var(--g)}
+.tape{max-height:230px;overflow:auto}.tape div{padding:1px 0;border-bottom:1px solid #0f1620}
+
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}.tabs button.on{background:#1d3a5a;color:#fff;border-color:#2f5f93}
+.pane{display:none}.pane.on{display:block}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:5px 0}
+label.f{display:flex;flex-direction:column;gap:2px;color:var(--dim);font-size:10.5px}
+input[type=text],input[type=number],textarea{background:#0a0f16;color:var(--tx);border:1px solid var(--line);border-radius:3px;padding:3px 6px;font:inherit;min-width:90px}
+button.go{background:#143a2a;color:var(--g);border-color:#1f5a40;font-weight:700}button.stop{background:#3a1220;color:var(--r);border-color:#5a1f33}
+.chips label{display:inline-flex;gap:4px;align-items:center;margin-right:10px;color:var(--tx)}
+#msg{margin:6px 0;min-height:16px}pre#log{background:#05070a;border:1px solid var(--line);padding:6px;max-height:220px;overflow:auto;white-space:pre-wrap;margin:6px 0 0}
+.ag button{margin-top:4px;font-size:11px}
+</style></head><body>
+<div id="alert">⚠ FLUX DE DONNÉES INTERROMPU — agents en pause</div>
+<header><h1>FTMO·ALGO / TERMINAL</h1><span id="badge" class="badge b-SYNTHETIQUE">…</span>
+<span id="clock" class="dim"></span><span id="prof" class="dim"></span><span style="flex:1"></span>
+<label class="dim">symbole <select id="sym"></select></label>
+<button id="pause">⏸ Pause</button><label class="dim">vitesse <select id="speed"><option>1</option><option>5</option><option>20</option><option>100</option><option value="0">max</option></select></label>
+<button id="notif">🔔 Notifications</button></header>
+<main>
+<section class="card c12"><h2>COMMANDES — TOUT SE PILOTE ICI</h2>
+<div class="tabs" id="tabs"><button data-p="run" class="on">▶ Lancer</button><button data-p="data">Données</button><button data-p="lock">Verrou de gain</button><button data-p="mt5">MT5 démo</button><button data-p="jobs">Tâches</button></div>
+<div id="msg" class="dim"></div>
+<div class="pane on" id="p-run">
+ <div class="row"><label class="f">Action<select id="r-kind"></select></label><label class="f">Source de données<select id="r-src"><option value="synth">synthétique (test)</option><option value="csv">mes fichiers CSV</option><option value="mt5">MT5 (sur ce PC)</option></select></label>
+ <label class="f">Instruments<input type="text" id="r-ins" value="US500,EURUSD,XAUUSD" size="30"></label><label class="f">Années (synth.)<input type="number" id="r-years" value="4" step="0.5" min="0.5" max="12" style="width:70px"></label>
+ <label class="f">Processus<input type="number" id="r-workers" value="4" min="1" max="32" style="width:60px"></label></div>
+ <div class="row chips" id="r-algos"></div>
+ <div class="row chips"><label><input type="checkbox" id="r-lock"> sorties à verrou de gain (lock3/lock4)</label><label><input type="checkbox" id="r-loop"> évolution en continu (boucle)</label>
+ <label class="f">toutes les (h)<input type="number" id="r-every" value="24" step="1" min="0.1" style="width:60px"></label><label><input type="checkbox" id="r-locked"> évaluer UNE fois la période verrouillée</label></div>
+ <div class="row"><button class="go" id="r-go">▶ Lancer</button><span class="dim" id="r-desc"></span></div>
+ <div class="legend">Une recherche ou une évolution tourne sur la machine qui héberge le dashboard (la vôtre), en tâche de fond : vous suivez l'avancement dans l'onglet « Tâches ». Les résultats alimentent les panneaux « Verdicts » et « Amélioration continue ».</div></div>
+<div class="pane" id="p-data">
+ <div class="row"><label class="f">Importer un CSV (nom : INSTRUMENT_M5.csv, ex. EURUSD_M5.csv)<input type="file" id="d-file" accept=".csv" multiple></label><button id="d-up">⬆ Importer</button><span class="dim" id="d-info"></span></div>
+ <div class="legend" id="d-files"></div>
+ <div class="row"><b>Appliquer au dashboard (redémarre l'affichage) :</b><label class="f">Source<select id="d-src"><option value="synth">synthétique</option><option value="csv">mes fichiers CSV</option><option value="mt5">MT5</option></select></label>
+ <label class="f">Instruments<input type="text" id="d-ins" size="30"></label><label class="f">Risque %/trade<input type="number" id="d-risk" step="0.05" min="0.05" max="2" style="width:70px"></label>
+ <label class="f">Jours à rejouer<input type="number" id="d-replay" min="2" max="400" style="width:70px"></label><button class="go" id="d-apply">Appliquer et redémarrer</button></div>
+ <div class="legend">Après avoir changé de source ou d'instruments, le dashboard repart avec la dernière configuration validée (résultats de <i>recherche</i> et <i>évolution</i> pris en compte automatiquement). Les agents n'utilisent jamais la période verrouillée.</div></div>
+<div class="pane" id="p-lock">
+ <div class="row"><label class="f">Arrêt du jour à +X % du capital<input type="number" id="l-day" step="0.25" min="0" max="20" style="width:90px"></label>
+ <label class="f">Armement à +Y %<input type="number" id="l-arm" step="0.25" min="0" max="20" style="width:90px"></label>
+ <label class="f">Restitution max (0–0,95)<input type="number" id="l-gb" step="0.05" min="0" max="0.95" style="width:90px"></label>
+ <button class="go" id="l-apply">Activer / modifier</button><button id="l-off">Désactiver</button><span id="l-state" class="dim"></span></div>
+ <div class="legend">Verrou de gain journalier : plus aucune nouvelle entrée du jour une fois +X % atteint, ou si, après +Y % de gain, on en restitue la part indiquée. Les positions ouvertes gardent leur stop et leur cible. Les sorties à cliquet par trade se choisissent dans « Lancer » (option lock3/lock4).</div></div>
+<div class="pane" id="p-mt5">
+ <div class="row"><button id="m-test">Tester la connexion MT5 (compte DÉMO)</button><button class="go" id="m-run">▶ Lancer la boucle démo</button></div>
+ <div id="m-out" class="dim"></div><div class="legend">Le pont refuse tout compte non démo. Il faut : Windows, terminal MT5 ouvert et connecté au compte démo, <code>pip install MetaTrader5</code>. Le passage au réel reste une décision humaine (commande <code>gate</code>).</div></div>
+<div class="pane" id="p-jobs"><div id="j-list"></div><pre id="log">(cliquez une tâche pour voir son journal)</pre></div>
+</section>
+<section class="card c4"><h2>VORTEX — ÉTAT DU MARCHÉ ET DES AGENTS</h2><canvas id="vortex" width="520" height="400"></canvas>
+<div class="legend"><b>rotation</b> = volatilité courte/longue · <b>étirement axial</b> = force de tendance (ADX H1) · <b>cohérence</b> = accord entre agents (bras alignés) · <b>couleur</b> = direction (vert haussier, rouge baissier) · <b>nœuds orbitaux</b> = agents (allumés en position ou signal) · <b>pulsation</b> = trade ouvert/fermé</div>
+<div class="legend" id="vinfo"></div></section>
+<section class="card c8"><h2 id="ctitle">GRAPHIQUE</h2><canvas id="chart" width="1000" height="400"></canvas>
+<div class="legend" id="linfo">entrée / stop / cible et RR net des positions ouvertes sur ce symbole</div></section>
+<section class="card c12"><h2>AGENTS</h2><div class="agents" id="agents"></div></section>
+<section class="card c5"><h2>CIBLE MENSUELLE — R CUMULÉS VS CIBLE (+5 %)</h2><canvas id="tgt" width="640" height="260"></canvas><div class="legend" id="tinfo"></div></section>
+<section class="card c4"><h2>PROFIL PROP FIRM — JAUGES SUR L'ÉQUITÉ</h2><div id="gauges"></div><h2>PROCHAINES ANNONCES</h2><div id="news"></div></section>
+<section class="card c3"><h2>DONNÉES & OUTILS</h2><div id="dq"></div><div id="tools" class="dim"></div></section>
+<section class="card c12"><h2>AMÉLIORATION CONTINUE — CHAMPIONS, PAUSES, JOURNAL DES CHANGEMENTS</h2><div id="evo" class="dim">pas encore lancée : python -m ftmo_algo evolve</div></section>
+<section class="card c6"><h2>VERDICTS DE RECHERCHE</h2><div id="verd"></div></section>
+<section class="card c6"><h2>TAPE D'EXÉCUTION</h2><div class="tape" id="tape"></div></section>
+</main>
+<script>
+"use strict";
+const $=id=>document.getElementById(id);let S=null,symSel=null,seenNotif=0,notifOn=false;
+const fmt=(x,d=2)=>x==null||isNaN(x)?"–":Number(x).toFixed(d);
+
+const api=async(path,body)=>{const r=await fetch(path,{method:"POST",headers:{"X-Requested-With":"dashboard","Content-Type":"application/json"},body:JSON.stringify(body||{})});let j={};try{j=await r.json()}catch(e){}
+ if(!r.ok)throw new Error(j.error||("erreur "+r.status));return j};
+const say=(t,bad)=>{$("msg").textContent=t;$("msg").className=bad?"dn":"up"};
+let META=null,curJob=null;
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));document.querySelectorAll(".pane").forEach(p=>p.classList.toggle("on",p.id==="p-"+b.dataset.p))});
+async function loadMeta(){META=await (await fetch("/api/meta")).json();const k=$("r-kind");k.innerHTML=Object.entries(META.kinds).filter(([a])=>a!="demo").map(([a,l])=>`<option value="${a}">${a} — ${l}</option>`).join("");
+ $("r-algos").innerHTML="<span class='dim'>algos (vide = tous) :</span> "+META.algos.map(a=>`<label title="${a.hypothese.replace(/"/g,"'")}"><input type="checkbox" class="alg" value="${a.name}">${a.name}</label>`).join("");
+ const st=META.settings;$("d-ins").value=st.instruments||"";$("d-risk").value=st.risk||0.5;$("d-replay").value=st.replay_days||25;$("d-src").value=st.mt5?"mt5":st.data_dir?"csv":"synth";
+ $("r-src").value=$("d-src").value;$("r-ins").value=st.instruments||"US500,EURUSD,XAUUSD";$("r-workers").value=st.workers||4;
+ const pl=META.profit_lock||{};$("l-day").value=pl.day_gain_pct||"";$("l-arm").value=pl.arm_pct||"";$("l-gb").value=pl.giveback_frac||"";
+ $("d-files").innerHTML=`Dossier de données : <b>${META.data_dir}</b> — `+(META.files.length?META.files.map(f=>`${f.name} (${f.mb} Mo)`).join(", "):"aucun fichier importé");
+ $("r-desc").textContent="";}
+$("r-kind").onchange=()=>{$("r-desc").textContent=META.kinds[$("r-kind").value]};
+function params(){const algos=[...document.querySelectorAll(".alg:checked")].map(x=>x.value).join(",");
+ return {instruments:$("r-ins").value.trim(),source:$("r-src").value,years:+$("r-years").value,workers:+$("r-workers").value,algos,lock_exit:$("r-lock").checked,
+  loop:$("r-loop").checked,every_hours:+$("r-every").value,locked:$("r-locked").checked,data_dir:META.data_dir,start:"2020-01-01"}}
+$("r-go").onclick=async()=>{try{const k=$("r-kind").value;if(k=="evolve"&&$("r-locked").checked&&!confirm("La période verrouillée ne peut être évaluée qu'UNE fois. Continuer ?"))return;
+ const j=await api("/api/job/start",{kind:k,params:params()});say("Tâche lancée : "+j.id+" → onglet « Tâches »");curJob=j.id;jobsPoll()}catch(e){say(e.message,true)}};
+$("d-up").onclick=async()=>{const fs=$("d-file").files;if(!fs.length){say("choisissez un fichier .csv",true);return}
+ try{for(const f of fs){$("d-info").textContent="envoi de "+f.name+"…";const r=await fetch("/api/upload?name="+encodeURIComponent(f.name),{method:"POST",headers:{"X-Requested-With":"dashboard"},body:f});
+  const j=await r.json();if(!r.ok)throw new Error(j.error)}say("Fichiers importés dans "+META.data_dir);$("d-info").textContent="";loadMeta()}catch(e){say(e.message,true);$("d-info").textContent=""}};
+$("d-apply").onclick=async()=>{try{const j=await api("/api/restart",{source:$("d-src").value,instruments:$("d-ins").value.trim(),risk:$("d-risk").value,replay_days:$("d-replay").value,data_dir:META.data_dir});
+ say("Redémarrage… "+j.note);setTimeout(()=>location.reload(),9000)}catch(e){say(e.message,true)}};
+$("l-apply").onclick=async()=>{try{await api("/api/control",{profit_lock:{day_gain_pct:+$("l-day").value||0,arm_pct:+$("l-arm").value||0,giveback_frac:+$("l-gb").value||0}});say("Verrou de gain enregistré")}catch(e){say(e.message,true)}};
+$("l-off").onclick=async()=>{try{await api("/api/control",{profit_lock:{}});["l-day","l-arm","l-gb"].forEach(i=>$(i).value="");say("Verrou de gain désactivé")}catch(e){say(e.message,true)}};
+$("m-test").onclick=async()=>{$("m-out").textContent="test en cours…";try{const j=await api("/api/mt5");$("m-out").innerHTML=`<span class="${j.ok?"up":"dn"}">${j.ok?"✔":"✘"}</span> ${j.message}`}catch(e){$("m-out").textContent=e.message}};
+$("m-run").onclick=async()=>{try{const j=await api("/api/job/start",{kind:"demo",params:{...params(),source:"mt5"}});say("Boucle démo lancée : "+j.id);jobsPoll()}catch(e){say(e.message,true)}};
+async function jobsPoll(){try{const q=curJob?("?id="+curJob):"";const j=await (await fetch("/api/jobs"+q)).json();
+ $("j-list").innerHTML=`<table><tr><th>tâche</th><th>état</th><th>commande</th><th></th></tr>`+j.jobs.slice().reverse().map(x=>`<tr style="cursor:pointer" data-id="${x.id}"><td>${x.id}</td><td class="${x.status=="en cours"?"warn":x.status=="terminée"?"up":"dn"}">${x.status}</td><td class="dim">${x.cmd.slice(0,90)}</td><td>${x.status=="en cours"?`<button class="stop" data-stop="${x.id}">■ Arrêter</button>`:""}</td></tr>`).join("")+"</table>";
+ document.querySelectorAll("#j-list tr[data-id]").forEach(tr=>tr.onclick=e=>{if(e.target.dataset.stop)return;curJob=tr.dataset.id;jobsPoll()});
+ document.querySelectorAll("[data-stop]").forEach(b=>b.onclick=async()=>{try{await api("/api/job/stop",{id:b.dataset.stop});say("arrêt demandé")}catch(e){say(e.message,true)}});
+ if(j.log!=null){const L=$("log");const bot=L.scrollTop+L.clientHeight>=L.scrollHeight-8;L.textContent=j.log||"(vide)";if(bot)L.scrollTop=L.scrollHeight}}catch(e){}}
+setInterval(jobsPoll,3000);loadMeta().then(()=>{$("r-kind").onchange();jobsPoll()});
+function lockState(){const pl=S.profit_lock||{},on=Object.keys(pl).length,n=S.agents.filter(a=>a.guardian.gain_locked).length;$("l-state").textContent=on?`actif ${JSON.stringify(pl)} — agents verrouillés aujourd'hui : ${n}`:"désactivé"}
+document.addEventListener("click",async e=>{const b=e.target.closest("[data-agent]");if(!b)return;try{await api("/api/control",{agent:b.dataset.agent,paused:b.dataset.pause=="1"});poll()}catch(er){say(er.message,true)}});
+async function evoPoll(){try{const E=await (await fetch("/api/evolution")).json();if(!E.present)return;const p=(E.resume||{})._portefeuille;
+ let h=`<div>${E.label} — évolution vs configuration figée : `+(p?`<b>${p.gain_R_par_mois>=0?"+":""}${p.gain_R_par_mois} R/mois</b> IC95 [${p.IC95_gain}] sur ${p.mois} mois → <b>${p.verdict_evolution}</b>`:"n/a")+`</div><table style="width:100%;font-size:12px"><tr><th align=left>algo</th><th align=left>champion</th><th>statut</th><th>promos</th><th>rejets</th><th>retours</th><th>pauses</th></tr>`;
+ for(const[k,v] of Object.entries(E.resume||{})){if(k[0]=="_")continue;h+=`<tr><td>${k}</td><td>${v.config_finale}${(v.exclusions||[]).length?" sauf "+v.exclusions:""}</td><td align=center class="${v.statut=="ACTIF"?"up":"dn"}">${v.statut}</td><td align=center>${v.promotions}</td><td align=center>${v.rejets}</td><td align=center>${v.retours_arriere}</td><td align=center>${v.pauses}</td></tr>`}
+ h+="</table><div style='margin-top:6px;max-height:140px;overflow:auto'>"+(E.journal||[]).slice().reverse().map(j=>`${j.asof.slice(0,10)} <b>${j.event}</b> ${j.algo} — ${j.raison||j.declencheur||""}`).join("<br>")+"</div>";$("evo").innerHTML=h}catch(e){}}
+setInterval(evoPoll,15000);evoPoll();
+async function poll(){let ok=false;try{const r=await fetch("/api/state"+(symSel?("?symbol="+symSel):""));S=await r.json();ok=true}catch(e){$("alert").style.display="block";$("alert").textContent="⚠ SERVEUR INJOIGNABLE"}
+ if(ok){try{render()}catch(e){console.error("render:",e&&e.stack||e)}}}
+setInterval(poll,1000);poll();
+$("pause").onclick=async()=>{try{await api("/api/control",{pause:!S.paused})}catch(e){say(e.message,true)}poll()};
+$("speed").onchange=async e=>{try{await api("/api/control",{speed:+e.target.value})}catch(er){say(er.message,true)}};
+$("sym").onchange=e=>{symSel=e.target.value;poll()};
+$("notif").onclick=()=>{if("Notification" in window)Notification.requestPermission().then(p=>{notifOn=p==="granted";$("notif").textContent=notifOn?"🔔 activées":"🔕 refusées"})};
+function render(){
+ const al=$("alert");al.style.display=S.flux_ok?"none":"block";al.textContent="⚠ FLUX DE DONNÉES INTERROMPU — agents en pause";
+ const lab=S.label.replace("É","E");$("badge").textContent=S.label;$("badge").className="badge b-"+lab.toUpperCase().replace("SYNTHÉTIQUE","SYNTHETIQUE");
+ $("clock").textContent=S.now?new Date(S.now*1000).toISOString().replace("T"," ").slice(0,16)+" UTC":"";
+ $("prof").textContent=S.profile.name+" · vérifié le "+S.profile.verified; $("pause").textContent=S.paused?"▶ Reprendre":"⏸ Pause";
+ const sel=$("sym");const syms=[...new Set(S.agents.flatMap(a=>[]))];
+ if(!sel.options.length){(S.symbols||[S.symbol]).forEach(s=>{const o=document.createElement("option");o.textContent=s;sel.appendChild(o)});}
+ if(!symSel&&S.symbol)sel.value=S.symbol;
+ agents();lockState();chart();vortex();target();gauges();side();
+ S.notifications.filter(n=>n.id>seenNotif).forEach(n=>{seenNotif=Math.max(seenNotif,n.id);if(notifOn)try{new Notification(n.kind,{body:n.text})}catch(e){}});
+}
+function agents(){$("agents").innerHTML=S.agents.map(a=>{const c=a.cum_R>=0?"up":"dn",st=a.paused?"dn":(a.status.startsWith("bloqué")?"dn":(a.status=="en position"?"up":"dim"));
+ const sp=spark(a.spark);return `<div class="ag"><div class="n">${a.name}</div><div class="${st}">${a.status}</div>
+ <div><span class="${c}">${fmt(a.cum_R)}R</span> · <span class="${c}">${fmt(a.pct)}%</span> · n=${a.n} · E=${a.expectancy==null?"–":fmt(a.expectancy,3)}R</div>${sp}
+ <div class="dim">setup: ${a.setup?(a.setup.grade+" "+(a.setup.side>0?"LONG":"SHORT")):"aucun"}</div>
+ <div class="dim">eq ${fmt(a.equity,0)} · jour −${fmt(a.guardian.day_loss_pct)}%/${a.guardian.limit_daily}%</div>
+ <button data-agent="${a.name}" data-pause="${a.paused?0:1}">${a.paused?"▶ Relancer":"⏸ Arrêter"}</button>${a.paused&&a.pause_reason?`<div class="warn">${a.pause_reason}</div>`:""}</div>`}).join("")}
+function spark(v){if(!v.length)return '<svg width="190" height="26"></svg>';const mn=Math.min(0,...v),mx=Math.max(0.1,...v),w=190,h=26;
+ const p=v.map((y,i)=>(i/(Math.max(1,v.length-1))*w).toFixed(1)+","+(h-(y-mn)/(mx-mn)*h).toFixed(1)).join(" ");
+ return `<svg width="${w}" height="${h}"><polyline fill="none" stroke="${v[v.length-1]>=0?"#2ecc8f":"#ff5a6a"}" stroke-width="1.3" points="${p}"/></svg>`}
+function chart(){const c=$("chart"),x=c.getContext("2d"),W=c.width,H=c.height;x.clearRect(0,0,W,H);x.fillStyle="#05070a";x.fillRect(0,0,W,H);
+ $("ctitle").textContent="GRAPHIQUE M15 — "+S.symbol;const cs=S.candles;if(!cs.length){x.fillStyle="#6b7a8c";x.fillText("en attente de données (échauffement)…",20,30);return}
+ let hi=-1e18,lo=1e18;cs.forEach(k=>{hi=Math.max(hi,k[2]);lo=Math.min(lo,k[3])});S.levels.forEach(l=>{[l.entry,l.stop,l.target].forEach(v=>{hi=Math.max(hi,v);lo=Math.min(lo,v)})});
+ const pad=(hi-lo)*.05;hi+=pad;lo-=pad;const Y=v=>H-(v-lo)/(hi-lo)*(H-20)-10,bw=(W-70)/cs.length;
+ cs.forEach((k,i)=>{const xx=i*bw+4,up=k[4]>=k[1];x.strokeStyle=x.fillStyle=up?"#2ecc8f":"#ff5a6a";x.beginPath();x.moveTo(xx+bw/2,Y(k[2]));x.lineTo(xx+bw/2,Y(k[3]));x.stroke();
+  x.fillRect(xx+1,Math.min(Y(k[1]),Y(k[4])),Math.max(1,bw-2),Math.max(1,Math.abs(Y(k[1])-Y(k[4]))))});
+ S.levels.forEach(l=>{[["entrée",l.entry,"#4aa8ff"],["stop",l.stop,"#ff5a6a"],["cible",l.target,"#2ecc8f"]].forEach(([n,v,col])=>{x.strokeStyle=col;x.setLineDash([5,4]);x.beginPath();x.moveTo(0,Y(v));x.lineTo(W-62,Y(v));x.stroke();x.setLineDash([]);x.fillStyle=col;x.fillText(n+" "+fmt(v,v<10?5:2),W-130,Y(v)-2)})});
+ x.fillStyle="#6b7a8c";for(let i=0;i<5;i++){const v=lo+(hi-lo)*i/4;x.fillText(fmt(v,v<10?5:1),W-60,Y(v)+3)}
+ $("linfo").innerHTML=S.levels.length?S.levels.map(l=>`<b>${l.agent}</b> ${l.side>0?"LONG":"SHORT"} entrée ${fmt(l.entry,5)} stop ${fmt(l.stop,5)} cible ${fmt(l.target,5)} · <b>RR net ≈ ${l.rr}</b>`).join("<br>"):"aucune position ouverte sur ce symbole";}
+let ang=0,pulses=[],lastEv=0,P=null;
+function vortex(){const c=$("vortex"),x=c.getContext("2d"),W=c.width,H=c.height,v=S.vortex;x.fillStyle="rgba(5,7,10,.22)";x.fillRect(0,0,W,H);const gr=x.createRadialGradient(W/2,H/2,5,W/2,H/2,150);gr.addColorStop(0,"rgba(120,140,200,.10)");gr.addColorStop(1,"rgba(0,0,0,0)");x.fillStyle=gr;x.fillRect(0,0,W,H);
+ if(!P){P=Array.from({length:520},(_,i)=>({a:Math.random()*6.283,r:Math.random(),z:Math.random()*2-1,s:Math.random()}))}
+ const rot=0.004+0.03*Math.min(2.5,v.vol_ratio),stretch=0.45+1.9*Math.min(1,v.trend),noise=(1-v.coherence)*0.55;
+ const col=v.direction>0?[46,204,143]:(v.direction<0?[255,90,106]:[140,150,170]);ang+=rot;
+ P.forEach(p=>{const arm=Math.floor(p.s*5),base=arm*1.2566,th=ang*(1.6-p.r)+base+p.r*4.2+(Math.random()-.5)*noise*3;const rr=18+p.r*165;
+  const xx=W/2+Math.cos(th)*rr*(1+ (Math.random()-.5)*noise*.8),yy=H/2+Math.sin(th)*rr*.34*stretch+p.z*stretch*110*(1-p.r*.6);
+  const a=.55+.45*(1-p.r);x.fillStyle=`rgba(${col[0]},${col[1]},${col[2]},${a})`;const sz=1.6+2.2*(1-p.r);x.fillRect(xx,yy,sz,sz)});
+ const N=v.nodes;N.forEach((n,i)=>{const th=ang*.5*(i%2?-1:1)+i*6.283/Math.max(1,N.length),R=190,xx=W/2+Math.cos(th)*R,yy=H/2+Math.sin(th)*R*.38*stretch;
+  x.beginPath();x.arc(xx,yy,n.lit?7:3.5,0,6.283);x.fillStyle=n.lit?(n.dir>0?"#2ecc8f":n.dir<0?"#ff5a6a":"#f5b94a"):"#2a3544";x.fill();
+  if(n.lit){x.strokeStyle="rgba(255,255,255,.35)";x.stroke()}x.fillStyle="#6b7a8c";x.font="9px monospace";x.fillText(n.name.slice(0,10),xx+9,yy+3);
+  if(n.pulse&&S.bars!==lastEv){pulses.push({x:xx,y:yy,r:7,col:n.dir})}});lastEv=S.bars;
+ pulses=pulses.filter(p=>p.r<70);pulses.forEach(p=>{p.r+=1.6;x.beginPath();x.arc(p.x,p.y,p.r,0,6.283);x.strokeStyle=`rgba(255,255,255,${1-p.r/70})`;x.stroke()});
+ $("vinfo").textContent=`${S.symbol}: vol courte/longue ${v.vol_ratio} · tendance ${v.trend} · cohérence agents ${v.coherence} · direction ${v.direction>0?"haussière":v.direction<0?"baissière":"neutre"}`}
+setInterval(()=>{if(S)vortex()},60);
+function target(){const c=$("tgt"),x=c.getContext("2d"),W=c.width,H=c.height,t=S.target;x.fillStyle="#05070a";x.fillRect(0,0,W,H);
+ if(!t||!t.risk_pct){x.fillStyle="#6b7a8c";x.fillText("non mesurable : aucune recherche chargée",20,30);$("tinfo").textContent="";return}
+ const K=Math.max(t.band.length,t.actual.length,10),mx=Math.max(t.target_R*1.2,...t.band.map(b=>b[2]),...t.actual,1),mn=Math.min(0,...t.band.map(b=>b[0]),...t.actual);
+ const X=k=>30+k/(K-1)*(W-40),Y=v=>H-15-(v-mn)/(mx-mn)*(H-30);
+ if(t.band.length){x.fillStyle="rgba(74,168,255,.16)";x.beginPath();t.band.forEach((b,k)=>x.lineTo(X(k),Y(b[2])));for(let k=t.band.length-1;k>=0;k--)x.lineTo(X(k),Y(t.band[k][0]));x.fill();
+  x.strokeStyle="#4aa8ff";x.beginPath();t.band.forEach((b,k)=>k?x.lineTo(X(k),Y(b[1])):x.moveTo(X(k),Y(b[1])));x.stroke()}
+ x.strokeStyle="#f5b94a";x.setLineDash([6,4]);x.beginPath();x.moveTo(30,Y(t.target_R));x.lineTo(W-10,Y(t.target_R));x.stroke();x.setLineDash([]);x.fillStyle="#f5b94a";x.fillText("cible "+fmt(t.target_R,1)+"R (=5 %)",40,Y(t.target_R)-4);
+ x.strokeStyle="#fff";x.lineWidth=2;x.beginPath();t.actual.forEach((v,k)=>k?x.lineTo(X(k),Y(v)):x.moveTo(X(k),Y(v)));x.stroke();x.lineWidth=1;
+ $("tinfo").innerHTML=`mois en cours : <b>${fmt(t.cum_R)}R</b> = <b>${fmt(t.cum_pct)}%</b> (cible 5 % = ${fmt(t.target_R,1)}R à ${t.risk_pct}% de risque) · série de pertes en cours <b>${t.streak}</b> vs 95e pct attendu <b>${t.streak95}</b><br>zone bleue = intervalle Monte Carlo 5–95 % (R cumulés après k trades)`}
+function gauges(){if(!S.agents.length){$("gauges").textContent="";return}const cl=v=>v>70?"#ff5a6a":v>45?"#f5b94a":"#2ecc8f";
+ $("gauges").innerHTML='<div class="legend">barre du haut = perte du jour / limite '+S.profile.daily+' % · barre du bas = perte max / limite '+S.profile.total+' % (équité, flottant inclus, reset minuit Prague)</div>'+S.agents.map(a=>{const g=a.guardian,d=Math.max(0,g.day_loss_pct)/g.limit_daily*100,t=Math.max(0,g.tot_loss_pct)/g.limit_total*100;
+ return `<div style="display:grid;grid-template-columns:110px 1fr 70px;gap:6px;align-items:center"><span class="dim">${a.name.slice(0,14)}</span><div><div class="gauge" style="margin:1px 0"><i style="width:${Math.min(100,d)}%;background:${cl(d)}"></i></div><div class="gauge" style="margin:1px 0"><i style="width:${Math.min(100,t)}%;background:${cl(t)}"></i></div></div><span class="dim">${fmt(g.day_loss_pct)}% / ${fmt(g.tot_loss_pct)}%</span></div>`}).join("");
+ $("news").innerHTML=S.news.length?S.news.map(n=>{const m=Math.round((n.t-S.now)/60);return `<div>${n.name} — dans <b>${m>=1440?Math.floor(m/1440)+"j ":""}${Math.floor((m%1440)/60)}h${String(m%60).padStart(2,"0")}</b></div>`}).join(""):'<span class="dim">aucune annonce connue (calendrier : règle NFP seulement)</span>'}
+function side(){$("dq").innerHTML=S.data_quality.map(q=>`<div>${q.instrument}: ${q.years} ans · ${q.bars} barres · trous ${q.gaps_intraday} · aberr. ${q.outlier_bars} ${q.synthetic?'<span class="dn">SYNTH.</span>':''}</div>`).join("")||'<span class="dim">–</span>';
+ $("tools").innerHTML="<br>outils open source :<br>"+(Object.entries(S.tools).map(([k,v])=>`<span class="${v.status=="ok"?"up":"dn"}">${k}</span>`).join(" ")||"statut non généré (python -m ftmo_algo install)");
+ const rows=Object.entries(S.verdicts.algos||{}).map(([k,v])=>`<tr><td>${k}</td><td class="${v.verdict}">${v.verdict}</td><td>${v.oos.n}</td><td>${v.oos.expectancy_R}</td><td>${v.oos.pf}</td><td class="dim">${(S.verdicts.locked&&S.verdicts.locked[k])?("verrou: n="+S.verdicts.locked[k].n+" E="+S.verdicts.locked[k].expectancy_R):"–"}</td></tr>`).join("");
+ $("verd").innerHTML=rows?`<table><tr><th>algo</th><th>verdict</th><th>n OOS</th><th>E(R)</th><th>PF</th><th>période verrouillée</th></tr>${rows}</table><div class="legend">${S.verdicts.label||""} · hash ${S.verdicts.data_hash||""}</div>`:'<span class="dim">aucun résultat chargé (python -m ftmo_algo research)</span>';
+ $("tape").innerHTML=S.tape.map(e=>{const c=e.type=="open"?"up":e.type=="close"?(e.r>=0?"up":"dn"):e.type=="guardian"||e.type=="breach"?"dn":"dim";
+  return `<div class="${c}">${e.agent} ${e.sym} ${e.type}${e.side?(e.side>0?" LONG":" SHORT"):""}${e.entry?" @"+fmt(e.entry,e.entry<10?5:2):""}${e.rr_net?" RRnet "+e.rr_net:""}${e.r!=null?" "+e.reason+" "+fmt(e.r)+"R":""}${e.why?" ("+e.why+")":""}</div>`}).join("")}
+</script></body></html>
