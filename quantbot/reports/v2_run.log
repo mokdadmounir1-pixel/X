@@ -6,3 +6,16 @@
         short:  [('[0.35,0.45)', 2652, -0.0696, 1791, -0.1032), ('[0.45,0.55)', 7010, -0.0799, 4588, -0.1125), ('[0.55,0.65)', 6070, -0.0859, 4201, -0.1105), ('[0.65,0.75)', 4986, -0.0829, 3427, -0.0891), ('[0.75,0.85)', 3040, -0.0558, 2085, -0.0692), ('[0.85,1.00)', 4335, -0.0718, 2761, -0.1073)]
         placebo (part de barres > marge par pur hasard): {'long': 0.0, 'short': 0.0} | tradable en train: {'long': 0.0, 'short': 0.0}
 [XAUUSD] scores…
+[XAUUSD] modèle 8c99ab37ac | long n=28907 pts=12509 | short n=28395 pts=13092 | évaluation sur 22889 barres…
+[XAUUSD] verdict=FAIL | 0 trades | E=0.000R | PF=0.00 | essais cumulés=8
+        échoue : n_trades,expectancy,profit_factor,null_test,costs_x2,monte_carlo_p5,top3_share,folds_positive,deflated_sharpe | éliminatoire(s) : n_trades,null_test,costs_x2,monte_carlo_p5,deflated_sharpe
+        long:  [('[0.35,0.45)', 2586, 0.047, 1670, 0.0395), ('[0.45,0.55)', 7383, 0.0351, 4799, 0.066), ('[0.55,0.65)', 6598, 0.0281, 4393, 0.0367), ('[0.65,0.75)', 5239, 0.0321, 3550, -0.011), ('[0.75,0.85)', 3222, 0.0754, 2126, 0.0668), ('[0.85,1.00)', 4720, 0.044, 3450, 0.1709)]
+        short:  [('[0.35,0.45)', 2799, -0.07, 1854, -0.1185), ('[0.45,0.55)', 7312, -0.0783, 4735, -0.0555), ('[0.55,0.65)', 6429, -0.0752, 4159, -0.0531), ('[0.65,0.75)', 5495, -0.0647, 3704, -0.0451), ('[0.75,0.85)', 3166, -0.0733, 2076, -0.0714), ('[0.85,1.00)', 4012, -0.0396, 2801, -0.056)]
+        placebo (part de barres > marge par pur hasard): {'long': 0.005547648608545559, 'short': 0.0} | tradable en train: {'long': 0.0, 'short': 0.0}
+[USTEC] scores…
+[USTEC] modèle 108743754d | long n=28798 pts=12006 | short n=27869 pts=12912 | évaluation sur 22739 barres…
+[USTEC] verdict=FAIL | 0 trades | E=0.000R | PF=0.00 | essais cumulés=9
+        échoue : n_trades,expectancy,profit_factor,null_test,costs_x2,monte_carlo_p5,top3_share,folds_positive,deflated_sharpe | éliminatoire(s) : n_trades,null_test,costs_x2,monte_carlo_p5,deflated_sharpe
+        long:  [('[0.35,0.45)', 2768, 0.0036, 1761, -0.0149), ('[0.45,0.55)', 7315, 0.0102, 4474, 0.0062), ('[0.55,0.65)', 6421, -0.0034, 4217, -0.015), ('[0.65,0.75)', 5186, 0.0087, 3049, -0.0292), ('[0.75,0.85)', 3167, -0.0052, 2066, 0.0033), ('[0.85,1.00)', 4519, 0.0112, 2543, 0.0181)]
+        short:  [('[0.35,0.45)', 2982, -0.0253, 1869, 0.0038), ('[0.45,0.55)', 7299, -0.0143, 4776, 0.0116), ('[0.55,0.65)', 6263, -0.0141, 3907, -0.0036), ('[0.65,0.75)', 5087, -0.0132, 3079, -0.0026), ('[0.75,0.85)', 3086, -0.0121, 1815, 0.0025), ('[0.85,1.00)', 3729, -0.0112, 2215, -0.008)]
+        placebo (part de barres > marge par pur hasard): {'long': 0.0, 'short': 0.0} | tradable en train: {'long': 0.0, 'short': 0.0}

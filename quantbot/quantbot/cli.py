@@ -49,6 +49,8 @@ def main(argv=None) -> int:
         _add_data_args(sub.add_parser(name))
     p = sub.add_parser("history")
     p.add_argument("--db", default="quantbot.db")
+    ui = sub.add_parser("ui", help="interface locale (127.0.0.1) : état, résultats, calibration, rejeu")
+    ui.add_argument("--port", type=int, default=8790)
     appr = sub.add_parser("approve", help="approuver une version validée")
     appr.add_argument("version")
     appr.add_argument("--db", default="quantbot.db")
@@ -63,6 +65,10 @@ def main(argv=None) -> int:
         if args.cmd == "history":
             for row in ExperimentStore(args.db).history():
                 print(json.dumps(row, ensure_ascii=False))
+            return 0
+        if args.cmd == "ui":
+            from .ui.server import serve
+            serve(args.port)
             return 0
         if args.cmd == "approve":
             ExperimentStore(args.db).promote(args.version)

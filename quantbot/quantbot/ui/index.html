@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>quantbot — laboratoire</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#16181d;--mute:#5d6572;--line:#e1e4ea;--ok:#117a43;--okbg:#e4f4ea;--bad:#b3261e;--badbg:#fbe9e7;--warn:#8a5a00;--warnbg:#fff3d6;--acc:#2554d6;--accbg:#e8eefc}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#171a21;--ink:#e8eaef;--mute:#9aa3b2;--line:#2a2f3a;--ok:#4cc38a;--okbg:#12281d;--bad:#ff8a80;--badbg:#321816;--warn:#f0b64a;--warnbg:#2e2410;--acc:#7da2ff;--accbg:#18223b}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:16px;border-bottom:1px solid var(--line);background:var(--card)}
+h1{margin:0;font-size:18px}h2{font-size:16px;margin:0 0 8px}h3{font-size:14px;margin:14px 0 6px;color:var(--mute);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.banner{margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--warnbg);color:var(--warn);font-weight:600}
+.banner.ok{background:var(--okbg);color:var(--ok)}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
+nav button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font:inherit}
+nav button[aria-selected=true]{background:var(--acc);color:#fff;border-color:var(--acc)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:8px;padding:10px}.kpi b{display:block;font-size:20px}.kpi span{color:var(--mute);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--mute);font-weight:600}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12.5px;font-weight:700}
+.PASS{background:var(--okbg);color:var(--ok)}.WATCH{background:var(--warnbg);color:var(--warn)}.FAIL{background:var(--badbg);color:var(--bad)}.NA{background:var(--line);color:var(--mute)}
+.gates{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.g{font-size:12px;padding:1px 7px;border-radius:5px;background:var(--okbg);color:var(--ok)}.g.x{background:var(--badbg);color:var(--bad)}
+.muted{color:var(--mute);font-size:13px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+select,input,button.go{font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+button.go{background:var(--acc);color:#fff;border-color:var(--acc);cursor:pointer}button.go:disabled{opacity:.5;cursor:wait}
+svg{width:100%;height:auto;display:block}.axis{stroke:var(--line)}.lbl{fill:var(--mute);font-size:11px}
+details{margin-top:6px}summary{cursor:pointer;color:var(--acc)}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+  <h1>quantbot — laboratoire de trading quantitatif</h1>
+  <div id="banner" class="banner">Chargement…</div>
+</header>
+<main>
+  <nav role="tablist" id="tabs"></nav>
+  <section id="view"></section>
+</main>
+<script>
+const TABS=[["etat","État"],["res","Résultats"],["cal","Calibration v2"],["rejeu","Rejouer un backtest"],["data","Données"]];
+let S=null,tab="etat";
+const $=s=>document.querySelector(s),esc=t=>String(t??"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const f=(x,d=3)=>x==null||!isFinite(x)?"—":Number(x).toFixed(d);
+const tag=v=>`<span class="tag ${v||"NA"}">${v||"—"}</span>`;
+function tabs(){$("#tabs").innerHTML=TABS.map(([k,l])=>`<button role="tab" aria-selected="${k===tab}" data-k="${k}">${l}</button>`).join("");
+  $("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{tab=b.dataset.k;render()});}
+function banner(){const s=S.status;const b=$("#banner");
+  b.className="banner"+(s.edge_validated?" ok":"");
+  b.textContent=s.edge_validated?"Au moins une stratégie a franchi les portes de recherche — pas encore confirmée sur la période verrouillée.":
+   "Aucun edge validé à ce jour · trading réel verrouillé · aucun ordre ne peut partir depuis cette interface.";}
+function etat(){const s=S.status;
+  return `<div class="card"><h2>État du projet</h2><div class="grid">
+   <div class="kpi"><b>${esc(s.live_trading.split(" ")[0])}</b><span>Trading réel</span></div>
+   <div class="kpi"><b>${s.edge_validated?"oui":"non"}</b><span>Edge validé</span></div>
+   <div class="kpi"><b>${s.trials} / ${s.trials_budget}</b><span>Essais consommés (budget)</span></div>
+   <div class="kpi"><b>${s.locked_reads}</b><span>Lectures de la période verrouillée</span></div>
+   <div class="kpi"><b>${s.registry_chain_ok?"intègre":"ALTÉRÉE"}</b><span>Chaîne du registre d'essais</span></div></div>
+   <p class="muted">Connecteur MetaTrader 5 : ${esc(s.mt5_broker)}.</p></div>
+   <div class="card"><h2>Ce que le projet est, aujourd'hui</h2>
+   <p>Un <b>laboratoire de recherche et de validation</b> : moteur de simulation unique, statistiques anti-sur-apprentissage (DSR, test nul, Monte-Carlo par blocs),
+   registre d'essais chaîné par hachage, période verrouillée à lecture unique, garde-fou FTMO. Il n'y a <b>pas de robot qui trade</b> tant qu'une stratégie n'a pas passé les portes.</p>
+   <p class="muted">Les ordres réels exigent quatre verrous (mode, autorisation, variable d'environnement, garde-fou FTMO) et ne sont branchés sur aucune commande.</p></div>`;}
+function gatesHtml(gs){return `<div class="gates">`+gs.map(g=>`<span class="g ${g.ok?"":"x"}" title="valeur: ${esc(JSON.stringify(g.value))} · seuil: ${esc(JSON.stringify(g.threshold))}">${esc(g.name)}${g.eliminatory&&!g.ok?" ⛔":""}</span>`).join("")+`</div>`;}
+function res(){return S.specs.map(sp=>`<div class="card"><h2>${esc(sp.name)} ${sp.parent?`<span class="muted">← ${esc(sp.parent)}</span>`:""}</h2>
+  <p class="muted">${esc(sp.change_reason||sp.hypothesis||"")}</p>
+  <table><thead><tr><th>Instrument</th><th>Verdict</th><th class="n">Trades</th><th class="n">Espérance (R)</th><th class="n">PF</th><th class="n">Pire trade (R)</th></tr></thead><tbody>`+
+  sp.results.map(r=>r.verdict?`<tr><td>${esc(r.instrument)}</td><td>${tag(r.verdict)}</td><td class="n">${r.n_trades}</td><td class="n">${f(r.expectancy_R)}</td><td class="n">${f(r.profit_factor,2)}</td><td class="n">${f(r.worst_trade_R,2)}</td></tr>
+  <tr><td colspan="6">${gatesHtml(r.gates)}<details><summary>pourquoi</summary><div class="muted">${esc(r.reason)}</div></details></td></tr>`:
+  `<tr><td>${esc(r.instrument)}</td><td>${tag(null)}</td><td colspan="4" class="muted">${esc(r.status||"en cours")}</td></tr>`).join("")+`</tbody></table></div>`).join("")+
+  `<p class="muted">⛔ = porte éliminatoire en échec. Les espérances de v1/v2 sont en R <i>nominal</i> (capital × risque visé) ; elles ne sont pas directement comparables à celles de v0.</p>`;}
+function bars(rows,key1,key2,title){const W=520,H=190,pad=34;const vals=rows.flatMap(r=>[r[key1],r[key2]]).filter(v=>v!=null);if(!vals.length)return"";
+  const lo=Math.min(-.05,...vals),hi=Math.max(.05,...vals),y=v=>pad+(hi-v)/(hi-lo)*(H-2*pad),bw=(W-2*pad)/rows.length;
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}"><line class="axis" x1="${pad}" x2="${W-pad}" y1="${y(0)}" y2="${y(0)}"/>`;
+  rows.forEach((r,i)=>{const x=pad+i*bw;[[key1,"var(--mute)",0],[key2,"var(--acc)",1]].forEach(([k,c,j])=>{const v=r[k];if(v==null)return;
+    s+=`<rect x="${x+bw*(.12+.42*j)}" width="${bw*.38}" y="${Math.min(y(0),y(v))}" height="${Math.abs(y(v)-y(0))}" fill="${c}"><title>${esc(r.score)} · ${k}: ${f(v,4)} R (n=${r[k==key1?"n_train":"n_valid"]})</title></rect>`});
+    s+=`<text class="lbl" x="${x+bw/2}" y="${H-12}" text-anchor="middle">${esc(r.score.replace(/[\[\)]/g,"").split(",")[0])}</text>`});
+  return s+`<text class="lbl" x="${pad}" y="14">${esc(title)}</text></svg>`;}
+function cal(){const v2=S.specs.find(s=>s.name==="v2_calibrated");if(!v2)return`<div class="card">Pas de résultat v2.</div>`;
+  return `<div class="card"><h2>Calibration score → espérance nette</h2><p class="muted">Pour chaque niveau de score flou : espérance moyenne en R nominal, <span style="color:var(--mute)">■ apprentissage</span> vs <span style="color:var(--acc)">■ validation (hors échantillon)</span>. Une courbe qui monte et se confirme serait un edge ; une courbe plate sous zéro = les coûts seuls.</p></div>`+
+  v2.results.filter(r=>r.diagnostics).map(r=>`<div class="card"><h2>${esc(r.instrument)} ${tag(r.verdict)}</h2><div class="grid"><div>${bars(r.diagnostics.long,"E_train","E_valid","Achat (score haussier)")}</div><div>${bars(r.diagnostics.short,"E_train","E_valid","Vente (score baissier)")}</div></div>
+  <p class="muted">Placebo (part de barres jugées tradables sur des labels permutés) : achat ${f(r.diagnostics.placebo_share_above_margin.long,3)} · vente ${f(r.diagnostics.placebo_share_above_margin.short,3)} — mesure de ce que la méthode invente à vide.</p></div>`).join("");}
+function rejeu(){return `<div class="card"><h2>Rejouer le moteur sur la période de recherche</h2>
+  <p class="muted">Utilise la spec <b>baseline_v1</b> (risque corrigé). Période verrouillée jamais lue. Aucun ordre envoyé. Le rejeu peut prendre 5 à 60 s.</p>
+  <div class="row"><select id="ri">${(S.data.length?S.data.map(d=>d.symbol):["EURUSD","XAUUSD","USTEC"]).map(s=>`<option>${s}</option>`).join("")}</select>
+  <label>barres <select id="rb"><option>3000</option><option selected>6000</option><option>12000</option></select></label>
+  <button class="go" id="rgo">Lancer</button></div><div id="rout" class="muted" style="margin-top:12px"></div></div>`;}
+function curve(pts){const W=900,H=260,p=34;const ys=pts.map(a=>a[1]);const lo=Math.min(...ys),hi=Math.max(...ys),y=v=>p+(hi-v)/(hi-lo||1)*(H-2*p),x=i=>p+i/(pts.length-1||1)*(W-2*p);
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="courbe d'équité"><polyline fill="none" stroke="var(--acc)" stroke-width="2" points="${pts.map((a,i)=>x(i)+","+y(a[1])).join(" ")}"/><line class="axis" x1="${p}" x2="${W-p}" y1="${y(pts[0][1])}" y2="${y(pts[0][1])}"/>
+  <text class="lbl" x="${p}" y="14">équité (capital initial ${f(pts[0][1],0)})</text><text class="lbl" x="${W-p}" y="${H-8}" text-anchor="end">${esc(pts[pts.length-1][0].slice(0,10))}</text><text class="lbl" x="${p}" y="${H-8}">${esc(pts[0][0].slice(0,10))}</text></svg>`;}
+async function doReplay(){const b=$("#rgo"),o=$("#rout");b.disabled=true;o.textContent="Calcul en cours…";
+  try{const r=await (await fetch(`/api/replay?instrument=${$("#ri").value}&bars=${$("#rb").value}`)).json();if(r.error)throw new Error(r.error);const m=r.metrics;
+   o.innerHTML=`${curve(r.equity)}<div class="grid" style="margin-top:10px"><div class="kpi"><b>${m.n_trades}</b><span>trades</span></div><div class="kpi"><b>${f(m.total_return*100,1)} %</b><span>rendement</span></div>
+   <div class="kpi"><b>${f(m.max_drawdown*100,1)} %</b><span>drawdown max</span></div><div class="kpi"><b>${f(m.profit_factor,2)}</b><span>facteur de profit</span></div><div class="kpi"><b>${f(m.win_rate*100,1)} %</b><span>gagnants</span></div></div>
+   <div class="banner" style="margin-top:12px">⚠ Une fenêtre courte ne prouve rien. Buy &amp; hold sur cette fenêtre : ${f(r.buy_hold_return*100,1)} %.
+   ${r.reference?`Verdict de la MÊME spec sur toute la période de recherche (${f(r.reference.years,1)} an(s), ${r.reference.n_trades} trades) : ${tag(r.reference.verdict)} · espérance ${f(r.reference.expectancy_R)} R · PF ${f(r.reference.profit_factor,2)}. C'est ce chiffre qui compte, pas la courbe ci-dessus.`:""}</div>
+   <p class="muted">${esc(r.start.slice(0,10))} → ${esc(r.end.slice(0,10))} · ${r.bars} barres · sorties : ${esc(JSON.stringify(r.reasons))} · ${esc(r.note)}</p>`;}
+  catch(e){o.textContent="Erreur : "+e.message}b.disabled=false;}
+function data(){return `<div class="card"><h2>Données (exports MetaTrader 5, démo MetaQuotes)</h2><table><thead><tr><th>Symbole</th><th class="n">Barres</th><th>Début</th><th>Fin</th><th class="n">Années</th><th>SHA-256</th></tr></thead><tbody>`+
+  S.data.map(d=>`<tr><td>${esc(d.symbol)}</td><td class="n">${d.rows}</td><td>${esc((d.start||"").slice(0,10))}</td><td>${esc((d.end||"").slice(0,10))}</td><td class="n">${f(d.span_years,2)}</td><td class="muted">${esc((d.sha256||"").slice(0,16))}…</td></tr>`).join("")+`</tbody></table>
+  <ul class="muted">${S.data_notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></div>`;}
+function render(){tabs();banner();$("#view").innerHTML=({etat,res,cal,rejeu,data})[tab]();if(tab==="rejeu")$("#rgo").onclick=doReplay;}
+fetch("/api/state").then(r=>r.json()).then(s=>{S=s;render()}).catch(e=>{$("#banner").textContent="Impossible de charger l'état : "+e});
+</script>
+</body>
+</html>

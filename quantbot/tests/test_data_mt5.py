@@ -15,11 +15,11 @@ def _broker_clock(utc):
 
 def test_clock_conversion_roundtrip_outside_transition_hours():
     utc = pd.date_range("2024-01-02", "2024-12-20", freq="1h")
-    back = broker_clock_to_utc(_broker_clock(utc))
+    back = broker_clock_to_utc(_broker_clock(utc), "us_dst")
     wrong = (back != utc).sum()
     assert wrong <= 2 * 3  # au plus quelques heures ambiguës autour des 2 changements d'heure
-    assert broker_clock_to_utc(_broker_clock(pd.DatetimeIndex(["2024-07-10 12:00"])))[0] == pd.Timestamp("2024-07-10 12:00")
-    assert broker_clock_to_utc(_broker_clock(pd.DatetimeIndex(["2024-01-10 12:00"])))[0] == pd.Timestamp("2024-01-10 12:00")
+    assert broker_clock_to_utc(_broker_clock(pd.DatetimeIndex(["2024-07-10 12:00"])), "us_dst")[0] == pd.Timestamp("2024-07-10 12:00")
+    assert broker_clock_to_utc(_broker_clock(pd.DatetimeIndex(["2024-01-10 12:00"])), "us_dst")[0] == pd.Timestamp("2024-01-10 12:00")
 
 
 def test_fixed_offset_rule_and_unknown_rule():
@@ -78,10 +78,20 @@ def test_load_mt5_csv_end_to_end(tmp_path):
     df = pd.DataFrame({"time_broker_epoch": ((clock - pd.Timestamp("1970-01-01")).total_seconds().astype("int64")), "open": 1.1, "high": 1.2, "low": 1.0,
                        "close": 1.1, "tick_volume": 10, "spread": 0.0001, "spread_points": 10})
     p = tmp_path / "x.csv"; df.to_csv(p, index=False)
-    out = load_mt5_csv(p)
+    out = load_mt5_csv(p, "us_dst")
     assert out.index[0] == utc[0] and out.attrs["clock_rule"] == "us_dst" and (out["spread"] > 0).all()
     with pytest.raises(DataValidationError):
         load_mt5_csv(tmp_path / "absent.csv")
     df.drop(columns="time_broker_epoch").to_csv(p, index=False)
     with pytest.raises(DataValidationError):
         load_mt5_csv(p)
+
+
+def test_eu_rule_is_default_and_differs_from_us_only_in_the_mismatch_weeks():
+    clock = pd.date_range("2024-01-01", "2024-12-31", freq="1h")
+    eu, us = broker_clock_to_utc(clock), broker_clock_to_utc(clock, "us_dst")
+    diff = pd.Series(eu != us, index=clock)
+    assert 0 < diff.sum() < 24 * 40                       # quelques semaines seulement
+    assert set(diff[diff].index.month) <= {3, 10, 11}     # fenêtres où les calendriers UE et US divergent
+    assert eu[clock.get_loc(pd.Timestamp("2024-07-10 12:00"))] == pd.Timestamp("2024-07-10 09:00")  # été : UTC+3
+    assert eu[clock.get_loc(pd.Timestamp("2024-01-10 12:00"))] == pd.Timestamp("2024-01-10 10:00")  # hiver : UTC+2

@@ -19,20 +19,30 @@ from .validation import validate_ohlcv
 log = get_logger("data.mt5")
 
 
-def broker_clock_to_utc(clock: pd.DatetimeIndex, rule: str = "us_dst") -> pd.DatetimeIndex:
-    """Horloge courtier (naïve) -> UTC naïf. rule: 'us_dst' (UTC+3 en DST US, UTC+2 sinon) ou 'fixed+N'."""
+_DST_RULES = {"eu_dst": ("Europe/Athens", pd.Timedelta(hours=3)), "us_dst": ("America/New_York", pd.Timedelta(hours=-4))}
+
+
+def broker_clock_to_utc(clock: pd.DatetimeIndex, rule: str = "eu_dst") -> pd.DatetimeIndex:
+    """Horloge courtier (naïve) -> UTC naïf. UTC+3 en heure d'été, UTC+2 sinon.
+
+    rule='eu_dst' (DÉFAUT) : l'été suit le calendrier EUROPÉEN (mesuré : 98,8 % des pauses quotidiennes de l'or
+    reprennent à 18:00 New York, contre 92,5 % avec le calendrier US ; l'écart tient aux ~4 semaines/an où les
+    deux calendriers divergent). 'us_dst' : ancien choix des specs v0/v1/v2 (conservé pour reproduire ces essais).
+    'fixedN' : décalage fixe.
+    """
     clock = pd.DatetimeIndex(clock)
     if rule.startswith("fixed"):
         return clock - pd.Timedelta(hours=int(rule.replace("fixed", "")))
-    if rule != "us_dst":
+    if rule not in _DST_RULES:
         raise ValueError(f"règle inconnue : {rule}")
+    zone, summer_offset = _DST_RULES[rule]
     guess = (clock - pd.Timedelta(hours=3)).tz_localize("UTC")  # hypothèse « été »
-    ny = guess.tz_convert("America/New_York")
-    is_dst = (ny.tz_localize(None) - guess.tz_localize(None)) == pd.Timedelta(hours=-4)
+    local = guess.tz_convert(zone)
+    is_dst = (local.tz_localize(None) - guess.tz_localize(None)) == summer_offset
     return pd.DatetimeIndex(np.where(is_dst, clock - pd.Timedelta(hours=3), clock - pd.Timedelta(hours=2)))
 
 
-def load_mt5_csv(path: str | Path, rule: str = "us_dst") -> pd.DataFrame:
+def load_mt5_csv(path: str | Path, rule: str = "eu_dst") -> pd.DataFrame:
     """Charge l'export, index = UTC naïf reconstruit. Colonnes : OHLC, volume (ticks), spread (prix), spread_points."""
     try:
         raw = pd.read_csv(path)
