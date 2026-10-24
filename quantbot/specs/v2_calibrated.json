@@ -1,0 +1,184 @@
+{
+ "name": "v2_calibrated",
+ "preregistered": "Procédure écrite et commitée AVANT tout calcul de score, de label ou de calibration sur données réelles. Une seule exécution par instrument = un essai compté par instrument (3 de plus).",
+ "hypothesis": "H0 : aucun niveau de score flou des détecteurs actuels n'a d'espérance NETTE de coûts > 0 hors échantillon. H1 : une région de score a, sur la période de validation, une espérance calibrée sur l'apprentissage qui se confirme et franchit les portes.",
+ "timeframe": "M15",
+ "instruments": {
+  "EURUSD": "EURUSD_M15.csv",
+  "XAUUSD": "XAUUSD_M15.csv",
+  "USTEC": "USTEC_M15.csv"
+ },
+ "data_sha256": {
+  "EURUSD_M15.csv": "e5584ad82650f1640e41f9597e237821e47189b4b9022e7562d1df0e0f3abece",
+  "XAUUSD_M15.csv": "d1a156e2894a868686457c8d71a6ff874a49511a5dae059c24c795ff5aeb08b9",
+  "USTEC_M15.csv": "63279b4e0082b35f8312e8b5a5c90107127538c44690b78b13cec4d8a228dc65"
+ },
+ "clock": "UTC reconstruit depuis time_broker_epoch (serveur UTC+3 en heure d'été US, UTC+2 sinon) ; la colonne `time` fournie est fausse d'1 h en hiver",
+ "lock_months": 12,
+ "lock_min_frac": 0.2,
+ "costs": {
+  "_note": "spread_frac = spread médian mesuré (fraction du prix) si fiable ; sinon HYPOTHÈSE déclarée. Commission/slippage = HYPOTHÈSES (non fournis par l'export). Démo MetaQuotes != FTMO : à re-mesurer sur le compte cible.",
+  "EURUSD": {
+   "spread_frac": 9e-05,
+   "fee_rate": 2.5e-05,
+   "slippage": 1e-05,
+   "basis": "HYPOTHÈSE : spread ~1 pip (colonne spread inutilisable : 44-83 % de zéros), commission ~2,5 $/lot/côté"
+  },
+  "XAUUSD": {
+   "spread_frac": null,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "spread mesuré (médiane du fichier) ; commission 0 = HYPOTHÈSE"
+  },
+  "USTEC": {
+   "spread_frac": null,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "spread mesuré (médiane du fichier) ; commission 0 = HYPOTHÈSE"
+  }
+ },
+ "settings": {
+  "tolerance": {
+   "tolerance_percentage": 0.15,
+   "deviation_threshold": 0.35,
+   "min_score": 0.3
+  },
+  "detection": {
+   "pivot_order": 3,
+   "atr_period": 14,
+   "max_pivot_age": 12,
+   "context_bars": 5,
+   "context_weight": 0.25,
+   "context_move_atr": 2.0,
+   "min_height_atr": 1.5,
+   "min_bars_between": 4,
+   "enabled": null
+  },
+  "signals": {
+   "min_confidence": 0.55,
+   "category_weights": {
+    "candle": 0.8,
+    "chart": 1.0,
+    "harmonic": 0.9
+   },
+   "unconfirmed_penalty": 0.8,
+   "require_confirmation": false,
+   "min_edge": 0.1,
+   "confluence_bonus": 0.05,
+   "trend_filter": "none",
+   "ema_fast": 20,
+   "ema_slow": 50,
+   "counter_trend_penalty": 0.6,
+   "htf_rule": "4h",
+   "atr_floor_frac": 0.5
+  },
+  "risk": {
+   "risk_per_trade": 0.005,
+   "atr_stop_mult": 1.5,
+   "reward_risk": 2.0,
+   "min_reward_risk": 1.3,
+   "max_leverage": 3.0,
+   "max_daily_loss": 0.03,
+   "max_trades_per_day": 5,
+   "flat_before_weekend": true,
+   "weekend_cutoff_hour": 20,
+   "session_tz": "Europe/Prague"
+  },
+  "backtest": {
+   "initial_equity": 100000.0,
+   "warmup_bars": 100,
+   "window_bars": 300,
+   "max_hold_bars": 100,
+   "max_gap_hours": 120.0
+  },
+  "execution": {
+   "mode": "paper",
+   "allow_live": false,
+   "fee_rate": 0.0005,
+   "slippage": 0.0002,
+   "spread": 0.0,
+   "exchange": "binance",
+   "symbol": "BTC/USDT",
+   "timeframe": "1h",
+   "live_auto_adopt": false,
+   "mt5_symbol": "EURUSD",
+   "mt5_timeframe": "H1",
+   "mt5_server_utc_offset_hours": 0,
+   "mt5_magic": 20260101,
+   "mt5_deviation_points": 20
+  },
+  "ftmo": {
+   "enabled": false,
+   "phase": "challenge",
+   "initial_balance": 100000.0,
+   "profit_target_challenge": 0.1,
+   "profit_target_verification": 0.05,
+   "max_daily_loss": 0.05,
+   "max_total_loss": 0.1,
+   "daily_loss_buffer": 0.01,
+   "total_loss_buffer": 0.02,
+   "min_trading_days": 4,
+   "timezone": "Europe/Prague",
+   "flat_before_weekend": true,
+   "weekend_cutoff_hour": 20,
+   "news_blackouts": [],
+   "stop_after_target": true,
+   "max_risk_per_trade": 0.005,
+   "expected_login": null
+  }
+ },
+ "gates": {
+  "min_trades": 60,
+  "min_expectancy": 0.15,
+  "min_profit_factor": 1.2,
+  "null_alpha": 0.1,
+  "top3_max": 0.5,
+  "min_positive_folds": 0.5,
+  "mc_paths": 2000,
+  "dd_frac": 0.6,
+  "dsr_min": 0.5,
+  "min_years": 2.0,
+  "base_B": 999,
+  "worst_trade_r": 5.0
+ },
+ "gate_calibration": {
+  "script": "scripts/calibrate_gates.py",
+  "series": "120 marchés sans edge x 5000 barres, signal oracle",
+  "false_pass": 1,
+  "false_pass_upper95": 0.039,
+  "power": "24/24 PASS sur edge planté fort",
+  "caveat": "calibré sur un signal oracle et des marchés synthétiques : n'établit pas la puissance sur marché réel"
+ },
+ "max_trials_budget": 30,
+ "parent": "baseline_v1",
+ "change_reason": "Phase 2 : les détecteurs deviennent des features ; la décision n'est plus un seuil de confiance arbitraire mais une espérance nette apprise puis jugée hors échantillon.",
+ "changes": [
+  "tolerance.min_score = 0.30 : plancher de capture des scores flous (la calibration décide de ce qui vaut quelque chose)",
+  "décision : espérance calibrée (isotone) > marge, sinon abstention ; plus de min_confidence/min_edge",
+  "coûts, risque, week-end, ATR plancher, levier, portes : identiques à baseline_v1"
+ ],
+ "leverage_rule": {
+  "loss_budget": 0.01,
+  "quantile": 0.9999,
+  "min": 0.25,
+  "max": 5.0,
+  "doc": "levier max tel qu'un gap au quantile 99,99 % (gaps de reprise, hors trous de données) coûte <= 1 % du capital"
+ },
+ "procedure": {
+  "split": "train = 60 % premiers de la période de RECHERCHE ; validation = 40 % suivants ; la période verrouillée n'est PAS lue",
+  "train_frac": 0.6,
+  "purge_bars": "max_hold_bars + 2 de chaque côté de la coupure (les labels regardent jusqu'à max_hold_bars dans le futur)",
+  "labels": "résultat net du trade standard (stop 1,5 ATR plancher, cible 2R, max_hold, week-end, coûts, levier) en R nominal ; identique au moteur (testé)",
+  "score": "quantbot.signals.scoring.direction_scores (même fonction à l'entraînement et à l'exécution)",
+  "model": "régression isotone croissante par côté (long sur score haussier, short sur score baissier), un seul paramètre libre : la monotonie",
+  "zone_min_score": 0.35,
+  "min_support": 300,
+  "margin_R": 0.1,
+  "evaluation": "CalibratedSignalEngine sur la partie validation (avec 100 barres de ré-échauffement avant), portes identiques, un essai par instrument",
+  "diagnostics": "table score->espérance train vs validation ; placebo = mêmes courbes sur labels permutés par blocs (part de barres au-dessus de la marge par pur hasard)"
+ },
+ "decision_rule": {
+  "si_aucun_PASS_ni_WATCH": "conclure « aucun edge dans ces détecteurs au M15 » ; ne PAS ajuster marge/zone sur les résultats ; toute nouvelle idée = nouvelle spec préenregistrée",
+  "si_PASS_ou_WATCH": "confirmer sur la période verrouillée UNE fois (--locked) puis seulement envisager la démo"
+ }
+}

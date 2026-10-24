@@ -18,16 +18,22 @@ from .registry import TrialRegistry, canonical_hash
 _SPEC_EXCLUDE = ("logging", "ai", "validation")
 
 
-def spec_hash(settings: Settings, gate_cfg: GateCfg = GateCfg()) -> str:
-    """Identifie la stratégie ET les seuils qui la jugent (changer un seuil change l'identité)."""
+def spec_hash(settings: Settings, gate_cfg: GateCfg = GateCfg(), extra: Any = None) -> str:
+    """Identifie la stratégie ET les seuils qui la jugent (changer un seuil change l'identité).
+
+    `extra` (ex. hachage d'un modèle calibré) entre dans l'identité ; absent, le hachage reste celui des specs v0/v1.
+    """
     d = {k: v for k, v in settings.to_dict().items() if k not in _SPEC_EXCLUDE}
-    return canonical_hash({"spec": d, "gates": gate_cfg.to_dict()})
+    body = {"spec": d, "gates": gate_cfg.to_dict()}
+    if extra is not None:
+        body["extra"] = extra
+    return canonical_hash(body)
 
 
 def data_hash(df: pd.DataFrame) -> str:
     h = hashlib.sha256()
     h.update(df[["open", "high", "low", "close"]].to_numpy(dtype="float64").tobytes())
-    h.update(df.index.asi8.tobytes())
+    h.update(df.index.values.astype("datetime64[ns]").astype("int64").tobytes())  # indépendant de la résolution
     return h.hexdigest()
 
 
@@ -66,10 +72,10 @@ def _fold_expectancies(df: pd.DataFrame, settings: Settings, k: int, signal_engi
 
 
 def evaluate_research(df_research: pd.DataFrame, settings: Settings, registry: TrialRegistry,
-                      gate_cfg: GateCfg = GateCfg(), signal_engine: Any = None) -> Evaluation:
+                      gate_cfg: GateCfg = GateCfg(), signal_engine: Any = None, spec_extra: Any = None) -> Evaluation:
     """Évalue la spec sur les données de RECHERCHE. Aucune sélection de paramètres ici :
     la spec est supposée figée avant ce test (sinon l'essai doit être compté comme un essai de plus)."""
-    sh, dh = spec_hash(settings, gate_cfg), data_hash(df_research)
+    sh, dh = spec_hash(settings, gate_cfg, spec_extra), data_hash(df_research)
     base = Backtester(settings, 1.0, signal_engine).run(df_research)
     costly = Backtester(settings, settings.validation.cost_stress_multiplier, signal_engine).run(df_research)
     r = np.array([t.r_nominal for t in base.trades])
