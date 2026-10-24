@@ -1,1 +1,5 @@
 [EURUSD] recherche 2023-08-03 11:00:00 -> 2025-10-23 20:15:00 (55173 barres), verrou dès 2025-10-23 20:30:00, trous 0
+[EURUSD] verdict=FAIL | 2956 trades | E=-0.259R | PF=0.69 | essais cumulés=1
+        échoue : expectancy,profit_factor,null_test,costs_x2,monte_carlo_p5,top3_share,folds_positive,risk_envelope,deflated_sharpe | éliminatoire(s) : null_test,costs_x2,monte_carlo_p5,risk_envelope,deflated_sharpe
+        {'n_trades': 'OK', 'expectancy': 'ÉCHEC', 'profit_factor': 'ÉCHEC', 'null_test': 'ÉCHEC', 'costs_x2': 'ÉCHEC', 'monte_carlo_p5': 'ÉCHEC', 'top3_share': 'ÉCHEC', 'folds_positive': 'ÉCHEC', 'risk_envelope': 'ÉCHEC', 'deflated_sharpe': 'ÉCHEC'}
+[XAUUSD] recherche 2023-05-29 05:45:00 -> 2025-10-23 19:15:00 (56971 barres), verrou dès 2025-10-23 19:30:00, trous 0
