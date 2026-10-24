@@ -1,0 +1,125 @@
+{
+ "instrument": "USTEC",
+ "spec": "baseline_v1",
+ "evaluation": {
+  "verdict": "FAIL",
+  "reason": "\u00e9choue : expectancy,profit_factor,null_test,costs_x2,monte_carlo_p5,top3_share,folds_positive,risk_envelope,deflated_sharpe | \u00e9liminatoire(s) : null_test,costs_x2,monte_carlo_p5,risk_envelope,deflated_sharpe",
+  "n_trials": 6,
+  "spec_hash": "84919c87fb018883e888b9fb72b81eae095ce8fc50c338c195fa9ce3adc7aace",
+  "data_hash": "52d5eb15f7ce568a2922d965046560c505b1e2c132f6fd3e1080d404cc58cc38",
+  "metrics": {
+   "n_trades": 2948,
+   "expectancy_R": -0.011565253040707069,
+   "profit_factor": 0.9306545641912136,
+   "years": 2.565366187542779,
+   "sharpe_per_trade": -0.028951204723955494,
+   "worst_trade_R": -1.6662738911875992,
+   "median_R": -0.16121934120157339,
+   "total_return": -0.16167296176335222,
+   "max_drawdown": 0.22648608636435089
+  },
+  "gates": [
+   {
+    "name": "n_trades",
+    "ok": true,
+    "value": 2948,
+    "threshold": 60,
+    "eliminatory": true
+   },
+   {
+    "name": "expectancy",
+    "ok": false,
+    "value": -0.0116,
+    "threshold": 0.15,
+    "eliminatory": false
+   },
+   {
+    "name": "profit_factor",
+    "ok": false,
+    "value": 0.931,
+    "threshold": 1.2,
+    "eliminatory": false
+   },
+   {
+    "name": "null_test",
+    "ok": false,
+    "value": 0.945,
+    "threshold": 0.01741,
+    "eliminatory": true
+   },
+   {
+    "name": "costs_x2",
+    "ok": false,
+    "value": -0.018,
+    "threshold": 0.0,
+    "eliminatory": true
+   },
+   {
+    "name": "monte_carlo_p5",
+    "ok": false,
+    "value": 0.6524,
+    "threshold": 1.0,
+    "eliminatory": true
+   },
+   {
+    "name": "top3_share",
+    "ok": false,
+    "value": 1.0,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "folds_positive",
+    "ok": false,
+    "value": 0.0,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "risk_envelope",
+    "ok": false,
+    "value": {
+     "dd95_pct": 20.15,
+     "streak95": 21.0
+    },
+    "threshold": {
+     "max_pct": 6.0
+    },
+    "eliminatory": true
+   },
+   {
+    "name": "worst_trade",
+    "ok": true,
+    "value": -1.666,
+    "threshold": -5.0,
+    "eliminatory": true
+   },
+   {
+    "name": "deflated_sharpe",
+    "ok": false,
+    "value": 0.0,
+    "threshold": 0.5,
+    "eliminatory": true
+   }
+  ]
+ },
+ "costs_used": {
+  "spread": 4.30898329465817e-05,
+  "fee_rate": 0.0,
+  "slippage": 1e-05,
+  "measured": {
+   "spread_frac": 4.30898329465817e-05,
+   "reliable": true,
+   "zero_share": 0.006
+  },
+  "max_leverage": 0.613653953079184
+ },
+ "holes": [
+  {
+   "from": "2025-07-16 07:30:00",
+   "to": "2025-09-09 11:30:00",
+   "hours": 1324.0,
+   "price_jump_pct": 4.32
+  }
+ ]
+}
