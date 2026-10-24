@@ -1,0 +1,76 @@
+{
+  "captured_at_utc": "2026-10-24T23:15:50.536584+00:00",
+  "source": "MetaTrader5 / MetaQuotes-Demo",
+  "timeframe": "M15",
+  "synthetic": false,
+  "orders_sent": 0,
+  "requested_index": "US100 ou équivalent Nasdaq 100",
+  "index_candidates": [
+    "USTEC"
+  ],
+  "instruments": [
+    {
+      "symbol": "EURUSD",
+      "description": "Euro vs US Dollar",
+      "point": 1e-05,
+      "digits": 5,
+      "rows": 80000,
+      "start": "2023-08-03 11:00:00+00:00",
+      "end": "2026-10-23 20:30:00+00:00",
+      "span_years": 3.223534109057723,
+      "at_least_three_years": true,
+      "duplicate_timestamps": 0,
+      "invalid_ohlc": 0,
+      "non_15min_differences": 189,
+      "gaps_note": "Includes normal market closures; gap count is not a missing-data diagnosis.",
+      "sha256": "e5584ad82650f1640e41f9597e237821e47189b4b9022e7562d1df0e0f3abece",
+      "file": "EURUSD_M15.csv"
+    },
+    {
+      "symbol": "XAUUSD",
+      "description": "Gold vs US Dollar",
+      "point": 0.01,
+      "digits": 2,
+      "rows": 80000,
+      "start": "2023-05-29 05:45:00+00:00",
+      "end": "2026-10-23 19:30:00+00:00",
+      "span_years": 3.404717088751996,
+      "at_least_three_years": true,
+      "duplicate_timestamps": 0,
+      "invalid_ohlc": 0,
+      "non_15min_differences": 899,
+      "gaps_note": "Includes normal market closures; gap count is not a missing-data diagnosis.",
+      "sha256": "d1a156e2894a868686457c8d71a6ff874a49511a5dae059c24c795ff5aeb08b9",
+      "file": "XAUUSD_M15.csv"
+    },
+    {
+      "symbol": "USTEC",
+      "description": "US Tech 100 Index",
+      "point": 0.01,
+      "digits": 2,
+      "rows": 80000,
+      "start": "2023-03-30 03:00:00+00:00",
+      "end": "2026-10-22 19:45:00+00:00",
+      "span_years": 3.566592516541182,
+      "at_least_three_years": true,
+      "duplicate_timestamps": 0,
+      "invalid_ohlc": 0,
+      "non_15min_differences": 881,
+      "gaps_note": "Includes normal market closures; gap count is not a missing-data diagnosis.",
+      "sha256": "63279b4e0082b35f8312e8b5a5c90107127538c44690b78b13cec4d8a228dc65",
+      "file": "USTEC_M15.csv"
+    }
+  ],
+  "clock": {
+    "time_column": "UTC estimate using observed broker offset UTC+3",
+    "offset_seconds": 10800,
+    "historical_dst_verified": false,
+    "raw_time_column": "time_broker_epoch",
+    "warning": "Do not assume historical UTC conversion is certified. Raw broker epochs retained for timezone audit."
+  },
+  "costs": {
+    "spread": "price units = spread_points * symbol point",
+    "volume": "volume and tick_volume are tick counts, not real traded volume",
+    "commission_swap_slippage": "Not provided by OHLC export; do not assume zero"
+  }
+}
