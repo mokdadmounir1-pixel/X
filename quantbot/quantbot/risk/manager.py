@@ -25,6 +25,7 @@ class TradePlan:
     reward_risk: float
     confidence: float
     patterns: list[str] = field(default_factory=list)
+    nominal_risk: float = 0.0  # risque VISÉ (equity x risk_per_trade) : unité stable du R, même si la taille est plafonnée
 
 
 def historical_var(returns: np.ndarray, confidence: float = 0.95) -> float:
@@ -97,4 +98,4 @@ class RiskManager:
         if size <= 0:
             return self._reject("taille_nulle")
         return TradePlan("long" if long else "short", entry, stop, target, size, size * dist,
-                         c.reward_risk, signal.confidence, signal.pattern_names)
+                         c.reward_risk, signal.confidence, signal.pattern_names, equity * c.risk_per_trade)

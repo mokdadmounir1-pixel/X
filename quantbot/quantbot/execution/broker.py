@@ -34,7 +34,8 @@ class Position:
     entry_idx: int = 0
     confidence: float = 0.0
     patterns: list[str] = field(default_factory=list)
-    risk_amount: float = 0.0  # perte prévue si le stop est touché (base du R-multiple)
+    risk_amount: float = 0.0  # perte prévue si le stop est touché (taille plafonnée incluse)
+    nominal_risk: float = 0.0  # risque visé avant plafonnement du levier
 
     @property
     def sign(self) -> int:
@@ -55,6 +56,12 @@ class Trade:
     patterns: list[str] = field(default_factory=list)
     bars_held: int = 0
     risk_amount: float = 0.0
+    nominal_risk: float = 0.0
+
+    @property
+    def r_nominal(self) -> float:
+        """Résultat en multiples du risque NOMINAL (equity x risk_per_trade) : borné par le levier, jamais « infini »."""
+        return self.pnl / self.nominal_risk if self.nominal_risk > 0 else 0.0
 
     @property
     def r(self) -> float:
@@ -99,7 +106,7 @@ class PaperBroker(Broker):
         fee = self.fee_rate * fill * plan.size
         self.cash -= fee
         self.position = Position(plan.side, fill, plan.size, plan.stop, plan.take_profit, ts, fee, idx,
-                                 plan.confidence, list(plan.patterns), plan.risk_amount)
+                                 plan.confidence, list(plan.patterns), plan.risk_amount, plan.nominal_risk)
         log.debug("OPEN %s %.4f @ %.4f", plan.side, plan.size, fill)
         return self.position
 
@@ -113,7 +120,7 @@ class PaperBroker(Broker):
         self.cash += gross - exit_fee
         trade = Trade(pos.side, pos.entry_time, ts, pos.entry, fill, pos.size,
                       gross - exit_fee - pos.entry_fee, reason, pos.confidence, pos.patterns,
-                      idx - pos.entry_idx, pos.risk_amount)
+                      idx - pos.entry_idx, pos.risk_amount, pos.nominal_risk)
         self.trades.append(trade)
         self.position = None
         log.debug("CLOSE %s @ %.4f (%s) pnl=%.2f", pos.side, fill, reason, trade.pnl)
@@ -217,7 +224,7 @@ class MT5Broker(Broker):
         self._ticket = self._find_ticket()
         self.position = Position(plan.side, float(result.price or price), lots * contract, plan.stop,
                                  plan.take_profit, ts, 0.0, idx, plan.confidence, list(plan.patterns),
-                                 plan.risk_amount)
+                                 plan.risk_amount, plan.nominal_risk)
         log.warning("ORDRE RÉEL %s %.2f lot @ %.5f SL=%.5f TP=%.5f", plan.side, lots, self.position.entry,
                     plan.stop, plan.take_profit)
         return self.position
@@ -229,7 +236,7 @@ class MT5Broker(Broker):
                   + getattr(d, "fee", 0.0) for d in deals)
         exit_price = float(deals[-1].price) if deals else pos.entry
         trade = Trade(pos.side, pos.entry_time, ts, pos.entry, exit_price, pos.size, float(pnl), reason,
-                      pos.confidence, pos.patterns, idx - pos.entry_idx, pos.risk_amount)
+                      pos.confidence, pos.patterns, idx - pos.entry_idx, pos.risk_amount, pos.nominal_risk)
         self.trades.append(trade)
         self.position, self._ticket = None, None
         return trade

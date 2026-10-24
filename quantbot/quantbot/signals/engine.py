@@ -83,5 +83,9 @@ class SignalEngine:
 
         ctx = self.scanner.last_context
         atr = float(ctx.atr[-1]) if ctx is not None else float("nan")
+        if ctx is not None and cfg.atr_floor_frac > 0:
+            ref = float(np.nanmedian(ctx.atr[-200:])) if np.isfinite(ctx.atr[-200:]).any() else float("nan")
+            if np.isfinite(ref):
+                atr = max(atr, cfg.atr_floor_frac * ref)  # marché vide : pas de stop à 0,001 % du prix
         return Signal(direction, conf, float(df["close"].iloc[-1]), atr, df.index[-1],
                       [m for _, m in chosen[:5]], notes)

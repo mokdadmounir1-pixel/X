@@ -26,6 +26,7 @@ class GateCfg:
     dsr_min: float = 0.50
     min_years: float = 2.0
     base_B: int = 999
+    worst_trade_r: float = 5.0  # aucune perte unique au-delà de 5x le risque NOMINAL (gap non maîtrisé)
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -84,6 +85,9 @@ def run_gates(r, r_cost2, fold_expectancies: list, n_trials: int, var_sr_trials:
     lim = cfg.dd_frac * max_loss_pct
     gates.append(Gate("risk_envelope", dd95 <= lim and s95 * risk_pct <= lim,
                       {"dd95_pct": round(dd95, 2), "streak95": s95}, {"max_pct": round(lim, 2)}, True))
+
+    worst = float(r.min()) if n else 0.0
+    gates.append(Gate("worst_trade", worst >= -cfg.worst_trade_r, round(worst, 3), -cfg.worst_trade_r, True))
 
     dsr = st.deflated_sharpe(r, n_trials, var_sr_trials)
     gates.append(Gate("deflated_sharpe", dsr >= cfg.dsr_min, round(dsr, 4), cfg.dsr_min, True))

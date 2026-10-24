@@ -82,6 +82,25 @@ def weekly_open_check(df: pd.DataFrame) -> dict:
             "shift_hours": (float(winter.median() - summer.median()) if len(summer) and len(winter) else None)}
 
 
+def gap_quantile(df: pd.DataFrame, q: float = 0.999, max_gap_hours: float = 120.0) -> float:
+    """Quantile q de |ouverture / clôture précédente - 1| (gaps de reprise, week-ends, annonces).
+
+    Les trous de données (> max_gap_hours) sont exclus : ce sont des données manquantes, pas du risque de marché.
+    """
+    gap_h = df.index.to_series().diff().dt.total_seconds().div(3600.0)
+    g = (df["open"] / df["close"].shift(1) - 1.0).abs()[gap_h <= max_gap_hours].dropna()
+    return float(g.quantile(q)) if len(g) else float("nan")
+
+
+def leverage_cap_from_gaps(df: pd.DataFrame, loss_budget: float = 0.01, q: float = 0.999, lo: float = 0.25,
+                           hi: float = 5.0, max_gap_hours: float = 120.0) -> float:
+    """Levier maximal tel qu'un gap extrême (quantile q) coûte au plus `loss_budget` du capital."""
+    g = gap_quantile(df, q, max_gap_hours)
+    if not np.isfinite(g) or g <= 0:
+        return lo
+    return float(min(hi, max(lo, loss_budget / g)))
+
+
 def costs_from_frame(df: pd.DataFrame, since: str | None = None) -> dict:
     """Spread médian (fraction du prix) mesuré ; None si la colonne n'est pas fiable (>30 % de zéros)."""
     d = df if since is None else df[df.index >= since]

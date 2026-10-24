@@ -19,6 +19,7 @@ from ..exceptions import PatternBotError
 from ..execution.broker import Broker, Trade, make_broker
 from ..logging_utils import get_logger
 from ..risk.ftmo import FtmoGuard, GuardStatus
+from ..risk.calendar import in_weekend_blackout
 from ..risk.manager import RiskManager, TradePlan
 from ..signals.engine import SignalEngine
 
@@ -112,6 +113,10 @@ class TradingEngine:
                     if closed is not None:
                         self._closed(closed, df.index[-2])
 
+        weekend = s.risk.flat_before_weekend and in_weekend_blackout(ts, s.risk.session_tz, s.risk.weekend_cutoff_hour)
+        if weekend:
+            self.pending = None  # un ordre décidé avant la coupure ne s'exécute pas en fenêtre de week-end
+
         if self.pending is not None and self.broker.position is None:
             try:
                 self.broker.open_position(self.pending, o, ts, self._n)
@@ -135,6 +140,12 @@ class TradingEngine:
             if closed is not None:
                 self._closed(closed, ts)
 
+        if weekend:
+            if self.broker.position is not None:
+                closed = self._safe_close(c, ts, "weekend")
+                if closed is not None:
+                    self._closed(closed, ts)
+
         status = None
         if self.guard is not None:
             status = self.guard.update(ts, self.broker.balance(), self.broker.equity(c))
@@ -146,7 +157,7 @@ class TradingEngine:
             if status.halt_new:
                 self.pending = None
 
-        halted = status is not None and status.halt_new
+        halted = weekend or (status is not None and status.halt_new)
         in_warmup = (len(df) - self._seg_start) <= bt.warmup_bars
         if self.broker.position is None and self.pending is None and not halted and not in_warmup:
             ok, why = self.risk.can_trade(ts, self.broker.equity(c))

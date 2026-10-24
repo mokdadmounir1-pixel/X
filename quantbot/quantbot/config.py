@@ -95,6 +95,7 @@ class SignalConfig(_Section):
     ema_slow: int = 50
     counter_trend_penalty: float = 0.6
     htf_rule: str = "4h"
+    atr_floor_frac: float = 0.0  # 0 = désactivé ; sinon ATR utilisé >= frac x ATR médian récent (marché mince)
 
     def validate(self) -> None:
         _require(0 < self.min_confidence <= 1, "min_confidence dans ]0,1]")
@@ -103,6 +104,7 @@ class SignalConfig(_Section):
         _require(self.min_edge >= 0 and self.confluence_bonus >= 0, "min_edge/confluence_bonus >= 0")
         _require(self.trend_filter in {"none", "ema", "htf"}, "trend_filter: none|ema|htf")
         _require(1 <= self.ema_fast < self.ema_slow, "ema_fast < ema_slow")
+        _require(0 <= self.atr_floor_frac <= 2, "atr_floor_frac dans [0,2]")
         _require(0 < self.counter_trend_penalty <= 1, "counter_trend_penalty dans ]0,1]")
 
 
@@ -115,8 +117,12 @@ class RiskConfig(_Section):
     max_leverage: float = 3.0
     max_daily_loss: float = 0.03
     max_trades_per_day: int = 5
+    flat_before_weekend: bool = False  # clôture + pas d'entrée du vendredi soir au dimanche (gaps de réouverture)
+    weekend_cutoff_hour: int = 20  # heure locale (session_tz) du vendredi
+    session_tz: str = "Europe/Prague"
 
     def validate(self) -> None:
+        _require(0 <= self.weekend_cutoff_hour <= 23, "weekend_cutoff_hour dans [0,23]")
         _require(0 < self.risk_per_trade <= 0.1, "risk_per_trade dans ]0,0.1]")
         _require(self.atr_stop_mult > 0, "atr_stop_mult > 0")
         _require(0 < self.min_reward_risk <= self.reward_risk, "0 < min_reward_risk <= reward_risk")

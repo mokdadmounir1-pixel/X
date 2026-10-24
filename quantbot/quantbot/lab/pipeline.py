@@ -60,7 +60,7 @@ def _fold_expectancies(df: pd.DataFrame, settings: Settings, k: int, signal_engi
             out.append(0.0)
             continue
         res = Backtester(settings, 1.0, signal_engine).run(seg)
-        r = [t.r for t in res.trades]
+        r = [t.r_nominal for t in res.trades]
         out.append(st.expectancy(r) if len(r) >= 10 else 0.0)
     return out
 
@@ -72,8 +72,8 @@ def evaluate_research(df_research: pd.DataFrame, settings: Settings, registry: T
     sh, dh = spec_hash(settings, gate_cfg), data_hash(df_research)
     base = Backtester(settings, 1.0, signal_engine).run(df_research)
     costly = Backtester(settings, settings.validation.cost_stress_multiplier, signal_engine).run(df_research)
-    r = np.array([t.r for t in base.trades])
-    r2 = np.array([t.r for t in costly.trades])
+    r = np.array([t.r_nominal for t in base.trades])
+    r2 = np.array([t.r_nominal for t in costly.trades])
     folds = _fold_expectancies(df_research, settings, settings.validation.walk_forward_windows, signal_engine)
     sr, _, _, n = st.sharpe_moments(r)
     registry.record_trial(sh, dh, sr, n)
@@ -84,7 +84,7 @@ def evaluate_research(df_research: pd.DataFrame, settings: Settings, registry: T
     exp = st.expectancy(r)
     v, why = verdict(gates, exp, years, gate_cfg)
     metrics = {"n_trades": n, "expectancy_R": exp, "profit_factor": st.profit_factor(r), "years": years,
-               "sharpe_per_trade": sr, "total_return": base.metrics["total_return"],
+               "sharpe_per_trade": sr, "worst_trade_R": float(r.min()) if r.size else 0.0, "median_R": float(np.median(r)) if r.size else 0.0, "total_return": base.metrics["total_return"],
                "max_drawdown": base.metrics["max_drawdown"]}
     evaluation = Evaluation(v, why, gates, metrics, n_trials, sh, dh)
     registry.append("evaluation", {"spec_hash": sh, "data_hash": dh, "verdict": v, "reason": why})
@@ -100,7 +100,7 @@ def evaluate_locked(locked: LockedSlice, settings: Settings, registry: TrialRegi
         warm = settings.backtest.warmup_bars
         i = full.index.searchsorted(lock_start)
         res = Backtester(settings, 1.0, signal_engine).run(full.iloc[max(0, i - warm):])
-        r = np.array([t.r for t in res.trades if t.entry_time >= lock_start])
+        r = np.array([t.r_nominal for t in res.trades if t.entry_time >= lock_start])
         ok = bool(r.size >= min_trades and st.expectancy(r) > 0 and st.profit_factor(r) > 1.0)
         return {"n_trades": int(r.size), "expectancy_R": st.expectancy(r), "profit_factor": st.profit_factor(r),
                 "verdict": "CONFIRMED" if ok else "NOT_CONFIRMED"}
