@@ -1,0 +1,17 @@
+{
+ "name": "backward_v1",
+ "preregistered": "2026-10-25, AVANT l'export de l'historique profond : aucune donnée antérieure n'a été vue",
+ "base_spec": "specs/inst_strategies_v1.json",
+ "deep_dir": "data/deep",
+ "min_bars": 10000,
+ "hypothesis": "Les 13 combinaisons stratégie x instrument de inst_strategies_v1, avec leurs paramètres EXACTEMENT inchangés, ont-elles une espérance positive sur les années qui précèdent la période de recherche ? Un petit avantage observé en recherche (USTEC orb +0,075 R, XAUUSD vwap +0,033 R, XAUUSD fvg_h4 +0,040 R) doit se retrouver ici pour être crédible ; sinon c'était du bruit.",
+ "segment_rule": "barres strictement antérieures au début de data/real/<instrument>_M15.csv ; la période verrouillée (12 derniers mois) n'est jamais lue ; aucun paramètre n'est réglé sur ce segment.",
+ "trials": "13 essais attendus (un par combinaison, les mêmes que inst_strategies_v1). Le budget d'essais passe de 60 à 80 AVANT ces essais, par décision d'élargir la recherche à l'historique profond ; le DSR compte de toute façon TOUS les essais, donc relever le budget ne rend aucun résultat plus facile à obtenir.",
+ "max_trials_budget": 80,
+ "rules": [
+  "Paramètres, seuils et coûts hérités tels quels de la spec de base ; aucune modification après avoir vu un résultat.",
+  "Les coûts non mesurables restent des hypothèses déclarées (EURUSD) ; les spreads de l'or et de l'indice sont ceux mesurés sur le segment ancien lui-même.",
+  "L'horloge du courtier est reconstruite avec la règle européenne ; sa validité avant 2023 n'est pas vérifiée : l'interpréter avec prudence (stratégies à heures fixes AMD, ORB).",
+  "Un résultat positif ici ne suffit pas à approuver : il faudrait aussi l'échantillon futur (specs/forward_freeze.json) et la décision humaine."
+ ]
+}

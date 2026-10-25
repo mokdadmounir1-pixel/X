@@ -5,4 +5,5 @@ __pycache__/
 *.db
 logs/
 data/real/*.csv
+data/deep/*.csv
 reports/*/cache/

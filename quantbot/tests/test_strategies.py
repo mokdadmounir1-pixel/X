@@ -158,3 +158,17 @@ def test_event_engine_trades_the_event_levels_end_to_end():
     assert len(eng.broker.trades) == 1
     tr = eng.broker.trades[0]
     assert tr.entry_time == df.index[401] and tr.side == "long"
+
+
+def test_backward_segment_is_strictly_before_the_original_start_and_requires_enough_bars():
+    import importlib.util
+    from pathlib import Path
+    import pandas as pd
+    sp = importlib.util.spec_from_file_location("run_backward", Path(__file__).resolve().parents[1] / "scripts" / "run_backward.py")
+    rb = importlib.util.module_from_spec(sp); sp.loader.exec_module(rb)
+    idx = pd.date_range("2020-01-01", periods=30000, freq="15min")
+    deep = pd.DataFrame({"open": 1.0, "high": 1.0, "low": 1.0, "close": 1.0, "volume": 1.0}, index=idx)
+    start = idx[20000]
+    seg = rb.segment_before(deep, start, 10000)
+    assert len(seg) == 20000 and seg.index[-1] < start
+    assert rb.segment_before(deep, idx[5000], 10000) is None
