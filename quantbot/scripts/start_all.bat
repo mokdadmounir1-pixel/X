@@ -6,4 +6,4 @@ start "quantbot - extraction MT5" cmd /k python scripts\data_daemon.py --symbols
 start "quantbot - file de recherche" cmd /k python scripts\research_queue.py
 start "quantbot - simulation PAPER (13 strategies)" cmd /k python scripts\paper_all.py
 start "quantbot - simulation PAPER crypto (Coinbase, lecture seule)" cmd /k python scripts\paper_all.py --source coinbase
-start "quantbot - terminal http://127.0.0.1:8877" cmd /k python -m quantbot ui --port 8877
+start "quantbot - terminal http://127.0.0.1:3214" cmd /k python -m quantbot ui --port 3214

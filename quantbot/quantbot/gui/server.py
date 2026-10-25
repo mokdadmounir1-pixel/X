@@ -12,7 +12,7 @@ import uvicorn
 from .app import ROOT, create_app
 
 HOST = "127.0.0.1"
-DEFAULT_PORT = 8877      # port DÉDIÉ à quantbot (évite 8000/8080/8790… souvent pris par d'autres projets) ; surcharge : variable QUANTBOT_PORT ou --port
+DEFAULT_PORT = 3214      # port DÉDIÉ à quantbot (évite 8000/8080/8790… souvent pris par d'autres projets) ; surcharge : variable QUANTBOT_PORT ou --port
 
 
 def configured_port(port: int | None = None) -> int:

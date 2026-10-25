@@ -48,7 +48,7 @@ def main(argv=None) -> int:
     p = sub.add_parser("history")
     p.add_argument("--db", default="quantbot.db")
     ui = sub.add_parser("ui", help="terminal local (127.0.0.1, lecture seule) : trades, attribution, marché, backtests, risque")
-    ui.add_argument("--port", type=int, default=None, help="port local (défaut 8877, ou variable QUANTBOT_PORT)")
+    ui.add_argument("--port", type=int, default=None, help="port local (défaut 3214, ou variable QUANTBOT_PORT)")
     appr = sub.add_parser("approve", help="approuver une version validée")
     appr.add_argument("version")
     appr.add_argument("--db", default="quantbot.db")
