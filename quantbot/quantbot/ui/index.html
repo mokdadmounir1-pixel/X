@@ -121,10 +121,10 @@ function wf(){const W=S.walkforward||[];if(!W.length)return `<div class="card"><
    (r.windows||[]).map(w=>`<tr><td>${esc((w.test_start||"").slice(0,10))}</td><td>${esc((w.test_end||"").slice(0,10))}</td><td class="muted">${esc(w.chosen||w.note||"—")}</td><td class="n">${f(w.train_E)}</td><td class="n">${w.oos_n??"—"}</td><td class="n">${f(w.oos_E)}</td></tr>`).join("")+`</tbody></table></div>`;}).join("");}
 function ago(x){if(x==null)return "—";x=Math.round(x);return x<90?x+" s":x<5400?Math.round(x/60)+" min":(x/3600).toFixed(1)+" h";}
 function when(t){return t?new Date(t*1000).toISOString().replace("T"," ").slice(0,19)+" UTC":"—";}
-function liveChart(){const B=L.bars||[];if(B.length<2)return `<p class="muted">Aucune barre publiée par le lanceur pour l'instant.</p>`;
+function liveChart(X){X=X||L;const B=X.bars||[];if(B.length<2)return `<p class="muted">Aucune barre publiée par le lanceur pour l'instant.</p>`;
   const W=960,H=360,pl=8,pr=118,pt=22,pb=22;const tm=s=>Date.parse(String(s).replace(" ","T"));
-  const lv=[];const pos=L.position,pen=L.pending;if(pos)lv.push(pos.entry,pos.stop,pos.tp);if(pen)lv.push(pen.entry,pen.stop,pen.tp);
-  const closed=(L.paper_trades||[]).filter(t=>t.entry_time&&tm(t.exit_time)>=tm(B[0][0]));closed.forEach(t=>{lv.push(t.entry,t.exit);if(t.stop)lv.push(t.stop);if(t.tp)lv.push(t.tp);});
+  const lv=[];const pos=X.position,pen=X.pending;if(pos)lv.push(pos.entry,pos.stop,pos.tp);if(pen)lv.push(pen.entry,pen.stop,pen.tp);
+  const closed=(X.paper_trades||[]).filter(t=>t.entry_time&&tm(t.exit_time)>=tm(B[0][0]));closed.forEach(t=>{lv.push(t.entry,t.exit);if(t.stop)lv.push(t.stop);if(t.tp)lv.push(t.tp);});
   const hi=Math.max(...B.map(b=>b[2]),...lv),lo=Math.min(...B.map(b=>b[3]),...lv),y=v=>pt+(hi-v)/(hi-lo||1)*(H-pt-pb),n=B.length,bw=(W-pl-pr)/n,x=i=>pl+(i+.5)*bw;
   const idx=t=>{const T=tm(t);let k=0;for(let i=0;i<n;i++){if(tm(B[i][0])<=T)k=i;}return k;};
   const candles=B.map((b,i)=>{const up=b[4]>=b[1],c=up?"var(--ok)":"var(--bad)";return `<line x1="${x(i)}" x2="${x(i)}" y1="${y(b[2])}" y2="${y(b[3])}" stroke="${c}"/><rect x="${x(i)-Math.max(bw*.35,.6)}" width="${Math.max(bw*.7,1.2)}" y="${y(Math.max(b[1],b[4]))}" height="${Math.max(Math.abs(y(b[1])-y(b[4])),1)}" fill="${c}"/>`;}).join("");
@@ -136,9 +136,9 @@ function liveChart(){const B=L.bars||[];if(B.length<2)return `<p class="muted">A
     ov+=`<line x1="${x(a)}" y1="${y(t.entry)}" x2="${x(b)}" y2="${y(t.exit)}" stroke="${col}" stroke-width="2.5"><title>${esc(t.side)} · ${esc(t.reason)} · ${f(t.r,2)} R${t.stop?` · stop ${f(t.stop,2)} · tp ${f(t.tp,2)}`:""}</title></line><circle cx="${x(a)}" cy="${y(t.entry)}" r="4" fill="${t.side==="long"?"var(--acc)":"var(--warn)"}"/>`
     +(t.stop?`<line x1="${x(a)}" x2="${x(b)}" y1="${y(t.stop)}" y2="${y(t.stop)}" stroke="var(--bad)" stroke-dasharray="3 3" opacity=".6"/>`:"")+(t.tp?`<line x1="${x(a)}" x2="${x(b)}" y1="${y(t.tp)}" y2="${y(t.tp)}" stroke="var(--ok)" stroke-dasharray="3 3" opacity=".6"/>`:"");});
   const last=B[n-1];
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="graphique en direct"><text class="lbl" x="${pl}" y="14">${esc(L.symbol||"")} · barres clôturées (${n}) · dernière : ${esc(String(last[0]).slice(0,16))} · clôture ${last[4].toFixed(2)}</text>${candles}${ov}</svg>
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="graphique en direct"><text class="lbl" x="${pl}" y="14">${esc(X.symbol||"")} · barres clôturées (${n}) · dernière : ${esc(String(last[0]).slice(0,16))} · clôture ${last[4].toFixed(2)}</text>${candles}${ov}</svg>
   <p class="muted">Bleu = entrée/achat, orange = vente, vert = objectif (TP), rouge = stop. Trait plein = position ouverte ; pointillé large = ordre décidé qui s'exécutera à l'ouverture de la prochaine barre ; traits fins pointillés = niveaux des trades clos.
-  Les données viennent des barres CLÔTURÉES (aucune décision sur la barre en formation). ${L.mode==="OBSERVATION"?"En OBSERVATION, entrées/sorties/PnL sont simulés (PAPER) sur les prix réels.":""}</p>`;}
+  Les données viennent des barres CLÔTURÉES (aucune décision sur la barre en formation). ${X.mode==="OBSERVATION"?"En OBSERVATION, entrées/sorties/PnL sont simulés (PAPER) sur les prix réels.":""}</p>`;}
 function live(){if(!L)return `<div class="card muted">Chargement…</div>`;
   if(!L.available)return `<div class="card"><h2>Runtime en direct</h2><p>${esc(L.note||"Indisponible")}</p>
    <p class="muted">Chemin lu : ${esc(L.state_path)} (variable QUANTBOT_STATE). Lancez le lanceur : <code>python scripts\\run_live.py --project . --state runtime\\live_state.db</code></p>
@@ -164,8 +164,8 @@ function approvals(){const a=L.approvals;return `<div class="card"><h2>Approbati
    a.entries.map(e=>`<tr><td>${esc(e.id)}</td><td>${esc(e.instrument)}</td><td>${esc(e.spec)}</td><td>${esc(e.approved_by)}</td><td>${esc(e.date)}</td></tr>`).join("")+`</tbody></table>`:"")+`</div>`;}
 async function loadLive(){try{L=await (await fetch("/api/live")).json();}catch(e){L={available:false,note:"Erreur : "+e,approvals:{entries:[],note:""},kill_reasons:[],intents:[],events:[],paper_trades:[]};}
   if(tab==="live")$("#view").innerHTML=live();}
-const TABS=[["synthese","Synthèse"],["essai","Tester une stratégie"],["res","Résultats"],["wf","Optimisation"],["cal","Calibration"],["data","Données & automatisation"],["live","En direct"]];
-let S=null,L=null,ST=null,R=null,tab="synthese",timer=null;
+const TABS=[["synthese","Synthèse"],["essai","Tester une stratégie"],["sim","Simulation (paper)"],["res","Résultats"],["wf","Optimisation"],["cal","Calibration"],["data","Données & automatisation"],["live","En direct"]];
+let S=null,L=null,P=null,ST=null,R=null,tab="synthese",timer=null;
 const E={filter:"all",sort:["i",1],sel:0,instrument:"USTEC",strategy:"orb",segment:"recherche",bars:6000};
 const $=s=>document.querySelector(s),esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const f=(x,d=3)=>x==null||!isFinite(x)?"—":Number(x).toFixed(d);
@@ -322,11 +322,35 @@ function dailyChart(){const d=R.daily,s=d.series;if(!s||!s.length)return `<p cla
   s.map((a,i)=>`<rect x="${p+i*bw}" width="${Math.max(bw-1,1)}" y="${Math.min(y(0),y(a[1]))}" height="${Math.max(Math.abs(y(a[1])-y(0)),1)}" fill="${a[1]>=0?"var(--ok)":"var(--bad)"}"><title>${a[0]} : ${sg(a[1],2)} R</title></rect>`).join("")+
   `<text class="lbl" x="${p}" y="12">R par jour de sortie (jours avec trade)</text></svg>`;}
 
+
+/* ---------- Simulation PAPER : trades simulés sur prix réels ---------- */
+async function loadPaper(runner){try{P=await api("/api/paper"+(runner?`?runner=${encodeURIComponent(runner)}`:""));}catch(e){P={available:false,runners:[],note:"Erreur : "+e.message};}
+  if(tab==="sim")$("#view").innerHTML=sim();bindSim();}
+function sim(){if(!P)return `<div class="card"><div class="skel"></div><div class="skel" style="width:70%"></div></div>`;
+  if(!P.available)return `<div class="card"><h2>Simulation PAPER</h2><p>${esc(P.note||"Aucune simulation en cours.")}</p><p class="muted">Elle prend des trades <b>simulés</b> sur les barres <b>réelles</b> de MetaTrader 5 pour toutes les stratégies préenregistrées (13 couples instrument × stratégie), sans jamais lire d'approbation ni envoyer d'ordre.
+  Lancez <code>python scripts\\paper_all.py --terminal "C:\\Program Files\\MetaTrader 5\\terminal64.exe"</code> (ou <code>scripts\\start_all.bat</code>) quand le marché est ouvert.</p></div>`;
+  const t=P.target_r_per_day,rows=P.runners.slice().sort((a,b)=>b.r_per_day-a.r_per_day),tot=rows.reduce((s,r)=>s+r.n_trades,0),open=rows.filter(r=>r.position).length;
+  return `<div class="card"><h2>Simulation PAPER <span class="muted">(prix réels, exécutions et PnL simulés — aucune validation)</span></h2>
+  <div class="grid"><div class="kpi"><b>${rows.length}</b><span>stratégies simulées</span></div><div class="kpi"><b>${open}</b><span>positions ouvertes</span></div><div class="kpi"><b>${tot}</b><span>trades simulés clos</span></div>
+  <div class="kpi ${P.total_R>0?"good":P.total_R<0?"badk":""}"><b>${sg(P.total_R,2)} R</b><span>total cumulé (toutes stratégies)</span></div><div class="kpi"><b>${f(t,2)} R</b><span>objectif / jour (repère)</span></div></div>
+  <p class="muted" style="margin-top:8px">Un petit nombre de trades ne dit rien : la lecture sérieuse reste celle des 60 trades futurs (<code>scripts/forward_eval.py</code>). Cette page sert à VOIR le bot décider, entrer, placer SL et TP, et sortir, en direct.</p>
+  <div class="tw"><table><thead><tr><th>Stratégie</th><th>Source</th><th>Dernière barre</th><th>Position</th><th class="n">Trades</th><th class="n">R total</th><th class="n">R moyen</th><th class="n">R / jour</th><th>Lanceur</th></tr></thead><tbody>`+
+  rows.map(r=>`<tr data-rn="${esc(r.id)}" style="cursor:pointer" class="${P.selected&&P.selected.id===r.id?"sel":""}"><td><b>${esc(r.id.replace("_"," · "))}</b></td><td>${esc(r.source)}</td><td class="muted">${esc((r.last_bar||"—").slice(0,16))}</td>
+  <td>${r.position?`<span class="tag ${r.position.side==="long"?"PASS":"WATCH"}">${r.position.side==="long"?"achat":"vente"}</span> ${f(r.position.entry,2)}`:(r.pending?`<span class="tag NA">ordre en attente</span>`:"—")}</td>
+  <td class="n">${r.n_trades}</td><td class="n ${r.total_R>0?"win":r.total_R<0?"lose":""}">${sg(r.total_R,2)}</td><td class="n">${sg(r.avg_R,3)}</td><td class="n">${sg(r.r_per_day,3)}</td>
+  <td>${r.running?`<span class="tag PASS">actif</span>`:`<span class="tag NA">arrêté</span>`}${r.kill&&r.kill.length?` <span class="tag FAIL">arrêt</span>`:""}</td></tr>`).join("")+`</tbody></table></div></div>`+
+  (P.selected?`<div class="card"><h2>${esc(P.selected.id.replace("_"," · "))} <span class="muted">graphique en direct</span></h2>${liveChart(P.selected)}
+  ${P.selected.position?`<p><b>Position simulée</b> : ${esc(P.selected.position.side)} depuis ${esc(String(P.selected.position.entry_time).slice(0,16))} · entrée ${f(P.selected.position.entry,2)} · SL ${f(P.selected.position.stop,2)} · TP ${f(P.selected.position.tp,2)}</p>`:`<p class="muted">Aucune position ouverte.</p>`}
+  ${P.selected.paper_trades.length?`<div class="tw" style="max-height:260px;overflow:auto"><table><thead><tr><th>Sortie</th><th>Sens</th><th class="n">Entrée</th><th class="n">SL</th><th class="n">TP</th><th class="n">Sortie</th><th>Motif</th><th class="n">R</th></tr></thead><tbody>`+
+   P.selected.paper_trades.map(t=>`<tr><td>${esc((t.exit_time||t.t||"").slice(0,16))}</td><td>${esc(t.side==="long"?"Achat":"Vente")}</td><td class="n">${f(t.entry,2)}</td><td class="n lose">${t.stop?f(t.stop,2):"—"}</td><td class="n win">${t.tp?f(t.tp,2):"—"}</td><td class="n">${f(t.exit,2)}</td><td>${esc(reasonLabel(t.reason))}</td><td class="n ${t.r>0?"win":"lose"}"><b>${sg(t.r,2)}</b></td></tr>`).join("")+`</tbody></table></div>`:""}</div>`:"");}
+function bindSim(){document.querySelectorAll("[data-rn]").forEach(r=>r.onclick=()=>loadPaper(r.dataset.rn));}
+
 /* ---------- orchestration ---------- */
 function render(){tabs();pills();clearInterval(timer);
-  const v=({synthese,essai,res,wf,cal,data,live})[tab];$("#view").innerHTML=S?v():`<div class="card"><div class="skel"></div></div>`;
+  const v=({synthese,essai,sim,res,wf,cal,data,live})[tab];$("#view").innerHTML=S?v():`<div class="card"><div class="skel"></div></div>`;
   if(tab==="essai"){if(!ST)api("/api/strategies").then(x=>{ST=x;if(tab==="essai"){$("#view").innerHTML=essai();bindEssai();}}).catch(e=>toast("Erreur : "+e.message));else bindEssai();}
-  if(tab==="live"){loadLive();timer=setInterval(loadLive,5000);}window.scrollTo({top:0});}
+  if(tab==="live"){loadLive();timer=setInterval(loadLive,5000);}
+  if(tab==="sim"){loadPaper(P&&P.selected?P.selected.id:null);timer=setInterval(()=>loadPaper(P&&P.selected?P.selected.id:null),8000);}window.scrollTo({top:0});}
 async function boot(){const h=location.hash.slice(1);tab=TABS.some(t=>t[0]===h)?h:(TABS.some(t=>t[0]===store.get("tab","synthese"))?store.get("tab","synthese"):"synthese");
   tabs();try{S=await api("/api/state");banner();}catch(e){$("#view").innerHTML=`<div class="card"><h2>Interface non joignable</h2><p class="muted">${esc(e.message)}</p></div>`;return;}
   try{L=await api("/api/live");}catch(e){}render();setInterval(async()=>{try{L=await api("/api/live");S.daemon=(await api("/api/state")).daemon;pills();}catch(e){}},15000);}

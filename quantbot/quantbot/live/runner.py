@@ -30,12 +30,14 @@ log = get_logger("live.runner")
 class LiveRunner:
     def __init__(self, mt5: Any, symbol: str, strategy_id: str, spec_path: str | Path, approvals_path: str | Path = "approved_strategies.json",
                  state_path: str | Path = "live_state.db", kill_file: str | Path = "KILL", timeframe: str = "M15",
-                 allowed_servers: tuple = (), clock=time.time, sleep=time.sleep) -> None:
+                 allowed_servers: tuple = (), clock=time.time, sleep=time.sleep, feed: Any = None, force_observation: bool = False) -> None:
+        """`feed` : source de barres alternative (ex. Coinbase) ; `force_observation` : simulation PAPER garantie, sans jamais lire d'approbation ni construire de broker d'ordres."""
         self.mt5, self.symbol, self.strategy_id = mt5, symbol, strategy_id
+        self.force_observation = force_observation
         self.spec_path, self.approvals_path = Path(spec_path), Path(approvals_path)
         self.state = StateStore(state_path)
         self.kill = KillSwitch(self.state, kill_file)
-        self.feed = BarFeed(mt5, symbol, timeframe, HISTORY_BARS, clock=clock)
+        self.feed = feed if feed is not None else BarFeed(mt5, symbol, timeframe, HISTORY_BARS, clock=clock)
         self.allowed_servers, self.clock, self.sleep = allowed_servers, clock, sleep
         self.engine: Optional[TradingEngine] = None
         self.mode = "NON_DEMARRE"
@@ -45,10 +47,16 @@ class LiveRunner:
     def setup(self) -> str:
         spec = load_spec(self.spec_path)
         df = self.feed._fetch()  # historique de démarrage (barres clôturées) pour régler coûts/levier
-        df["spread"] = df["spread_points"] * float(getattr(self.mt5.symbol_info(self.symbol), "point", 0.0))
+        point = getattr(self.feed, "point", None)
+        if point is None:
+            point = float(getattr(self.mt5.symbol_info(self.symbol), "point", 0.0))
+        df["spread"] = df["spread_points"] * float(point)
         settings: Settings = strategy_settings(spec, self.strategy_id, self.symbol, df)
         sig = build_engine(spec, self.strategy_id, settings)
-        approved, why = check_approval(self.strategy_id, self.symbol, self.spec_path, self.approvals_path)
+        if self.force_observation:
+            approved, why = False, "simulation PAPER forcée (aucune approbation lue, aucun ordre possible)"
+        else:
+            approved, why = check_approval(self.strategy_id, self.symbol, self.spec_path, self.approvals_path)
         blocked = self.kill.reasons()
         if approved and not blocked:
             self.mode = "DEMO_ACTIF"
@@ -56,6 +64,7 @@ class LiveRunner:
         else:
             self.mode = "OBSERVATION"
             why = why if not approved else f"coupe-circuit actif au démarrage : {blocked}"
+            self.state.set("source", getattr(self.feed, "source", "MT5"))
             broker = PaperBroker(settings.backtest.initial_equity, settings.execution)
         self.engine = TradingEngine(settings, broker=broker, signal_engine=sig, on_close=self._on_close)
         if self.mode == "DEMO_ACTIF":

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+from typing import Optional
 import sqlite3
 import threading
 import time
@@ -117,9 +118,11 @@ def _live_paths(root: Path) -> tuple[Path, Path, Path]:
     return state, kill, appr
 
 
-def collect_live(root: Path = ROOT) -> dict:
+def collect_live(root: Path = ROOT, state_override: Optional[Path] = None) -> dict:
     """État du runtime en direct. LECTURE SEULE : SQLite en mode=ro, jamais de création de base, aucun appel au terminal."""
     state_path, kill_path, appr_path = _live_paths(root)
+    if state_override is not None:
+        state_path, kill_path = state_override, state_override.parent / "KILL"
     out: dict = {"available": False, "state_path": str(state_path), "kill_file_present": kill_path.exists(),
                  "approvals": _approvals_summary(appr_path), "kill_reasons": [], "intents": [], "events": [], "paper_trades": []}
     if kill_path.exists():
@@ -151,12 +154,42 @@ def collect_live(root: Path = ROOT) -> dict:
     age = time.time() - hb if isinstance(hb, (int, float)) else None
     running = bool(kv.get("launcher_running")) and age is not None and age < 60
     out.update(available=True, bars=kv.get("bars") or [], position=kv.get("position"), pending=kv.get("pending"),
-               symbol=kv.get("symbol"), mode=kv.get("mode", "NON_DEMARRE"), why=kv.get("why"), strategy=kv.get("strategy"),
+               symbol=kv.get("symbol"), source=kv.get("source"), mode=kv.get("mode", "NON_DEMARRE"), why=kv.get("why"), strategy=kv.get("strategy"),
                last_bar=kv.get("last_bar"), heartbeat_age_s=age, running=running,
                launcher_running_flag=kv.get("launcher_running"), stop_reason=kv.get("launcher_stop_reason"),
                intents=intents, events=events, paper_trades=trades,
                statistics_nature=("PAPER : prix MT5 réels, exécutions et PnL SIMULÉS — ce ne sont pas des fills réels"
                                   if kv.get("mode") == "OBSERVATION" else "ordres démo sous contrôles du broker" if kv.get("mode") == "DEMO_ACTIF" else None))
+    return out
+
+
+def collect_paper(root: Path = ROOT, runner: Optional[str] = None) -> dict:
+    """Agrège les simulations PAPER (runtime/paper/*.db) : une ligne par couple instrument x stratégie. Lecture seule."""
+    d = Path(os.environ.get("QUANTBOT_PAPER") or root / "runtime" / "paper")
+    target = (_read_json(root / "specs" / "objective.json") or {}).get("target_r_per_day", 0.33)
+    out = {"available": False, "dir": str(d), "runners": [], "target_r_per_day": target, "status": _read_json(d / "STATUS.json")}
+    if not d.is_dir():
+        out["note"] = "Aucune simulation : lancer scripts/paper_all.py (ou scripts\\start_all.bat)."
+        return out
+    now = time.time()
+    for db in sorted(d.glob("*.db")):
+        L = collect_live(root, db)
+        if not L.get("available"):
+            continue
+        trades = [t for t in L["paper_trades"]]
+        rs = [t["r"] for t in trades if t.get("r") is not None]
+        first = min([e["ts"] for e in L["events"]] + [t["ts"] for t in trades] or [now])
+        days = max(1.0, np.busday_count(pd.Timestamp(first, unit="s").date(), pd.Timestamp(now, unit="s").date()) + 1)
+        out["runners"].append({"id": db.stem, "symbol": L.get("symbol"), "mode": L["mode"], "running": L["running"], "last_bar": L["last_bar"], "heartbeat_age_s": L["heartbeat_age_s"],
+                               "position": L["position"], "pending": L["pending"], "n_trades": len(rs), "total_R": float(sum(rs)), "avg_R": float(np.mean(rs)) if rs else None,
+                               "r_per_day": float(sum(rs)) / days, "since": first, "kill": L["kill_reasons"], "source": (L.get("source") or "MT5")})
+    out["available"] = bool(out["runners"])
+    tot = sum(r["total_R"] for r in out["runners"])
+    out["total_R"] = tot
+    out["selected"] = None
+    pick = runner or (out["runners"][0]["id"] if out["runners"] else None)
+    if pick and (d / f"{pick}.db").exists() and "/" not in pick and "\\" not in pick and ".." not in pick:
+        out["selected"] = {"id": pick, **collect_live(root, d / f"{pick}.db")}
     return out
 
 
@@ -241,6 +274,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, STATIC.read_bytes(), "text/html; charset=utf-8")
             elif url.path == "/api/state":
                 self._json(collect_state(self.root))
+            elif url.path == "/api/paper":
+                self._json(collect_paper(self.root, parse_qs(url.query).get("runner", [None])[0]))
             elif url.path == "/api/live":
                 self._json(collect_live(self.root))
             elif url.path == "/api/strategies":
