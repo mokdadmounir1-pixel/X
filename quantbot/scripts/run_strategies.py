@@ -12,10 +12,12 @@ from quantbot.lab.pipeline import evaluate_research
 from quantbot.lab.registry import TrialRegistry, canonical_hash
 from quantbot.lab.specs import build_settings
 from quantbot.strategies import amd, fvg, orb, smc, vwap
+from quantbot.strategies.build import events_for
 from quantbot.strategies.events import EventSignalEngine
 
 
 def gen(name, scfg, df):
+    if name.startswith("gq_"): return events_for(name, scfg, df)
     if name == "amd": return amd.events(df, {**amd.PARAMS, **{k: tuple(v) if isinstance(v, list) else v for k, v in scfg["params"].items()}})
     if name == "vwap": return vwap.events(df, scfg["params"])
     if name == "orb": return orb.events(df, scfg["params"])

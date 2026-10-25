@@ -31,7 +31,8 @@ le produit ne génère aucune donnée de remplacement (le CLI exige une source e
 - `smc_v1b` (SMC OB+FVG H1, cible structurelle >= 3 R, 3 essais ; la 1re exécution smc_v1 est invalide : bug du FVG baissier) : 3 FAIL (EURUSD -0,114 R, USTEC -0,075 R, or +0,098 R dont les achats +0,22 R = bêta de l'or). Les réglages stricts donnent 4 à 8 trades en 2,5 ans : non testables.
 - `ml_v1` / `ml_v1b` (LightGBM walk-forward purgé, features fracdiff/GK/entropie/Amihud, seuil P >= 0,65, M15 à 8 barres) : 6 FAIL. AUC hors-échantillon 0,51-0,53 (signal minuscule), espérance nette ~0 : EURUSD -0,001 R, XAUUSD -0,041 R, USTEC +0,035 R (p = 0,23). `ml_v1` USTEC (-2,29 R) venait d'un défaut du simulateur (marché figé, risque quasi nul), amendé avant relance.
 - `pairs_v1` (stat-arb BTC/ETH) : écrit et préenregistré, **pas encore exécuté** (données Coinbase à récupérer ; le terminal les synchronise désormais seul).
-- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 79.
+- `gold_quant_v1` (5 stratégies de scalping sur l'or, M15, 07-17 UTC : balayage de liquidité, cassure d'Asie, repli EMA, compression, retour à la moyenne) : 5 FAIL ; la seule positive (repli EMA, +0,026 R) est un profil de bêta haussier.
+- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 84.
 Les rapports sont dans `reports/` (JSON + logs) et l'interface locale les affiche.
 
 ## Arborescence

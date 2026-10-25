@@ -1,0 +1,240 @@
+{
+ "name": "gold_quant_v1",
+ "preregistered": "2026-10-25 : commitée AVANT toute exécution",
+ "parent": "inst_strategies_v1",
+ "data_sha256": {
+  "XAUUSD_M15.csv": "d1a156e2894a868686457c8d71a6ff874a49511a5dae059c24c795ff5aeb08b9"
+ },
+ "lock_months": 12,
+ "lock_min_frac": 0.2,
+ "clock": "eu_dst (défaut)",
+ "costs": {
+  "_note": "spread_frac = spread médian mesuré (fraction du prix) si fiable ; sinon HYPOTHÈSE déclarée. Commission/slippage = HYPOTHÈSES (non fournis par l'export). Démo MetaQuotes != FTMO : à re-mesurer sur le compte cible.",
+  "XAUUSD": {
+   "spread_frac": null,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "spread mesuré (médiane du fichier) ; commission 0 = HYPOTHÈSE"
+  }
+ },
+ "settings": {
+  "tolerance": {
+   "tolerance_percentage": 0.15,
+   "deviation_threshold": 0.35,
+   "min_score": 0.6
+  },
+  "detection": {
+   "pivot_order": 3,
+   "atr_period": 14,
+   "max_pivot_age": 12,
+   "context_bars": 5,
+   "context_weight": 0.25,
+   "context_move_atr": 2.0,
+   "min_height_atr": 1.5,
+   "min_bars_between": 4,
+   "enabled": null
+  },
+  "signals": {
+   "min_confidence": 0.55,
+   "category_weights": {
+    "candle": 0.8,
+    "chart": 1.0,
+    "harmonic": 0.9
+   },
+   "unconfirmed_penalty": 0.8,
+   "require_confirmation": false,
+   "min_edge": 0.1,
+   "confluence_bonus": 0.05,
+   "trend_filter": "none",
+   "ema_fast": 20,
+   "ema_slow": 50,
+   "counter_trend_penalty": 0.6,
+   "htf_rule": "4h",
+   "atr_floor_frac": 0.5
+  },
+  "risk": {
+   "risk_per_trade": 0.005,
+   "atr_stop_mult": 1.5,
+   "reward_risk": 2.0,
+   "min_reward_risk": 1.3,
+   "max_leverage": 3.0,
+   "max_daily_loss": 0.03,
+   "max_trades_per_day": 5,
+   "flat_before_weekend": true,
+   "weekend_cutoff_hour": 20,
+   "session_tz": "Europe/Prague",
+   "min_stop_atr": 0.5
+  },
+  "backtest": {
+   "initial_equity": 100000.0,
+   "warmup_bars": 100,
+   "window_bars": 300,
+   "max_hold_bars": 100,
+   "max_gap_hours": 120.0
+  },
+  "execution": {
+   "mode": "paper",
+   "allow_live": false,
+   "fee_rate": 0.0005,
+   "slippage": 0.0002,
+   "spread": 0.0,
+   "exchange": "binance",
+   "symbol": "BTC/USDT",
+   "timeframe": "1h",
+   "live_auto_adopt": false,
+   "mt5_symbol": "EURUSD",
+   "mt5_timeframe": "H1",
+   "mt5_server_utc_offset_hours": 0,
+   "mt5_magic": 20260101,
+   "mt5_deviation_points": 20
+  },
+  "ftmo": {
+   "enabled": false,
+   "phase": "challenge",
+   "initial_balance": 100000.0,
+   "profit_target_challenge": 0.1,
+   "profit_target_verification": 0.05,
+   "max_daily_loss": 0.05,
+   "max_total_loss": 0.1,
+   "daily_loss_buffer": 0.01,
+   "total_loss_buffer": 0.02,
+   "min_trading_days": 4,
+   "timezone": "Europe/Prague",
+   "flat_before_weekend": true,
+   "weekend_cutoff_hour": 20,
+   "news_blackouts": [],
+   "stop_after_target": true,
+   "max_risk_per_trade": 0.005,
+   "expected_login": null
+  }
+ },
+ "gates": {
+  "min_trades": 60,
+  "min_expectancy": 0.15,
+  "min_profit_factor": 1.2,
+  "null_alpha": 0.1,
+  "top3_max": 0.5,
+  "min_positive_folds": 0.5,
+  "mc_paths": 2000,
+  "dd_frac": 0.6,
+  "dsr_min": 0.5,
+  "min_years": 2.0,
+  "base_B": 999,
+  "worst_trade_r": 5.0
+ },
+ "leverage_rule": {
+  "loss_budget": 0.01,
+  "quantile": 0.9999,
+  "min": 0.25,
+  "max": 5.0,
+  "doc": "levier max tel qu'un gap au quantile 99,99 % (gaps de reprise, hors trous de données) coûte <= 1 % du capital"
+ },
+ "hypothesis": "Au moins une de 5 stratégies de scalping quantitatif sur l'OR (XAUUSD M15, 07h-17h UTC) a une espérance nette positive hors tranche verrouillée, et passe les portes inchangées d'inst_strategies_v1 (nulle, DSR sur TOUS les essais, folds, Monte-Carlo).",
+ "instruments": {
+  "XAUUSD": "XAUUSD_M15.csv"
+ },
+ "strategies": {
+  "gq_sweep": {
+   "label": "#1 Balayage de liquidité (retournement)",
+   "params": {
+    "lookback": 32,
+    "wick_frac": 0.5,
+    "min_range_atr": 0.8,
+    "rr": 2.0,
+    "stop_buf": 0.1,
+    "cooldown": 8
+   },
+   "instruments": [
+    "XAUUSD"
+   ],
+   "max_hold_bars": 32,
+   "note": "règles figées ; fenêtre 07-17 UTC ; M15 seulement (M1/M5 non exportés : non évalués)"
+  },
+  "gq_asia_break": {
+   "label": "#2 Cassure du range d'Asie",
+   "params": {
+    "asia": [
+     0,
+     7
+    ],
+    "end_hour": 12,
+    "body_atr": 0.5,
+    "min_width_atr": 0.5,
+    "max_width_atr": 5.0,
+    "buf": 0.05,
+    "rr": 2.0
+   },
+   "instruments": [
+    "XAUUSD"
+   ],
+   "max_hold_bars": 24,
+   "note": "règles figées ; fenêtre 07-17 UTC ; M15 seulement (M1/M5 non exportés : non évalués)"
+  },
+  "gq_ema_pull": {
+   "label": "#3 Repli sur EMA20 en tendance",
+   "params": {
+    "fast": 20,
+    "mid": 50,
+    "slow": 200,
+    "touch_bars": 3,
+    "close_frac": 0.7,
+    "stop_buf": 0.1,
+    "rr": 2.0,
+    "cooldown": 6
+   },
+   "instruments": [
+    "XAUUSD"
+   ],
+   "max_hold_bars": 24,
+   "note": "règles figées ; fenêtre 07-17 UTC ; M15 seulement (M1/M5 non exportés : non évalués)"
+  },
+  "gq_squeeze": {
+   "label": "#4 Compression de volatilité -> cassure",
+   "params": {
+    "atr_ratio": 0.75,
+    "long": 100,
+    "squeeze_bars": 6,
+    "break_range_atr": 1.2,
+    "stop_atr": 1.5,
+    "rr": 2.5,
+    "cooldown": 12
+   },
+   "instruments": [
+    "XAUUSD"
+   ],
+   "max_hold_bars": 32,
+   "note": "règles figées ; fenêtre 07-17 UTC ; M15 seulement (M1/M5 non exportés : non évalués)"
+  },
+  "gq_zrev": {
+   "label": "#5 Retour à la moyenne (z-ATR, régime sans tendance)",
+   "params": {
+    "ema": 20,
+    "z": 2.2,
+    "er_window": 20,
+    "er_max": 0.25,
+    "stop_atr": 1.2,
+    "min_rr": 1.0,
+    "cooldown": 6
+   },
+   "instruments": [
+    "XAUUSD"
+   ],
+   "max_hold_bars": 16,
+   "note": "règles figées ; fenêtre 07-17 UTC ; M15 seulement (M1/M5 non exportés : non évalués)"
+  }
+ },
+ "frequency_note": "Les seuils de gq_asia_break (corps 0,5 ATR, largeur max 5 ATR) et gq_squeeze (ATR/ATR100 < 0,75 sur 6 barres) ont été fixés après avoir compté le NOMBRE d'événements (48 et 5 avec les premiers seuils, intestables) et jamais leur performance ; aucun résultat n'avait été calculé.",
+ "trials": 5,
+ "max_trials_budget": 120,
+ "not_tested": [
+  "M1/M3/M5 (export dédié requis)",
+  "delta de volume / carnet (absents des exports MT5)",
+  "calendrier économique (annonces)",
+  "swaps, commissions réelles (hypothèses)"
+ ],
+ "rules": [
+  "Paramètres, seuils et coûts figés ; aucune modification après avoir vu un résultat.",
+  "Un PASS ne vaut pas approbation : forward >= 60 trades et décision humaine restent exigés.",
+  "L'or a eu un fort marché haussier : comparer aux achats seuls et à l'achat-conservation avant toute conclusion (bêta)."
+ ]
+}
