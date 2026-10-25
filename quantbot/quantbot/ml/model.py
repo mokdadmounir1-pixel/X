@@ -30,6 +30,8 @@ class MLParams:
     cost_frac: float = 0.0           # coût par côté en fraction du prix (frais + glissement) EN PLUS de la moitié du spread mesuré
     lgb: dict = None
     n_rounds: int = 200
+    min_atr_frac: float = 0.0        # 0 = désactivé : ignorer le signal si ATR < frac x médiane glissante (500) de l'ATR (marché figé -> risque quasi nul)
+    max_spread_risk: float = 0.0     # 0 = désactivé : ignorer si spread d'entrée > frac x risque
 
     def lgb_params(self) -> dict:
         base = dict(objective="binary", learning_rate=0.03, num_leaves=15, min_data_in_leaf=100, bagging_fraction=0.8, bagging_freq=1,
@@ -77,10 +79,11 @@ def simulate(df: pd.DataFrame, proba: np.ndarray, p: MLParams) -> list[dict]:
     sp = df["spread"].to_numpy(float) if "spread" in df else np.zeros(n)
     tr = np.maximum(h - l, np.maximum(np.abs(h - np.r_[c[0], c[:-1]]), np.abs(l - np.r_[c[0], c[:-1]])))
     atr = pd.Series(tr).ewm(alpha=1 / p.atr_period, adjust=False).mean().to_numpy()
+    atr_med = pd.Series(atr).rolling(500, min_periods=100).median().to_numpy()
     trades, i = [], 0
     while i < n - p.horizon - 2:
         pr = proba[i]
-        if not np.isnan(pr) and (pr >= p.threshold or pr <= 1 - p.threshold) and not np.isnan(atr[i]):
+        if not np.isnan(pr) and (pr >= p.threshold or pr <= 1 - p.threshold) and not np.isnan(atr[i]) and not _degenerate(p, atr, atr_med, sp, i):
             side = 1 if pr >= p.threshold else -1; ent = i + 1
             risk = p.stop_atr * atr[i]; entry = o[ent] + side * (sp[ent] / 2 + p.cost_frac * o[ent]); stop = entry - side * risk
             exit_i, exit_px, reason = ent + p.horizon, None, "time"
@@ -97,3 +100,9 @@ def simulate(df: pd.DataFrame, proba: np.ndarray, p: MLParams) -> list[dict]:
         else:
             i += 1
     return trades
+
+
+def _degenerate(p: MLParams, atr, atr_med, sp, i: int) -> bool:
+    if p.min_atr_frac > 0 and (np.isnan(atr_med[i]) or atr[i] < p.min_atr_frac * atr_med[i]):
+        return True
+    return bool(p.max_spread_risk > 0 and sp[i + 1] > p.max_spread_risk * p.stop_atr * atr[i])

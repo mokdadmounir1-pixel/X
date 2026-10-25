@@ -57,3 +57,10 @@ def test_walk_forward_finds_real_structure_when_present():
     y, le = make_labels(c, 1); p = MLParams(horizon=1, min_train=2000, refit_every=1000)
     proba, _ = walk_forward_proba(build_features(df), y, le, p, cv_diag=False)
     ok = ~np.isnan(proba) & (y >= 0); assert auc(y[ok], proba[ok]) > 0.58
+
+
+def test_risk_floor_skips_frozen_market_signals():
+    df = _bars(3000); df.iloc[2000:2400, :4] = df.iloc[2000, 3]          # prix figés : ATR s'effondre
+    df["spread"] = df.close * 1e-4; proba = np.full(len(df), np.nan); proba[2100:2300] = 0.9
+    assert simulate(df, proba, MLParams(threshold=0.65)) != []
+    assert simulate(df, proba, MLParams(threshold=0.65, min_atr_frac=0.3)) == []
