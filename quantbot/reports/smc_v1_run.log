@@ -1,22 +1,3 @@
-Traceback (most recent call last):
-  File "/home/user/X/quantbot/scripts/run_strategies.py", line 57, in <module>
-    main()
-    ~~~~^^
-  File "/home/user/X/quantbot/scripts/run_strategies.py", line 39, in main
-    s = build_settings(spec, inst, measured, research).with_overrides({"backtest.max_hold_bars": scfg["max_hold_bars"]})
-        ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/X/quantbot/quantbot/lab/specs.py", line 20, in build_settings
-    return Settings.from_dict(base)
-           ~~~~~~~~~~~~~~~~~~^^^^^^
-  File "/home/user/X/quantbot/quantbot/config.py", line 297, in from_dict
-    return cls(**{name: klass.from_dict(data.get(name)) for name, klass in _SECTIONS.items()})
-                        ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
-  File "/home/user/X/quantbot/quantbot/config.py", line 34, in from_dict
-    obj.validate()
-    ~~~~~~~~~~~~^^
-  File "/home/user/X/quantbot/quantbot/config.py", line 134, in validate
-    _require(0 < self.min_reward_risk <= self.reward_risk, "0 < min_reward_risk <= reward_risk")
-    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/user/X/quantbot/quantbot/config.py", line 20, in _require
-    raise ConfigError(msg)
-quantbot.exceptions.ConfigError: 0 < min_reward_risk <= reward_risk
+[EURUSD smc_h1 ] FAIL  | evts=   75 trades=   67 | E=-0.035R PF=0.93 worst=-1.10 | L 37/-0.0153 S 30/-0.0589 | échecs: ['expectancy', 'profit_factor', 'null_test', 'costs_x2', 'monte_carlo_p5', 'top3_share', 'folds_positive', 'risk_envelope', 'deflated_sharpe'] | essais=68
+[XAUUSD smc_h1 ] FAIL  | evts=   93 trades=   84 | E=+0.067R PF=1.11 worst=-2.02 | L 41/0.2165 S 43/-0.0761 | échecs: ['expectancy', 'profit_factor', 'null_test', 'monte_carlo_p5', 'top3_share', 'risk_envelope', 'deflated_sharpe'] | essais=69
+[USTEC smc_h1 ] FAIL  | evts=   80 trades=   77 | E=-0.092R PF=0.70 worst=-1.01 | L 31/-0.1469 S 46/-0.0547 | échecs: ['expectancy', 'profit_factor', 'null_test', 'costs_x2', 'monte_carlo_p5', 'top3_share', 'risk_envelope', 'deflated_sharpe'] | essais=70
