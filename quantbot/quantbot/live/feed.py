@@ -67,7 +67,7 @@ class BarFeed:
     def new_bars(self, df: pd.DataFrame) -> list[pd.Timestamp]:
         """Barres nouvelles de `df` depuis la dernière émission (ordre chronologique) ; marque ces barres comme émises."""
         if self._last_emitted is None:
-            new = [df.index[-1]]  # démarrage : on ne rejoue pas l'historique, seule la dernière barre est « nouvelle »
+            new = []  # démarrage : la dernière barre est de l'HISTOIRE (possiblement ancienne) ; aucune décision dessus
         else:
             new = [t for t in df.index if t > self._last_emitted]
         self._last_emitted = df.index[-1]

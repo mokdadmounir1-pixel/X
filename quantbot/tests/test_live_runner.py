@@ -33,7 +33,7 @@ def test_feed_drops_forming_bar_emits_each_bar_once_and_converts_clock():
     df = f.poll()
     assert len(df) == 200 and df.index.is_monotonic_increasing                      # 201 barres, la dernière (en formation) écartée
     assert df["close"].iloc[-1] == m.bars[-2]["close"] and m.bars[-1]["close"] not in df["close"].tolist()[-1:]
-    assert f.new_bars(df) == [df.index[-1]]                                          # démarrage : pas de rejeu de l'historique
+    assert f.new_bars(df) == []                                                      # démarrage : la dernière barre est de l'histoire, aucune décision dessus
     assert f.poll() is None                                                          # aucune nouvelle barre : rien
     m.advance(2)
     df2 = f.poll()
@@ -155,6 +155,7 @@ def test_unexpected_exception_trips_kill_switch_and_blocks_all_orders(tmp_path):
     m = FakeMT5Live(n_bars=1500)
     r = runner(tmp_path, m, strategy="fvg_h1", appr=approvals(tmp_path, strategy="fvg_h1"))
     r.setup()
+    r.step()  # amorçage : la barre de démarrage n'est pas émise
     r.engine.on_bar = lambda df: (_ for _ in ()).throw(RuntimeError("bug"))
     m.advance(1)
     assert r.step() == "crash" and r.kill.active()

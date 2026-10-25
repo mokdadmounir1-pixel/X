@@ -8,14 +8,15 @@ class FakeMT5Live:
     TIMEFRAME_M1, TIMEFRAME_M15, TIMEFRAME_H1 = 1, 15, 16385
     TRADE_ACTION_DEAL, ORDER_TYPE_BUY, ORDER_TYPE_SELL, ORDER_TIME_GTC = 1, 0, 1, 0
     ORDER_FILLING_FOK, ORDER_FILLING_IOC, ORDER_FILLING_RETURN = 0, 1, 2
-    SYMBOL_FILLING_FOK, SYMBOL_FILLING_IOC = 1, 2
+    # NB : le module réel (5.0.6180) n'expose PAS SYMBOL_FILLING_FOK/IOC (constaté par C1) : le faux ne les fournit plus.
     TRADE_RETCODE_DONE, TRADE_RETCODE_REQUOTE, TRADE_RETCODE_PRICE_CHANGED = 10009, 10004, 10020
     TRADE_RETCODE_TIMEOUT, TRADE_RETCODE_REJECT, TRADE_RETCODE_NO_MONEY, TRADE_RETCODE_CONNECTION = 10012, 10006, 10019, 10031
+    TRADE_RETCODE_DONE_PARTIAL = 10010
     ACCOUNT_TRADE_MODE_DEMO, ACCOUNT_TRADE_MODE_CONTEST, ACCOUNT_TRADE_MODE_REAL = 0, 1, 2
     POSITION_TYPE_BUY, POSITION_TYPE_SELL = 0, 1
 
     def __init__(self, n_bars=400, demo=True, login=1234, server="MetaQuotes-Demo", filling_mode=2, seed=0, price0=2000.0,
-                 volume_min=0.01, trade_stops_level=0):
+                 volume_min=0.01, trade_stops_level=0, account_currency="USD", trade_exemode=1, usd_per_unit=1.0):
         rng = np.random.default_rng(seed)
         import calendar
         # la barre d'indice n_bars tombe un MARDI 11 h UTC (horloge courtier +3 h) : hors fenêtre de week-end
@@ -27,19 +28,22 @@ class FakeMT5Live:
             c = px[i]
             self.bars.append({"time": self.t0 + 900 * i, "open": float(o), "high": float(max(o, c) + .2), "low": float(min(o, c) - .2),
                               "close": float(c), "tick_volume": 100 + i, "spread": 12, "real_volume": 0})
-        self.acct = NS(login=login, currency="USD", server=server, balance=100_000.0, equity=100_000.0,
+        self.acct = NS(login=login, currency=account_currency, server=server, balance=100_000.0, equity=100_000.0,
                        trade_mode=self.ACCOUNT_TRADE_MODE_DEMO if demo else self.ACCOUNT_TRADE_MODE_REAL)
         self.info = NS(currency_profit="USD", trade_contract_size=100, volume_step=0.01, volume_min=volume_min, volume_max=50.0,
-                       filling_mode=filling_mode, digits=2, point=0.01, trade_stops_level=trade_stops_level)
+                       filling_mode=filling_mode, trade_exemode=trade_exemode, digits=2, point=0.01, trade_stops_level=trade_stops_level)
         self.checked, self.sent, self.positions, self.deals = [], [], [], []
         self.check_script, self.send_script = [], []   # retcodes (int), "NONE" (réponse None), ou callable(req)
         self._ticket = 1000
         self.initialized = False
+        self.positions_error = False   # positions_get -> None + erreur réelle
+        self.partial_fraction = None   # exécution partielle (DONE_PARTIAL) à la fraction donnée
+        self.account_per_usd = 1.0     # EUR par USD pour order_calc_profit
 
     # --- cycle de vie
     def initialize(self): self.initialized = True; return True
     def shutdown(self): self.initialized = False
-    def last_error(self): return (1, "fake")
+    def last_error(self): return (-1, "erreur") if self.positions_error else (1, "Success")
     def account_info(self): return self.acct
     def symbol_info(self, s): return self.info
     def symbol_select(self, s, e): return True
@@ -61,7 +65,14 @@ class FakeMT5Live:
         return list(self.bars[max(0, end - n):end])
 
     # --- ordres
-    def positions_get(self, symbol=None): return list(self.positions)
+    def positions_get(self, symbol=None):
+        if self.positions_error:
+            return None
+        return list(self.positions)
+
+    def order_calc_profit(self, otype, symbol, volume, p_open, p_close):
+        d = (p_close - p_open) * (1 if otype == self.ORDER_TYPE_BUY else -1)
+        return d * volume * self.info.trade_contract_size * self.account_per_usd
     def history_deals_get(self, position=None): return [d for d in self.deals if d.position_id == position]
 
     def order_check(self, req):
@@ -81,6 +92,9 @@ class FakeMT5Live:
         if b == "EXECUTED_BUT_NO_ANSWER":  # le serveur a exécuté mais la réponse est perdue
             self._execute(req)
             return None
+        if b == self.TRADE_RETCODE_DONE and self.partial_fraction is not None and "position" not in req:
+            ticket = self._execute({**req, "volume": round(req["volume"] * self.partial_fraction, 2)})
+            return NS(retcode=self.TRADE_RETCODE_DONE_PARTIAL, comment="partial", price=req["price"], order=ticket, deal=ticket + 1)
         if b == self.TRADE_RETCODE_DONE:
             ticket = self._execute(req)
             return NS(retcode=b, comment="done", price=req["price"], order=ticket, deal=ticket + 1)

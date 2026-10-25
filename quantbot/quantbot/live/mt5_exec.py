@@ -20,6 +20,19 @@ from .state import StateStore
 
 log = get_logger("live.mt5_exec")
 
+# Valeurs MQL5 documentées. Le module Python réel (observé : 5.0.6180) n'expose PAS SYMBOL_FILLING_FOK/IOC :
+# le mask `filling_mode` du symbole se décode donc avec ces valeurs numériques, jamais avec getattr sur le module.
+SYMBOL_FILLING_FOK_FLAG, SYMBOL_FILLING_IOC_FLAG = 1, 2
+ORDER_FILLING_FOK_V, ORDER_FILLING_IOC_V, ORDER_FILLING_RETURN_V = 0, 1, 2
+SYMBOL_TRADE_EXECUTION_MARKET_V = 2
+RETCODE_DONE_PARTIAL_V = 10010
+RES_S_OK = 1
+
+
+def mask_login(login: Any) -> str:
+    s = str(login)
+    return "*" * max(len(s) - 2, 0) + s[-2:]
+
 
 class HardenedMT5Broker(Broker):
     manages_exits = True
@@ -42,14 +55,16 @@ class HardenedMT5Broker(Broker):
         if allowed_servers and acct.server not in allowed_servers:
             raise ExecutionError(f"Serveur « {acct.server} » hors liste blanche {list(allowed_servers)}")
         if ftmo.expected_login is not None and acct.login != ftmo.expected_login:
-            raise ExecutionError(f"Compte {acct.login} différent du compte attendu")
+            raise ExecutionError(f"Compte {mask_login(acct.login)} différent du compte attendu")
         info = mt5.symbol_info(self.symbol)
         if info is None or not mt5.symbol_select(self.symbol, True):
             raise ExecutionError(f"Symbole MT5 indisponible : {self.symbol}")
-        if getattr(info, "currency_profit", acct.currency) != acct.currency:
-            raise ExecutionError(f"{self.symbol} coté en {info.currency_profit}, compte en {acct.currency} : conversion non supportée")
+        self.convert = getattr(info, "currency_profit", acct.currency) != acct.currency
+        if self.convert and not callable(getattr(mt5, "order_calc_profit", None)):
+            raise ExecutionError(f"{self.symbol} coté en {info.currency_profit}, compte en {acct.currency} : order_calc_profit indisponible")
         self.demo = demo
-        state.log("INFO", "broker_init", f"compte={acct.login} serveur={acct.server} démo={demo}")
+        state.log("INFO", "broker_init", f"compte={mask_login(acct.login)} serveur={acct.server} démo={demo} "
+                  f"conversion_devise={self.convert}")
 
     # --- état du compte --------------------------------------------------------------------------
     def balance(self) -> float: return float(self.mt5.account_info().balance)
@@ -62,24 +77,49 @@ class HardenedMT5Broker(Broker):
             raise ExecutionError("coupe-circuit actif : " + "; ".join(reasons))
 
     def _filling(self) -> int:
-        """Mode de remplissage supporté par le symbole (jamais IOC en dur)."""
-        m, flags = self.mt5, getattr(self.mt5.symbol_info(self.symbol), "filling_mode", 0)
-        if flags & m.SYMBOL_FILLING_IOC:
-            return m.ORDER_FILLING_IOC
-        if flags & m.SYMBOL_FILLING_FOK:
-            return m.ORDER_FILLING_FOK
-        return m.ORDER_FILLING_RETURN
+        """Mode de remplissage supporté par le symbole (jamais en dur). RETURN est exclu en Market Execution."""
+        info = self.mt5.symbol_info(self.symbol)
+        flags = int(getattr(info, "filling_mode", 0) or 0)
+        if flags & SYMBOL_FILLING_IOC_FLAG:
+            return ORDER_FILLING_IOC_V
+        if flags & SYMBOL_FILLING_FOK_FLAG:
+            return ORDER_FILLING_FOK_V
+        if int(getattr(info, "trade_exemode", -1)) == SYMBOL_TRADE_EXECUTION_MARKET_V:
+            raise ExecutionError("Market Execution sans FOK/IOC annoncé : RETURN interdit, ordre non envoyé")
+        return ORDER_FILLING_RETURN_V
 
-    def _lots(self, units: float) -> float:
+    def _positions(self) -> list:
+        """positions_get : `None` avec une erreur = lecture IMPOSSIBLE (jamais « aucune position »)."""
+        res = self.mt5.positions_get(symbol=self.symbol)
+        if res is None:
+            err = self.mt5.last_error()
+            if not (isinstance(err, tuple) and err and err[0] == RES_S_OK):
+                self.kill.trigger(f"lecture des positions impossible : {err}")
+                raise ExecutionError(f"État des positions INCONNU (positions_get=None, {err}) ; coupe-circuit actif")
+            return []
+        return [p for p in res if getattr(p, "symbol", self.symbol) == self.symbol]
+
+    def _lots(self, units: float, plan: Optional[TradePlan] = None) -> float:
         info = self.mt5.symbol_info(self.symbol)
         step = info.volume_step or 0.01
-        lots = round(min(math.floor(units / info.trade_contract_size / step + 1e-9) * step, info.volume_max), 8)
+        cap = units / info.trade_contract_size
+        if self.convert:
+            # devise du symbole != devise du compte : le terminal convertit (order_calc_profit renvoie la devise du COMPTE)
+            if plan is None or plan.risk_amount <= 0:
+                raise ExecutionError("Conversion de devise : risque du plan manquant")
+            m = self.mt5
+            otype = m.ORDER_TYPE_BUY if plan.side == "long" else m.ORDER_TYPE_SELL
+            loss = m.order_calc_profit(otype, self.symbol, 1.0, float(plan.entry), float(plan.stop))
+            if loss is None or not math.isfinite(loss) or abs(loss) <= 0:
+                raise ExecutionError(f"order_calc_profit indisponible ({m.last_error()}) : taille non calculable")
+            cap = min(cap, plan.risk_amount / abs(loss))
+        lots = round(min(math.floor(cap / step + 1e-9) * step, info.volume_max), 8)
         if lots < info.volume_min:
-            raise ExecutionError(f"Taille {units:.2f} u. < volume minimum ({info.volume_min} lot)")
+            raise ExecutionError(f"Taille {lots} lot < volume minimum ({info.volume_min} lot)")
         return lots
 
     def _find(self, comment: str) -> Optional[Any]:
-        for p in self.mt5.positions_get(symbol=self.symbol) or ():
+        for p in self._positions():
             if p.magic == self.cfg.mt5_magic and getattr(p, "comment", "") == comment:
                 return p
         return None
@@ -104,7 +144,8 @@ class HardenedMT5Broker(Broker):
         iid = self.state.new_intent("OPEN", plan.side, {k: getattr(plan, k) for k in ("side", "entry", "stop", "take_profit", "size", "risk_amount")}, self.strategy)
         done, transient, ambiguous = self._codes()
         try:
-            lots = self._lots(plan.size)
+            lots = self._lots(plan.size, plan)
+            filling = self._filling()
         except ExecutionError as exc:
             self.state.mark(iid, "FAILED", str(exc)); raise
         digits = getattr(m.symbol_info(self.symbol), "digits", 5)
@@ -118,7 +159,7 @@ class HardenedMT5Broker(Broker):
                    "type": m.ORDER_TYPE_BUY if long else m.ORDER_TYPE_SELL, "price": float(tick.ask if long else tick.bid),
                    "sl": round(float(plan.stop), digits), "tp": round(float(plan.take_profit), digits),
                    "deviation": self.cfg.mt5_deviation_points, "magic": self.cfg.mt5_magic, "comment": comment,
-                   "type_time": m.ORDER_TIME_GTC, "type_filling": self._filling()}
+                   "type_time": m.ORDER_TIME_GTC, "type_filling": filling}
             chk = m.order_check(req)
             if chk is None or chk.retcode not in (0, done):
                 self.state.mark(iid, "REFUSED", f"order_check: {getattr(chk, 'retcode', None)} {getattr(chk, 'comment', '')}")
@@ -133,6 +174,14 @@ class HardenedMT5Broker(Broker):
                 self.state.mark(iid, "CONFIRMED", "résolu par réconciliation", int(found.ticket))
                 self.state.log("WARNING", "ambiguite_resolue", "position retrouvée ; le coupe-circuit RESTE actif (levée humaine uniquement)")
                 return self._adopt(plan, float(found.price_open), lots, ts, idx, int(found.ticket))
+            if res.retcode == RETCODE_DONE_PARTIAL_V:
+                # exécution partielle : on adopte le volume RÉELLEMENT détenu (lu sur le serveur), le coupe-circuit reste actif
+                self._ambiguous(iid, "exécution partielle")
+                found = self._find(comment)
+                if found is None:
+                    raise ExecutionError("Exécution partielle annoncée mais position introuvable ; coupe-circuit actif")
+                self.state.mark(iid, "CONFIRMED", f"partiel: {float(found.volume)} / {lots} lot", int(found.ticket))
+                return self._adopt(plan, float(found.price_open), float(found.volume), ts, idx, int(found.ticket))
             if res.retcode == done:
                 self.state.mark(iid, "CONFIRMED", "exécuté", int(getattr(res, "order", 0)) or None)
                 pos = self._find(comment)
@@ -156,7 +205,10 @@ class HardenedMT5Broker(Broker):
     # --- sorties -----------------------------------------------------------------------------------------
     def _trade_from_deals(self, ts: Any, reason: str, idx: int) -> Trade:
         pos = self.position
-        deals = list(self.mt5.history_deals_get(position=self._ticket) or ()) if self._ticket else []
+        raw = self.mt5.history_deals_get(position=self._ticket) if self._ticket else ()
+        if raw is None and not (isinstance(self.mt5.last_error(), tuple) and self.mt5.last_error()[0] == RES_S_OK):
+            self.kill.trigger(f"historique des deals illisible pour la position {self._ticket} : PnL indéterminé")
+        deals = list(raw or ())
         pnl = sum(getattr(d, "profit", 0.0) + getattr(d, "commission", 0.0) + getattr(d, "swap", 0.0) + getattr(d, "fee", 0.0) for d in deals)
         exit_price = float(deals[-1].price) if deals else pos.entry
         t = Trade(pos.side, pos.entry_time, ts, pos.entry, exit_price, pos.size, float(pnl), reason, pos.confidence, pos.patterns,
@@ -168,7 +220,7 @@ class HardenedMT5Broker(Broker):
     def sync(self, ts: Any, idx: int = 0) -> Optional[Trade]:
         if self.position is None:
             return None
-        still = any(int(p.ticket) == self._ticket for p in (self.mt5.positions_get(symbol=self.symbol) or ()))
+        still = any(int(p.ticket) == self._ticket for p in self._positions())
         return None if still else self._trade_from_deals(ts, "server_exit", idx)
 
     def close_position(self, price: float, ts: Any, reason: str, idx: int = 0, market: bool = True) -> Trade:
@@ -177,7 +229,7 @@ class HardenedMT5Broker(Broker):
         if pos is None:
             raise ExecutionError("Aucune position à fermer")
         m = self.mt5
-        still = [p for p in (m.positions_get(symbol=self.symbol) or ()) if int(p.ticket) == self._ticket]
+        still = [p for p in self._positions() if int(p.ticket) == self._ticket]
         if not still:
             return self._trade_from_deals(ts, reason, idx)
         iid = self.state.new_intent("CLOSE", pos.side, {"ticket": self._ticket, "reason": reason}, self.strategy)
@@ -196,10 +248,13 @@ class HardenedMT5Broker(Broker):
         res = m.order_send(req)
         if res is None or res.retcode in ambiguous:
             self._ambiguous(iid, "réponse ambiguë à la clôture")
-            if not any(int(p.ticket) == self._ticket for p in (m.positions_get(symbol=self.symbol) or ())):
+            if not any(int(p.ticket) == self._ticket for p in self._positions()):
                 self.state.mark(iid, "CONFIRMED", "clôture constatée par réconciliation")
                 return self._trade_from_deals(ts, reason, idx)
             raise ExecutionError("État INCONNU à la clôture ; coupe-circuit actif")
+        if res.retcode == RETCODE_DONE_PARTIAL_V:
+            self._ambiguous(iid, "clôture partielle")
+            raise ExecutionError("Clôture partielle : une partie de la position reste ouverte ; coupe-circuit actif")
         if res.retcode != done:
             self.state.mark(iid, "REFUSED", f"retcode {res.retcode}")
             raise ExecutionError(f"Clôture refusée : {res.retcode}")
@@ -209,7 +264,7 @@ class HardenedMT5Broker(Broker):
     # --- reprise -------------------------------------------------------------------------------------------
     def restore(self, engine_n: int) -> Optional[Position]:
         """Au démarrage : adopte une position portant notre magic ET connue de l'état ; toute autre = orpheline => coupe-circuit."""
-        ours = [p for p in (self.mt5.positions_get(symbol=self.symbol) or ()) if p.magic == self.cfg.mt5_magic]
+        ours = [p for p in self._positions() if p.magic == self.cfg.mt5_magic]
         if not ours:
             return None
         known = self.state.known_tickets()

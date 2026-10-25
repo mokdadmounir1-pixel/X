@@ -159,3 +159,59 @@ def test_kill_switch_clear_requires_explicit_human_confirmation():
         k.clear("oui")
     k.clear("JE_COMPRENDS")
     assert not k.active()
+
+
+# --- écarts constatés par C1 sur le VRAI terminal ---------------------------------------------------------------------
+def test_filling_does_not_need_symbol_filling_constants():
+    assert not hasattr(FakeMT5Live, "SYMBOL_FILLING_IOC")           # comme le vrai module
+    b, m, *_ = make()
+    assert b._filling() == 1                                          # flags=2 par défaut -> IOC
+
+
+def test_market_execution_without_flags_never_falls_back_to_return(tmp_path):
+    b, m, st, k = make(tmp_path, mt5=FakeMT5Live(filling_mode=0, trade_exemode=2))
+    with pytest.raises(ExecutionError, match="Market Execution"):
+        b.open_position(PLAN, 2000.0, TS)
+    assert not m.sent
+
+
+def test_eur_account_xauusd_sizes_from_risk_via_order_calc_profit(tmp_path):
+    m = FakeMT5Live(account_currency="EUR")
+    m.account_per_usd = 0.9
+    b, m, st, k = make(tmp_path, mt5=m)
+    assert b.convert
+    b.open_position(PLAN, 2000.0, TS)
+    lots = m.sent[0]["volume"]
+    loss_per_lot = 10 * 100 * 0.9
+    assert lots * loss_per_lot <= PLAN.risk_amount + 1e-6 and lots > 0   # risque en EUR respecté
+
+
+def test_positions_none_with_error_is_unknown_not_empty(tmp_path):
+    b, m, st, k = make(tmp_path)
+    b.open_position(PLAN, 2000.0, TS)
+    m.positions_error = True
+    with pytest.raises(ExecutionError, match="INCONNU"):
+        b.sync(TS)
+    assert k.active() and b.position is not None                      # pas de « clôture » fantôme
+
+
+def test_restore_with_unreadable_positions_trips_kill_switch(tmp_path):
+    b, m, st, k = make(tmp_path)
+    m.positions_error = True
+    with pytest.raises(ExecutionError):
+        b.restore(0)
+    assert k.active()
+
+
+def test_partial_fill_adopts_real_volume_and_keeps_kill_switch(tmp_path):
+    m = FakeMT5Live()
+    m.partial_fraction = 0.5
+    b, m, st, k = make(tmp_path, mt5=m)
+    pos = b.open_position(PLAN, 2000.0, TS)
+    assert pos.size == pytest.approx(m.positions[0].volume * 100) and len(m.sent) == 1
+    assert k.active()                                                 # levée humaine uniquement
+
+
+def test_login_is_masked_in_logs(tmp_path):
+    b, m, st, k = make(tmp_path)
+    assert "1234" not in " ".join(str(e) for e in st.recent_events(10))
