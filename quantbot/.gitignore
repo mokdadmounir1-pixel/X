@@ -5,5 +5,4 @@ __pycache__/
 *.db
 logs/
 data/real/*.csv
-reports/registry.jsonl
 reports/*/cache/
