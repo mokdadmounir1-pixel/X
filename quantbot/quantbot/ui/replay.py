@@ -28,12 +28,26 @@ def objective(root: Path) -> dict:
     o = _read(root / "specs" / "objective.json") or {}
     base = _read(root / "specs" / "inst_strategies_v1.json") or {}
     risk = ((base.get("settings") or {}).get("risk") or {}).get("risk_per_trade", 0.005)
-    return {"target_r_per_day": float(o.get("target_r_per_day", 0.33)), "note": o.get("note", ""), "beta_flags": o.get("beta_flags", {}), "risk_per_trade": float(risk)}
+    return {"target_r_per_day": float(o.get("target_r_per_day", 0.33)), "note": o.get("note", ""), "beta_flags": o.get("beta_flags", {}), "target_monthly_net": float(o.get("target_monthly_net", 0.02)), "risk_per_trade": float(risk)}
+
+
+SPEC_FILES = ["inst_strategies_v1", "smc_v1b"]      # specs préenregistrées dont les stratégies sont rejouables
+
+
+def spec_for(strategy: str, root: Path) -> Optional[dict]:
+    for name in SPEC_FILES:
+        sp = _read(root / "specs" / f"{name}.json")
+        if sp and strategy in sp.get("strategies", {}):
+            return sp
+    return None
 
 
 def list_strategies(root: Path) -> dict:
     base = _read(root / "specs" / "inst_strategies_v1.json") or {}
-    out = [{"id": n, "label": s["label"], "instruments": s["instruments"], "note": s.get("note", "")} for n, s in base.get("strategies", {}).items()]
+    out = []
+    for name in SPEC_FILES:
+        sp = _read(root / "specs" / f"{name}.json") or {}
+        out += [{"id": n, "label": s["label"], "instruments": s["instruments"], "note": s.get("note", ""), "spec": name} for n, s in sp.get("strategies", {}).items()]
     deep = {i: (root / "data" / "deep" / f).is_file() for i, f in (base.get("instruments") or {}).items()}
     return {"strategies": out, "patterns": {"id": "patterns", "label": "Figures floues (baseline_v1)", "instruments": list((base.get("instruments") or {}))},
             "deep_available": deep, "objective": objective(root)}
@@ -69,9 +83,9 @@ def run_strategy_replay(instrument: str, bars: int, strategy: str, segment: str 
     with _lock:
         if key in _cache:
             return _cache[key]
-    base = _read(root / "specs" / "inst_strategies_v1.json")
+    base = spec_for(strategy, root) if strategy != "patterns" else _read(root / "specs" / "inst_strategies_v1.json")
     if base is None or instrument not in base["instruments"]:
-        raise ValueError("instrument inconnu")
+        raise ValueError("instrument ou stratégie inconnu")
     fname = base["instruments"][instrument]
     full = load_mt5_csv(root / "data" / "real" / fname)
     research, _locked = split_locked(full, base["lock_months"], base["lock_min_frac"])      # la période verrouillée n'est jamais renvoyée
@@ -130,6 +144,22 @@ def run_strategy_replay(instrument: str, bars: int, strategy: str, segment: str 
         "buy_hold_return": float(seg["close"].iloc[-1] / seg["close"].iloc[0] - 1.0),
         "note": "Fenêtre courte : ce rejeu sert à LIRE les trades ; seules les évaluations des portes (onglet Résultats) et le futur comptent pour juger. Coûts et risque hérités de la spec.",
     }
+    if strategy.startswith("smc"):
+        from ..strategies import smc
+        out["zones"] = zones_payload(smc.zones(seg, scfg["rule"], scfg["params"]), seg.index[-1])
     with _lock:
         _cache[key] = out
+    return out
+
+
+def _epoch(ts) -> int:
+    return int(pd.Timestamp(ts).tz_localize(None).value // 10**9) if pd.Timestamp(ts).tzinfo is None else int(pd.Timestamp(ts).tz_convert("UTC").value // 10**9)
+
+
+def zones_payload(zs: list, last_ts) -> list:
+    """Zones OB/FVG sérialisées pour les graphiques : début (bougie OB), fin (déclenchement / invalidation / expiration ou dernière barre), niveaux, statut."""
+    out = []
+    for z in zs:
+        out.append({"dir": z["dir"], "t0": _epoch(z["t0"]), "t_created": _epoch(z["t_created"]), "t1": _epoch(z["end"] if z["end"] is not None else last_ts), "open": z["end"] is None,
+                    "ob": [z["ob_lo"], z["ob_hi"]], "fvg": [z["fvg_lo"], z["fvg_hi"]], "ce": z["ce"], "stop": z["stop"], "status": z["why"] or "active"})
     return out

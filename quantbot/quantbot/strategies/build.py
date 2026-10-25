@@ -16,3 +16,12 @@ def events_for(name: str, scfg: dict, df: pd.DataFrame) -> list:
     if name.startswith("smc"):
         return smc.events(df, scfg["rule"], scfg["params"])
     return fvg.events(df, scfg["rule"], scfg["params"])
+
+
+# Identifiant lisible et STABLE de chaque stratégie (affiché dans l'attribution des trades)
+STRATEGY_CODES = {"amd": "AMD_PO3_M15", "vwap": "VWAP_BAND_M15", "orb": "ORB_15M_PULLBACK", "fvg_h1": "FVG_MIT_1H", "fvg_h4": "FVG_MIT_4H",
+                  "smc_h1": "SMC_OB_FVG_1H", "smc_h4": "SMC_OB_FVG_4H"}
+
+
+def strategy_code(strategy_id: str) -> str:
+    return STRATEGY_CODES.get(strategy_id, strategy_id.upper())

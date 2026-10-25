@@ -1,7 +1,4 @@
 import json
-import threading
-import urllib.request
-from http.server import ThreadingHTTPServer
 
 import pandas as pd
 import pytest
@@ -32,23 +29,27 @@ def test_replay_endpoint_rejects_unknown_instrument_and_clamps_bars():
         server.replay_instrument("NOPE", 1000)
 
 
-def test_http_server_binds_locally_and_serves_state():
-    httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
-    assert httpd.server_address[0] == "127.0.0.1"
-    threading.Thread(target=httpd.serve_forever, daemon=True).start()
-    try:
-        port = httpd.server_address[1]
-        html = urllib.request.urlopen(f"http://127.0.0.1:{port}/").read().decode()
-        assert "quantbot" in html and "Aucun avantage de trading valid" in html and "Tester une strat" in html
-        state = json.loads(urllib.request.urlopen(f"http://127.0.0.1:{port}/api/state").read())
-        assert state["status"]["live_trading"].startswith("AUCUN ordre")
-        err = urllib.request.urlopen(f"http://127.0.0.1:{port}/api/replay?instrument=NOPE") if False else None
-        try:
-            urllib.request.urlopen(f"http://127.0.0.1:{port}/api/replay?instrument=NOPE")
-        except urllib.error.HTTPError as e:
-            assert e.code == 400
-    finally:
-        httpd.shutdown()
+def test_terminal_serves_local_only_read_only_and_ships_its_assets():
+    from fastapi.testclient import TestClient
+    from quantbot.gui.app import create_app
+    c = TestClient(create_app(), base_url="http://127.0.0.1")
+    html = c.get("/").text
+    assert "quantbot" in html and "/js/app.js" in html and "lightweight-charts" in html
+    for asset in ("/css/terminal.css", "/js/app.js", "/js/grid.js", "/js/chart.js", "/vendor/lightweight-charts.standalone.production.js", "/vendor/LICENSE-lightweight-charts.txt", "/assets/fennec_diamond.png"):
+        assert c.get(asset).status_code == 200, asset
+    st = c.get("/api/state").json()
+    assert st["status"]["live_trading"].startswith("AUCUN ordre") and "objective" in st
+    assert c.get("/api/health").json() == {"ok": True, "read_only": True}
+    assert c.get("/api/health", headers={"host": "evil.example.com"}).status_code == 403            # protection DNS rebinding
+    for verb in (c.post, c.put, c.delete, c.patch):
+        assert verb("/api/state").status_code in (404, 405)                                        # aucune écriture possible
+    assert c.get("/api/strategy_replay?instrument=NOPE&strategy=orb").status_code == 400
+    assert c.get("/api/book?period=forever").status_code == 422
+
+
+def test_gui_server_binds_to_loopback_only():
+    from quantbot.gui import server
+    assert server.HOST == "127.0.0.1" and server.free_port(8790) >= 8790
 
 
 # --- onglet « En direct » : lecture seule de l'état du runtime ---------------------------------------------------------
@@ -87,20 +88,12 @@ def test_live_stale_heartbeat_is_not_reported_as_running(tmp_path, monkeypatch):
     assert server.collect_live(tmp_path)["running"] is False
 
 
-def test_live_endpoint_is_get_only_local(tmp_path, monkeypatch):
+def test_live_endpoint_serves_state(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from quantbot.gui.app import create_app
     monkeypatch.setenv("QUANTBOT_STATE", str(_live_state(tmp_path)))
-    httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
-    threading.Thread(target=httpd.serve_forever, daemon=True).start()
-    try:
-        port = httpd.server_address[1]
-        st = json.loads(urllib.request.urlopen(f"http://127.0.0.1:{port}/api/live").read())
-        assert st["available"] and st["mode"] == "OBSERVATION"
-        req = urllib.request.Request(f"http://127.0.0.1:{port}/api/live", data=b"{}", method="POST")
-        with pytest.raises(urllib.error.HTTPError):
-            urllib.request.urlopen(req)
-        assert 'id="view"' in urllib.request.urlopen(f"http://127.0.0.1:{port}/").read().decode()
-    finally:
-        httpd.shutdown()
+    out = TestClient(create_app(), base_url="http://127.0.0.1").get("/api/live").json()
+    assert out["available"] and out["mode"] == "OBSERVATION"
 
 
 # --- test de stratégie trade par trade (entrées / SL / TP / sorties) ----------------------------------------------------

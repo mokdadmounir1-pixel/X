@@ -190,7 +190,7 @@ def test_runner_publishes_bars_position_levels_for_the_live_page(tmp_path):
         m.advance(1); r.step()
         seen = seen or r.state.get("position")
     bars = r.state.get("bars")
-    assert bars and len(bars) <= 240 and len(bars[0]) == 5
+    assert bars and len(bars) <= 800 and len(bars[0]) == 6
     assert seen and seen["side"] == "long" and seen["stop"] < seen["entry"] < seen["tp"]      # niveaux réellement posés
 
 

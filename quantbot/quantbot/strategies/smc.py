@@ -88,7 +88,7 @@ def setup_masks(a: dict, p: dict) -> dict:
             ok_dn = disp_dn[b1] & (o[b0] < c[b0]) & (gap_dn >= p["gap_atr"] * atr[b1])
         bull[i], bear[i] = ok_up, ok_dn
         ob_lo[i], ob_hi[i] = l[b0], h[b0]
-        fvg_lo[i] = np.where(ok_up, h[b0], l[i]); fvg_hi[i] = np.where(ok_up, l[i], h[b0])
+        fvg_lo[i] = np.where(ok_up, h[b0], h[i]); fvg_hi[i] = np.where(ok_up, l[i], l[b0])      # haussier : [high b0, low b2] ; baissier : [high b2, low b0]
         atr1[i] = atr[b1]
     bull[:3] = False; bear[:3] = False     # le 1er groupe peut être partiel : on l'écarte
     return {"bull": bull, "bear": bear, "ob_lo": ob_lo, "ob_hi": ob_hi, "fvg_lo": fvg_lo, "fvg_hi": fvg_hi, "atr": atr1, "atr_all": atr}

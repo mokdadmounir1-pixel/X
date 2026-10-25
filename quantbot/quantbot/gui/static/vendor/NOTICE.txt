@@ -1,0 +1,2 @@
+Ce produit inclut « TradingView Lightweight Charts™ » v5.0.0 (c) 2025 TradingView, Inc., sous licence Apache 2.0 (voir LICENSE-lightweight-charts.txt).
+Attribution : https://www.tradingview.com/ — le logo d'attribution du composant est conservé à l'écran.

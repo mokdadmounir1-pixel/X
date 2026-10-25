@@ -75,7 +75,7 @@ class LiveRunner:
                 self.state.log("CRITICAL", "restore_echec", str(exc))
                 self.engine.broker = PaperBroker(settings.backtest.initial_equity, settings.execution)
                 why = f"reprise impossible : {exc}"
-        self.state.set("mode", self.mode); self.state.set("why", why); self.state.set("strategy", self.strategy_id); self.state.set("symbol", self.symbol)
+        self.state.set("mode", self.mode); self.state.set("why", why); self.state.set("strategy", self.strategy_id); self.state.set("symbol", self.symbol); self.state.set("spec", self.spec_path.name)
         self.state.log("INFO", "demarrage", f"mode={self.mode} ; {why}")
         return self.mode
 
@@ -85,18 +85,23 @@ class LiveRunner:
         self.state.log("INFO", "trade", json.dumps({
             "side": trade.side, "reason": trade.reason, "pnl": round(trade.pnl, 2), "r": round(trade.r_nominal, 3), "t": str(ts),
             "entry": trade.entry, "exit": trade.exit, "entry_time": str(trade.entry_time), "exit_time": str(trade.exit_time),
-            "stop": snap.get("stop"), "tp": snap.get("tp"), "paper": self.mode == "OBSERVATION"}))
+            "stop": snap.get("stop"), "tp": snap.get("tp"), "paper": self.mode == "OBSERVATION", "size": trade.size, "strategy": self.strategy_id,
+            "symbol": self.symbol, "recorded_ms": int(self.clock() * 1000)}))
 
     def _publish(self, df=None) -> None:
         """Rend visible (page « En direct », lecture seule) ce que le bot voit et fait : barres clôturées, position, ordre en attente."""
         eng = self.engine
         if df is not None:
-            tail = df.tail(240)
-            self.state.set("bars", [[str(t), float(o), float(h), float(l), float(c)] for t, o, h, l, c in
-                                    zip(tail.index, tail["open"], tail["high"], tail["low"], tail["close"])])
+            tail = df.tail(800)
+            self.state.set("bars", [[str(t), float(o), float(h), float(l), float(c), float(v)] for t, o, h, l, c, v in
+                                    zip(tail.index, tail["open"], tail["high"], tail["low"], tail["close"], tail["volume"])])
         pos = eng.broker.position
+        prev = getattr(self, "_pos_snap", None)
         self._pos_snap = None if pos is None else {"side": pos.side, "entry": float(pos.entry), "stop": float(pos.stop),
-                                                    "tp": float(pos.take_profit), "entry_time": str(pos.entry_time), "size": float(pos.size)}
+                                                    "tp": float(pos.take_profit), "entry_time": str(pos.entry_time), "size": float(pos.size),
+                                                    "strategy": self.strategy_id, "symbol": self.symbol}
+        if self._pos_snap is not None and (prev is None or prev.get("entry_time") != self._pos_snap["entry_time"]):
+            self.state.set("position_ts_ms", int(self.clock() * 1000))
         self.state.set("position", self._pos_snap)
         dec = eng.last_decision
         self.state.set("risk", None if dec is None else {"halt": dec.halt_new, "multiplier": dec.risk_multiplier, "reasons": dec.reasons, "daily_pnl_pct": dec.daily_pnl_pct, "drawdown_pct": dec.drawdown_pct, "vol_ratio": dec.vol_ratio, "kelly_f": dec.kelly_f})

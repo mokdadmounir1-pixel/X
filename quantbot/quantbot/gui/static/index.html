@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>quantbot — terminal</title>
+<link rel="icon" type="image/png" href="/assets/fennec_diamond.png">
+<link rel="stylesheet" href="/css/terminal.css">
+</head>
+<body>
+<div id="app" class="app">
+  <header class="topbar" role="banner">
+    <div class="brand"><img src="/assets/fennec_diamond.png" alt="" width="26" height="26"><span class="brand-name">QUANTBOT</span><span class="brand-sub">terminal</span></div>
+    <nav id="tabs" class="tabs" role="tablist" aria-label="Sections"></nav>
+    <div class="topright"><div id="clock" class="clock" title="Heure UTC"></div></div>
+  </header>
+  <div class="banner" role="status"><span id="banner"></span><div id="pills" class="pills"></div></div>
+  <main id="view" class="view" tabindex="-1"></main>
+  <footer class="statusbar"><span id="sb-left"></span><span id="sb-right"></span></footer>
+</div>
+<div id="toasts" class="toasts" aria-live="assertive"></div>
+<script src="/vendor/lightweight-charts.standalone.production.js"></script>
+<script type="module" src="/js/app.js"></script>
+</body>
+</html>

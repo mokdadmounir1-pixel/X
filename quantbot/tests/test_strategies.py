@@ -221,3 +221,17 @@ def test_smc_events_are_causal_rare_and_always_at_least_min_rr():
         assert [_key(e) for e in part] == [_key(e) for e in full if e.ts <= cut], k
     assert all(e.meta["rr"] >= 3.0 - 1e-9 for e in full)
     assert 3 <= len(full) < len(df) / 20                                                                                          # rare : bien moins d'un setup par 20 barres de base
+
+
+def test_smc_bearish_mirror_has_the_mirrored_levels():
+    """Régression : la zone FVG baissière était calculée avec les mauvais bords (seul le cas haussier était testé)."""
+    smc, a = _htf_case()
+    mirror = {k: v.copy() for k, v in a.items()}
+    pivot = 200.0
+    mirror["o"], mirror["c"] = pivot - a["o"], pivot - a["c"]
+    mirror["h"], mirror["l"] = pivot - a["l"], pivot - a["h"]
+    m = smc.setup_masks(mirror, {**smc.PARAMS})
+    assert np.flatnonzero(m["bear"]).tolist() == [32] and not m["bull"].any()
+    up = smc.setup_masks(a, {**smc.PARAMS})
+    assert m["ob_lo"][32] == pytest.approx(pivot - up["ob_hi"][32]) and m["ob_hi"][32] == pytest.approx(pivot - up["ob_lo"][32])
+    assert m["fvg_lo"][32] == pytest.approx(pivot - up["fvg_hi"][32]) and m["fvg_hi"][32] == pytest.approx(pivot - up["fvg_lo"][32])
