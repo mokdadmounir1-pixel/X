@@ -11,14 +11,18 @@ figées hors échantillon (`specs/backward_v1.json`) et, plus tard, des phases d
 1. Dans MT5 : Outils > Options > Graphiques > « Barres max. dans l'historique » = **Illimité** (et « Barres max. dans le graphique » = Illimité). Redémarre MT5 si demandé.
    Pour chaque symbole (XAUUSD, EURUSD, USTEC) et chaque timeframe (M15 en priorité, puis H1, H4, D1), ouvre un graphique et fais défiler TRÈS loin vers la gauche
    (touche Début) jusqu'à ce que le terminal arrête de télécharger. Note la date de la plus ancienne barre visible pour chaque couple.
-2. Lance l'export existant (lecture seule), SANS le modifier :
-   `python scripts\export_mt5.py --symbol XAUUSD --timeframes M15 H1 H4 D1 --bars 1000000 --out data\deep`
-   puis idem pour EURUSD et USTEC (les fichiers s'appellent `<SYMBOLE>_<TF>.csv` ; ils NE doivent PAS écraser `data\real`).
+2. **Premier essai (EURUSD) = enseignement** : `export_mt5.py --bars 1000000` plafonne (M15 : 99 999 barres depuis 2022-10-14 ; H1 : 100 040 barres depuis 2010-09-12) et
+   échoue sur H4 (« Call failed »). Utilise donc le NOUVEL export par tranches de dates, lecture seule, déjà dans le dépôt (ne le modifie pas) :
+   `python scripts\export_mt5_deep.py --symbol XAUUSD --timeframes M15 H1 H4 D1 --out data\deep`
+   puis idem pour EURUSD et USTEC. Il remonte tranche par tranche jusqu'à épuisement des données du serveur ; un échec sur un timeframe est consigné dans
+   `EXPORT-PROVENANCE-DEEP-<SYMBOLE>.json` sans arrêter les autres. Les fichiers `<SYMBOLE>_<TF>.csv` vont dans `data\deep` et ne doivent PAS écraser `data\real`.
+   Si une tranche échoue (« Call failed »), relance une fois ; si l'échec persiste, rapporte-le tel quel avec le message d'erreur exact.
 3. Pour les coûts réels : `python scripts\export_symbol_specs.py --symbols XAUUSD EURUSD USTEC --out data\deep\SYMBOL-SPECS.json` (swaps, contrat, pas de prix : lecture seule).
 4. Contrôle de qualité (rapporte les chiffres, ne corrige rien) pour chaque fichier : nombre de barres, première et dernière barre, doublons d'époque, OHLC invalides,
    plus grand trou en jours, SHA-256. Vérifie que `data\deep\<SYMBOLE>_M15.csv` RECOUVRE `data\real\<SYMBOLE>_M15.csv` et que les barres communes sont IDENTIQUES
    (compte les différences ; attendu : 0). Si elles diffèrent, STOP et rapporte.
 5. Ne lance AUCUN backtest toi-même. Le lancement de `scripts\run_backward.py` (13 essais comptés au registre) attend ma revue et ton « suivant ».
+6. Rapporte aussi, pour chaque symbole, la plus ancienne barre M15, H1, H4, D1 : la profondeur diffère selon le timeframe (H1 EURUSD remonte à 2010).
 
 ## Livraison
 Dossier `livraison-C6-<date>/` : `RESULTAT.md` (par symbole et timeframe : couverture réelle, début, fin, barres, trous, recouvrement avec data\real, limites du courtier),

@@ -68,6 +68,16 @@ class FakeMT5Live:
               ("tick_volume", "<u8"), ("spread", "<i4"), ("real_volume", "<u8")]
         return np.array([tuple(r[k] for k, _ in dt) for r in rows], dtype=dt)
 
+    def copy_rates_range(self, sym, tf, d0, d1):
+        import calendar
+        e0, e1 = calendar.timegm(d0.utctimetuple()), calendar.timegm(d1.utctimetuple())
+        rows = [b for b in self.bars if e0 <= b["time"] <= e1]
+        if not rows:
+            return None if getattr(self, "range_error", False) else np.array([], dtype=[("time", "<i8")])
+        dt = [("time", "<i8"), ("open", "<f8"), ("high", "<f8"), ("low", "<f8"), ("close", "<f8"),
+              ("tick_volume", "<u8"), ("spread", "<i4"), ("real_volume", "<u8")]
+        return np.array([tuple(r[k] for k, _ in dt) for r in rows], dtype=dt)
+
     # --- ordres
     def positions_get(self, symbol=None):
         if self.positions_error:
