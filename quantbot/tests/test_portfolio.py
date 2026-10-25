@@ -28,7 +28,7 @@ def test_combining_zero_edge_streams_creates_no_mean():
 
 def test_run_portfolio_script_from_cache(tmp_path):
     import importlib.util, json
-    R = _R(n=700, k=4); R.index = pd.date_range("2022-01-03", periods=700)
+    R = _R(n=700, k=5); R.index = pd.date_range("2022-01-03", periods=700)
     d = tmp_path / "reports" / "p"; d.mkdir(parents=True); R.to_csv(d / "daily_R.csv")
     spec = {"name": "p", "sources": [], "schemes": {"invvol": "x"}, "vol_target": {"target_r_day": 1.0, "window": 60, "max_scale": 3.0}, "gates": {"min_days": 250, "sign_flip_alpha": 0.025, "dsr_min": 0.95, "block": 5}}
     sp = tmp_path / "s.json"; sp.write_text(json.dumps(spec))
