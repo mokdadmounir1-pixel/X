@@ -1,0 +1,108 @@
+"""Boucle du bot en direct : flux de barres -> moteur UNIQUE -> broker (observation ou démo durci).
+
+Modes :
+  OBSERVATION : paper trading sur les barres réelles ; AUCUN ordre n'est jamais envoyé au terminal.
+  DEMO_ACTIF  : ordres envoyés par HardenedMT5Broker ; exige une approbation humaine valide ET un coupe-circuit inactif au démarrage.
+Aucune exception ne peut tuer la boucle sans être journalisée et sans déclencher le coupe-circuit.
+"""
+from __future__ import annotations
+
+import json
+import time
+from pathlib import Path
+from typing import Any, Optional
+
+from ..config import Settings
+from ..core.sim import TradingEngine
+from ..exceptions import PatternBotError
+from ..execution.broker import PaperBroker
+from ..logging_utils import get_logger
+from .approvals import check_approval
+from .feed import BarFeed
+from .killswitch import KillSwitch
+from .mt5_exec import HardenedMT5Broker
+from .state import StateStore
+from .strategies import HISTORY_BARS, build_engine, load_spec, strategy_settings
+
+log = get_logger("live.runner")
+
+
+class LiveRunner:
+    def __init__(self, mt5: Any, symbol: str, strategy_id: str, spec_path: str | Path, approvals_path: str | Path = "approved_strategies.json",
+                 state_path: str | Path = "live_state.db", kill_file: str | Path = "KILL", timeframe: str = "M15",
+                 allowed_servers: tuple = (), clock=time.time, sleep=time.sleep) -> None:
+        self.mt5, self.symbol, self.strategy_id = mt5, symbol, strategy_id
+        self.spec_path, self.approvals_path = Path(spec_path), Path(approvals_path)
+        self.state = StateStore(state_path)
+        self.kill = KillSwitch(self.state, kill_file)
+        self.feed = BarFeed(mt5, symbol, timeframe, HISTORY_BARS, clock=clock)
+        self.allowed_servers, self.clock, self.sleep = allowed_servers, clock, sleep
+        self.engine: Optional[TradingEngine] = None
+        self.mode = "NON_DEMARRE"
+        self.steps = 0
+
+    # --- démarrage --------------------------------------------------------------------------
+    def setup(self) -> str:
+        spec = load_spec(self.spec_path)
+        df = self.feed._fetch()  # historique de démarrage (barres clôturées) pour régler coûts/levier
+        df["spread"] = df["spread_points"] * float(getattr(self.mt5.symbol_info(self.symbol), "point", 0.0))
+        settings: Settings = strategy_settings(spec, self.strategy_id, self.symbol, df)
+        sig = build_engine(spec, self.strategy_id, settings)
+        approved, why = check_approval(self.strategy_id, self.symbol, self.spec_path, self.approvals_path)
+        blocked = self.kill.reasons()
+        if approved and not blocked:
+            self.mode = "DEMO_ACTIF"
+            broker = HardenedMT5Broker(settings.execution, settings.ftmo, self.mt5, self.state, self.kill, self.strategy_id, self.allowed_servers)
+        else:
+            self.mode = "OBSERVATION"
+            why = why if not approved else f"coupe-circuit actif au démarrage : {blocked}"
+            broker = PaperBroker(settings.backtest.initial_equity, settings.execution)
+        self.engine = TradingEngine(settings, broker=broker, signal_engine=sig, on_close=self._on_close)
+        if self.mode == "DEMO_ACTIF":
+            try:
+                broker.restore(self.engine._n)
+            except PatternBotError as exc:
+                self.mode = "OBSERVATION"
+                self.state.log("CRITICAL", "restore_echec", str(exc))
+                self.engine.broker = PaperBroker(settings.backtest.initial_equity, settings.execution)
+                why = f"reprise impossible : {exc}"
+        self.state.set("mode", self.mode); self.state.set("why", why); self.state.set("strategy", self.strategy_id)
+        self.state.log("INFO", "demarrage", f"mode={self.mode} ; {why}")
+        return self.mode
+
+    def _on_close(self, trade, ts) -> None:
+        self.state.log("INFO", "trade", json.dumps({"side": trade.side, "reason": trade.reason, "pnl": round(trade.pnl, 2),
+                                                    "r": round(trade.r_nominal, 3), "t": str(ts)}))
+
+    # --- une itération ------------------------------------------------------------------------
+    def step(self) -> str:
+        assert self.engine is not None, "setup() d'abord"
+        self.steps += 1
+        self.state.set("heartbeat", self.clock())
+        try:
+            df = self.feed.poll()
+            if self.feed.status.hole:
+                self.state.log("WARNING", "trou_de_donnees", str(self.feed.status.hole))
+            if self.feed.status.stale:
+                self.state.log("WARNING", "flux_fige", f"aucune nouvelle barre depuis > {self.feed.stale_after_s:.0f}s")
+            if df is None:
+                return "idle"
+            for ts in self.feed.new_bars(df):
+                self.engine.on_bar(df.loc[:ts])
+            self.state.set("last_bar", str(df.index[-1]))
+            return "bar"
+        except PatternBotError as exc:
+            self.state.log("ERROR", "erreur_cycle", str(exc))
+            return "error"
+        except Exception as exc:  # jamais silencieux : journal + coupe-circuit
+            self.state.log("CRITICAL", "exception_inattendue", f"{type(exc).__name__}: {exc}")
+            self.kill.trigger(f"exception inattendue : {type(exc).__name__}")
+            return "crash"
+
+    def run_forever(self, poll_s: float = 5.0, max_steps: Optional[int] = None) -> None:
+        try:
+            while max_steps is None or self.steps < max_steps:
+                self.step()
+                self.sleep(poll_s)
+        except KeyboardInterrupt:
+            self.state.log("INFO", "arret", "demandé par l'utilisateur")
