@@ -64,3 +64,33 @@ def test_ui_paper_absent_dir_is_reported_not_created(tmp_path, monkeypatch):
     monkeypatch.setenv("QUANTBOT_PAPER", str(tmp_path / "none"))
     out = server.collect_paper(Path(__file__).resolve().parents[1])
     assert out["available"] is False and not (tmp_path / "none").exists()
+
+
+def test_coinbase_source_paper_runs_without_mt5_and_never_builds_an_order_broker(tmp_path):
+    from quantbot.data.coinbase import CoinbaseClient
+    from tests.test_coinbase import T0, fake_market
+    rows, get, _ = fake_market(4000)
+    now = {"t": T0 + 3500 * 900 + 300}
+    import quantbot.data.coinbase as cb
+    orig = cb.CoinbaseFeed.__init__
+    def init(self, product, timeframe="M15", n_bars=3000, client=None, clock=None, **k):   # horloge de test injectée
+        orig(self, product, timeframe, n_bars, client, lambda: now["t"], **k)
+    cb.CoinbaseFeed.__init__ = init
+    try:
+        def sleep(_):
+            now["t"] += 900
+        rc = pa.main(["--source", "coinbase", "--out", str(tmp_path), "--symbols", "BTC-USD", "--strategies", "vwap", "fvg_h1", "--poll", "1"],
+                     mt5=None, sleep=sleep, max_cycles=4, coinbase_client=CoinbaseClient(get=get, sleep=lambda _: None))
+    finally:
+        cb.CoinbaseFeed.__init__ = orig
+    assert rc == 0 and (tmp_path / "BTC-USD_vwap.db").exists() and (tmp_path / "BTC-USD_fvg_h1.db").exists()
+    st = json.loads((tmp_path / "STATUS.json").read_text())
+    assert st["source"] == "coinbase" and st["errors"] == [] and sorted(st["runners"]) == ["BTC-USD_fvg_h1", "BTC-USD_vwap"]
+    from quantbot.ui import server
+    import os
+    os.environ["QUANTBOT_PAPER"] = str(tmp_path)
+    try:
+        out = server.collect_paper(Path(__file__).resolve().parents[1])
+    finally:
+        del os.environ["QUANTBOT_PAPER"]
+    assert all(r["mode"] == "OBSERVATION" and r["source"] == "Coinbase" for r in out["runners"])

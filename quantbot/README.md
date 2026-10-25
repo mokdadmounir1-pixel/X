@@ -15,7 +15,8 @@ une validation qui punit le nombre d'essais ; **aucune donnée ni aucun résulta
 | Tranche verrouillée de 12 mois | **jamais lue** |
 | `quantbot/live/` (runtime MT5 : journal préalable, coupe-circuit, broker durci, approbations) | écrit ; **jamais exécuté d'ordre sur un terminal réel**. Seul un diagnostic en lecture seule (C1) a tourné sur un vrai terminal démo ; il a révélé des défauts, corrigés ensuite et testés uniquement sur un faux terminal de test |
 | Orchestrateur IA (`ai/`), boucle d'amélioration (`improvement/`) | écrits, testés avec de faux adaptateurs, **non branchés** au runtime, jamais appelés avec de vraies clés |
-| Crypto | **non adapté** (week-end, séances, coûts, levier à traiter avant) |
+| Crypto (Coinbase) | connecteur de **données et de simulation** en lecture seule (API publique, sans clé) ; spec `crypto_paper_v1` en PAPER ; aucun ordre vers Coinbase ; **aucune validation, coûts = hypothèses** |
+| Simulation PAPER (13 stratégies sur MT5) | `scripts/paper_all.py`, trades simulés sur prix réels, jamais d'approbation lue |
 
 Le faux terminal MT5 (`tests/fake_mt5_live.py`) et le générateur synthétique (`tests/synthetic.py`) n'existent **que dans `tests/`** :
 le produit ne génère aucune donnée de remplacement (le CLI exige une source explicite).
