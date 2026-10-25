@@ -77,7 +77,7 @@
   "risk": {
    "risk_per_trade": 0.005,
    "atr_stop_mult": 1.5,
-   "reward_risk": 2.0,
+   "reward_risk": 3.0,
    "min_reward_risk": 3.0,
    "max_leverage": 3.0,
    "max_daily_loss": 0.03,
@@ -182,5 +182,6 @@
   "Seule la période de RECHERCHE est lue ; la période verrouillée n'est pas touchée.",
   "Un 3e essai de plus, par instrument ; le DSR compte tous les essais du registre (70 sur 80 après cette spec).",
   "Objectif utilisateur 2 %/mois : repère de lecture, jamais un réglage."
- ]
+ ],
+ "amendment": "2026-10-25 : reward_risk relevé à 3.0 car la validation de config exige min_reward_risk <= reward_risk (erreur de configuration levée AVANT toute exécution ; aucun rendement n'avait été calculé). reward_risk n'est utilisé que pour les signaux sans cible propre ; SMC fournit sa propre cible."
 }

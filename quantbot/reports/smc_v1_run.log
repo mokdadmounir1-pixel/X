@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/home/user/X/quantbot/scripts/run_strategies.py", line 57, in <module>
+    main()
+    ~~~~^^
+  File "/home/user/X/quantbot/scripts/run_strategies.py", line 39, in main
+    s = build_settings(spec, inst, measured, research).with_overrides({"backtest.max_hold_bars": scfg["max_hold_bars"]})
+        ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/X/quantbot/quantbot/lab/specs.py", line 20, in build_settings
+    return Settings.from_dict(base)
+           ~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/home/user/X/quantbot/quantbot/config.py", line 297, in from_dict
+    return cls(**{name: klass.from_dict(data.get(name)) for name, klass in _SECTIONS.items()})
+                        ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/home/user/X/quantbot/quantbot/config.py", line 34, in from_dict
+    obj.validate()
+    ~~~~~~~~~~~~^^
+  File "/home/user/X/quantbot/quantbot/config.py", line 134, in validate
+    _require(0 < self.min_reward_risk <= self.reward_risk, "0 < min_reward_risk <= reward_risk")
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/X/quantbot/quantbot/config.py", line 20, in _require
+    raise ConfigError(msg)
+quantbot.exceptions.ConfigError: 0 < min_reward_risk <= reward_risk
