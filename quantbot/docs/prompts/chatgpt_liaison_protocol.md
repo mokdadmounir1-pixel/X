@@ -46,6 +46,11 @@ Récupère toujours le dernier commit de la branche avant de travailler. Ensuite
   (les exports de recherche viennent-ils du même serveur que MetaQuotes-Demo ?). Une observation figée reste « non concluante ».
 - **C4** boucle OBSERVATION sur le vrai flux de barres (`PaperBroker`, aucun ordre), journal et coupe-circuit.
 - **C5** (prérequis : `--resolve-intent` relu, voir `scripts/run_live.py`) préparation DEMO_ACTIF : **seulement** si l'utilisateur donne l'autorisation écrite de la règle 1.
+- **C7** installation de l'automatisation 24 h/24 (après C3, sur « suivant ») : vérifier `scripts/setup_data.py` / `check_data.py`, lancer
+  `scripts/data_daemon.py` (extraction MT5 en LECTURE SEULE vers `data/live/`) et `scripts/research_queue.py`, puis proposer à l'utilisateur
+  une tâche planifiée Windows (démarrage de session) pour `scripts/start_all.bat` : **uniquement avec son accord écrit**. Rapporter
+  `data/live/DAEMON_STATUS.json`, `reports/QUEUE_STATUS.json`, `MANIFEST.jsonl` (chaîne intègre ?) et les anomalies éventuelles.
+  Ne jamais ajouter d'item à `specs/queue.json` ni modifier une spec : c'est le travail de Claude + de l'utilisateur.
 - **C6** (plus tard) exports MT5 des instruments demandés (or M1/M3, historique long H1/H4/D1, crypto, swaps réels) avec empreintes.
 Si une tâche te semble contredire une règle ci-dessus, **la règle gagne** et tu le dis.
 
