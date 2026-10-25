@@ -1,0 +1,113 @@
+{
+ "name": "battery_v1",
+ "parent": null,
+ "preregistered": "Écrit et commité AVANT toute exécution. 14 essais (hypothèse x instrument), comptés dans le registre. Période verrouillée NON lue.",
+ "hypothesis": "H0 : aucune de ces 14 stratégies journalières/intraday simples n'a de rendement net de coûts > 0 en dehors du simple biais directionnel du marché. H1 : au moins une a un rendement net positif significatif APRÈS correction de la multiplicité (Reality Check de White sur les 14) ET un alpha non nul contre le buy & hold.",
+ "why_this_family": "Famille différente des figures (baseline/v2/v3 : aucune information au-delà du bêta). Effets documentés, peu de trades (donc peu de coûts), un seul jeu de paramètres FIXÉ a priori par hypothèse.",
+ "timeframe": "M15 -> prix de séance en heure de New York (DST correct via calendrier européen du courtier)",
+ "instruments": {
+  "EURUSD": "EURUSD_M15.csv",
+  "XAUUSD": "XAUUSD_M15.csv",
+  "USTEC": "USTEC_M15.csv"
+ },
+ "data_sha256": {
+  "EURUSD_M15.csv": "e5584ad82650f1640e41f9597e237821e47189b4b9022e7562d1df0e0f3abece",
+  "XAUUSD_M15.csv": "d1a156e2894a868686457c8d71a6ff874a49511a5dae059c24c795ff5aeb08b9",
+  "USTEC_M15.csv": "63279b4e0082b35f8312e8b5a5c90107127538c44690b78b13cec4d8a228dc65"
+ },
+ "lock_months": 12,
+ "lock_min_frac": 0.2,
+ "clock": "eu_dst (défaut)",
+ "costs": {
+  "_note": "spread_frac = spread médian mesuré (fraction du prix) si fiable ; sinon HYPOTHÈSE déclarée. Commission/slippage = HYPOTHÈSES (non fournis par l'export). Démo MetaQuotes != FTMO : à re-mesurer sur le compte cible.",
+  "EURUSD": {
+   "spread_frac": 9e-05,
+   "fee_rate": 2.5e-05,
+   "slippage": 1e-05,
+   "basis": "HYPOTHÈSE : spread ~1 pip (colonne spread inutilisable : 44-83 % de zéros), commission ~2,5 $/lot/côté"
+  },
+  "XAUUSD": {
+   "spread_frac": null,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "spread mesuré (médiane du fichier) ; commission 0 = HYPOTHÈSE"
+  },
+  "USTEC": {
+   "spread_frac": null,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "spread mesuré (médiane du fichier) ; commission 0 = HYPOTHÈSE"
+  }
+ },
+ "hypotheses": {
+  "intraday_momentum": {
+   "instruments": [
+    "EURUSD",
+    "XAUUSD",
+    "USTEC"
+   ],
+   "ref": "Gao, Han, Li, Zhou (2018) : rendement veille 16:00 NY -> 10:00 NY prédit 15:30-16:00",
+   "params": {}
+  },
+  "overnight_drift": {
+   "instruments": [
+    "XAUUSD",
+    "USTEC"
+   ],
+   "ref": "prime nocturne des indices actions (16:00 NY -> 09:30 NY) ; non testée sur EURUSD (aucune justification économique)",
+   "params": {
+    "swap": 0.0
+   }
+  },
+  "tsmom_20": {
+   "instruments": [
+    "EURUSD",
+    "XAUUSD",
+    "USTEC"
+   ],
+   "ref": "Moskowitz, Ooi, Pedersen (2012), horizon 20 jours",
+   "params": {
+    "lookback": 20
+   }
+  },
+  "tsmom_60": {
+   "instruments": [
+    "EURUSD",
+    "XAUUSD",
+    "USTEC"
+   ],
+   "ref": "idem, horizon 60 jours",
+   "params": {
+    "lookback": 60
+   }
+  },
+  "reversal_1d": {
+   "instruments": [
+    "EURUSD",
+    "XAUUSD",
+    "USTEC"
+   ],
+   "ref": "retour à la moyenne à 1 jour (Jegadeesh 1990 ; Lehmann 1990)",
+   "params": {}
+  }
+ },
+ "trials": 14,
+ "rules": {
+  "annualisation_jours": 252,
+  "newey_west_lag": 5,
+  "reality_check": {
+   "B": 2000,
+   "mean_block": 5,
+   "scope": "les 14 séries nettes alignées par date (0 les jours sans donnée)"
+  },
+  "SURVIVANT": "Reality Check p < 0.10 ET t_NW > 2.0 ET moyenne > 0 dans les DEUX moitiés ET moyenne > 0 avec coûts x2 ET t(alpha vs buy&hold) > 2.0",
+  "WATCH": "Reality Check p < 0.20 ET moyenne > 0 dans les deux moitiés ET moyenne > 0 avec coûts x2",
+  "REJETÉ": "sinon",
+  "puissance": "~2,2 ans de recherche : l'erreur-type d'un Sharpe annuel est ~0,65 ; seuls des effets très forts (Sharpe > ~1,3) sont détectables. Un REJET ne prouve pas l'absence d'effet faible ; un survivant n'est pas confirmé tant que la période verrouillée n'est pas lue (une fois)."
+ },
+ "decision_rule": {
+  "si_aucun_survivant": "conclure « pas d'effet détectable avec 2,2 ans » ; ne PAS retoucher les paramètres ; demander 10 ans de données journalières",
+  "si_survivant": "lecture UNIQUE de la période verrouillée ; comparer à un buy & hold ; exposer le risque de bêta AVANT toute démo"
+ },
+ "max_trials_budget": 60
+}

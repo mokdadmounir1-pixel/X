@@ -23,16 +23,24 @@ SLOTS = {"0930": (9, 30), "1000": (10, 0), "1530": (15, 30), "1600": (16, 0)}
 
 
 def session_prices(df: pd.DataFrame, tz: str = TZ) -> pd.DataFrame:
-    """Prix (ouverture de la barre qui COMMENCE à l'heure locale indiquée), un jour par ligne, index = date locale."""
+    """Prix à l'heure locale T, un jour par ligne (index = date locale).
+
+    prix(T) = ouverture de la barre qui COMMENCE à T ; à défaut, clôture de la barre qui commence 15 min avant T
+    (robuste aux pauses de séance : la barre de 16:00 n'existe pas tous les jours chez ce courtier).
+    """
     idx = df.index.tz_localize("UTC").tz_convert(tz)
-    local = pd.DataFrame({"open": df["open"].to_numpy(), "h": idx.hour, "m": idx.minute, "d": idx.date}, index=idx)
+    hm = np.asarray(idx.hour * 60 + idx.minute)
+    dates = pd.DatetimeIndex(idx.date)
+    o, c = df["open"].to_numpy(), df["close"].to_numpy()
     cols = {}
     for name, (h, m) in SLOTS.items():
-        sub = local[(local["h"] == h) & (local["m"] == m)]
-        cols[name] = pd.Series(sub["open"].to_numpy(), index=pd.DatetimeIndex(sub["d"]))
-    out = pd.DataFrame(cols)
-    out = out[~out.index.duplicated(keep="last")].sort_index()
-    return out
+        t = h * 60 + m
+        s_open = pd.Series(o[hm == t], index=dates[hm == t])
+        s_close = pd.Series(c[hm == t - 15], index=dates[hm == t - 15])
+        s_open = s_open[~s_open.index.duplicated(keep="last")]
+        s_close = s_close[~s_close.index.duplicated(keep="last")]
+        cols[name] = s_open.combine_first(s_close)
+    return pd.DataFrame(cols).sort_index()
 
 
 @dataclass
@@ -56,7 +64,7 @@ def intraday_momentum(p: pd.DataFrame, cost_rt: float, **_) -> Result:
     gross = pos * (p["1600"] / p["1530"] - 1.0)
     trade = pos.abs()
     net = gross - trade * cost_rt
-    bh = p["1600"] / p["1530"] - 1.0
+    bh = p["1600"] / p["1600"].shift(1) - 1.0  # rendement du MÊME jour (benchmark du test d'alpha)
     ok = net.dropna()
     return Result(ok, gross.reindex(ok.index), bh.reindex(ok.index), int(trade.reindex(ok.index).sum()))
 
@@ -64,8 +72,9 @@ def intraday_momentum(p: pd.DataFrame, cost_rt: float, **_) -> Result:
 def overnight_drift(p: pd.DataFrame, cost_rt: float, swap: float = 0.0, **_) -> Result:
     gross = p["0930"].shift(-1) / p["1600"] - 1.0
     net = gross - cost_rt - swap
+    bh = p["1600"].shift(-1) / p["1600"] - 1.0  # buy & hold close-à-close sur la même fenêtre d'entrée
     ok = net.dropna()
-    return Result(ok, gross.reindex(ok.index), gross.reindex(ok.index), len(ok))
+    return Result(ok, gross.reindex(ok.index), bh.reindex(ok.index), len(ok))
 
 
 def _daily_strategy(p: pd.DataFrame, cost_rt: float, sig: pd.Series) -> Result:
