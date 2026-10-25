@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from . import amd, fvg, orb, vwap
+from . import amd, fvg, orb, smc, vwap
 
 
 def events_for(name: str, scfg: dict, df: pd.DataFrame) -> list:
@@ -13,4 +13,6 @@ def events_for(name: str, scfg: dict, df: pd.DataFrame) -> list:
         return vwap.events(df, scfg["params"])
     if name == "orb":
         return orb.events(df, scfg["params"])
+    if name.startswith("smc"):
+        return smc.events(df, scfg["rule"], scfg["params"])
     return fvg.events(df, scfg["rule"], scfg["params"])

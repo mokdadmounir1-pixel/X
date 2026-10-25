@@ -15,7 +15,7 @@ from quantbot.lab.pipeline import data_hash
 from quantbot.lab.registry import TrialRegistry, canonical_hash
 from quantbot.lab.specs import build_settings
 from quantbot.lab.walkforward import walk_forward
-from quantbot.strategies import amd, fvg, orb, vwap
+from quantbot.strategies import amd, fvg, orb, smc, vwap
 from quantbot.strategies.events import EventSignalEngine
 
 
@@ -23,6 +23,7 @@ def gen(name, rule, params, df):
     if name == "amd": return amd.events(df, {**amd.PARAMS, **{k: tuple(v) if isinstance(v, list) else v for k, v in params.items()}})
     if name == "vwap": return vwap.events(df, params)
     if name == "orb": return orb.events(df, params)
+    if name.startswith("smc"): return smc.events(df, rule, params)
     return fvg.events(df, rule, params)
 
 

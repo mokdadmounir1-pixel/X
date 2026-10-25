@@ -14,7 +14,7 @@ from quantbot.data.mt5 import costs_from_frame, load_mt5_csv
 from quantbot.lab.forward import evaluate_forward, forward_trades
 from quantbot.lab.registry import TrialRegistry, canonical_hash
 from quantbot.lab.specs import build_settings
-from quantbot.strategies import amd, fvg, orb, vwap
+from quantbot.strategies import amd, fvg, orb, smc, vwap
 from quantbot.strategies.events import EventSignalEngine
 
 
@@ -22,6 +22,7 @@ def gen(name, scfg, df):
     if name == "amd": return amd.events(df, {**amd.PARAMS, **{k: tuple(v) if isinstance(v, list) else v for k, v in scfg["params"].items()}})
     if name == "vwap": return vwap.events(df, scfg["params"])
     if name == "orb": return orb.events(df, scfg["params"])
+    if name.startswith("smc"): return smc.events(df, scfg["rule"], scfg["params"])
     return fvg.events(df, scfg["rule"], scfg["params"])
 
 

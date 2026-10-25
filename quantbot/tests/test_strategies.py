@@ -172,3 +172,52 @@ def test_backward_segment_is_strictly_before_the_original_start_and_requires_eno
     seg = rb.segment_before(deep, start, 10000)
     assert len(seg) == 20000 and seg.index[-1] < start
     assert rb.segment_before(deep, idx[5000], 10000) is None
+
+
+# ---------------------------------------------------------------- SMC OB + FVG ----------------------------------------------------
+def _htf_case(volume_boost=3.0):
+    """Barres HTF écrites à la main : 30 barres calmes puis [OB baissière, déplacement haussier, barre avec FVG]."""
+    from quantbot.strategies import smc
+    rng = np.random.default_rng(0)
+    n = 40
+    o = 100 + rng.normal(0, 0.2, n); c = o + rng.normal(0, 0.2, n); h = np.maximum(o, c) + 0.3; l = np.minimum(o, c) - 0.3; v = np.full(n, 100.0)
+    # i=30 : b0 baissière ; i=31 : déplacement (grand corps, clôture au sommet, volume fort, casse la structure) ; i=32 : gap haussier
+    o[30], c[30], h[30], l[30] = 100.4, 99.8, 100.6, 99.6
+    o[31], c[31], h[31], l[31] = 99.9, 103.5, 103.6, 99.8; v[31] = 100 * volume_boost
+    o[32], c[32], h[32], l[32] = 103.4, 104.0, 104.2, 101.0
+    a = {"o": o, "h": h, "l": l, "c": c, "v": v}
+    return smc, a
+
+
+def test_smc_masks_detect_exactly_the_ob_plus_fvg_leg_and_nothing_else():
+    smc, a = _htf_case()
+    m = smc.setup_masks(a, {**smc.PARAMS})
+    assert np.flatnonzero(m["bull"]).tolist() == [32] and not m["bear"].any()
+    assert m["ob_lo"][32] == pytest.approx(99.6) and m["ob_hi"][32] == pytest.approx(100.6) and m["fvg_lo"][32] == pytest.approx(100.6) and m["fvg_hi"][32] == pytest.approx(101.0)
+
+
+def test_smc_volume_filter_rejects_a_displacement_without_volume():
+    smc, a = _htf_case(volume_boost=1.0)
+    assert not smc.setup_masks(a, {**smc.PARAMS})["bull"].any()
+
+
+def test_smc_target_is_a_confirmed_pivot_with_at_least_min_rr_or_no_trade():
+    smc, a = _htf_case()
+    p = {**smc.PARAMS}
+    a["h"] = a["h"].copy(); a["h"][10] = 110.0; a["h"][9] = 101.0; a["h"][11] = 101.0; a["h"][8] = 101; a["h"][12] = 101      # pivot haut confirmé à 110
+    tgt = smc.swing_target(a, 33, "bullish", 100.8, 1.0, p)
+    assert tgt == pytest.approx(min(110.0, 100.8 + p["max_rr"] * 1.0))                                                      # plafonné à max_rr x risque
+    assert smc.swing_target(a, 33, "bullish", 100.8, 20.0, p) is None                                                       # risque trop grand : 3 R inatteignable
+    assert smc.swing_target(a, 11, "bullish", 100.8, 1.0, p) is None                                                        # le pivot n'est pas encore CONFIRMÉ à k=11
+
+
+def test_smc_events_are_causal_rare_and_always_at_least_min_rr():
+    df = generate_synthetic(6000, seed=8, freq="15min", start="2024-03-01")
+    from quantbot.strategies import smc
+    p = {"bias": "none", "vol_mult": 0.8, "body_atr": 0.8, "gap_atr": 0.1, "clv": 0.6, "bos_n": 5, "expiry": 48}
+    full = smc.events(df, "1h", p)
+    for k in (2500, 4100):
+        part = smc.events(df.iloc[:k], "1h", p); cut = df.index[k - 1]
+        assert [_key(e) for e in part] == [_key(e) for e in full if e.ts <= cut], k
+    assert all(e.meta["rr"] >= 3.0 - 1e-9 for e in full)
+    assert 3 <= len(full) < len(df) / 20                                                                                          # rare : bien moins d'un setup par 20 barres de base
