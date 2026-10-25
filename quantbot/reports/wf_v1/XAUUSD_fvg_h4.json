@@ -1,0 +1,106 @@
+{
+ "instrument": "XAUUSD",
+ "strategy": "fvg_h4",
+ "grid": {
+  "buf": [
+   0.1,
+   0.25,
+   0.5
+  ],
+  "expiry": [
+   25,
+   50,
+   100
+  ]
+ },
+ "n_configs": 9,
+ "trades_per_config": {
+  "buf=0.1,expiry=25": 552,
+  "buf=0.1,expiry=50": 582,
+  "buf=0.1,expiry=100": 613,
+  "buf=0.25,expiry=25": 523,
+  "buf=0.25,expiry=50": 548,
+  "buf=0.25,expiry=100": 577,
+  "buf=0.5,expiry=25": 464,
+  "buf=0.5,expiry=50": 484,
+  "buf=0.5,expiry=100": 504
+ },
+ "walk": {
+  "train_days": 365,
+  "test_days": 90,
+  "min_train_trades": 30
+ },
+ "summary": {
+  "n_windows": 5,
+  "n_windows_traded": 5,
+  "n_oos_trades": 298,
+  "n_configs": 9,
+  "oos_expectancy_R": 0.0437528506678057,
+  "oos_profit_factor": 1.1024166921343634,
+  "oos_positive_window_share": 0.6,
+  "mean_train_expectancy_of_chosen": 0.0657328348831167,
+  "unselected_average_config_oos_R": 0.08923790364995594,
+  "distinct_choices": 2,
+  "oos_sign_flip_p": 0.233,
+  "optimism_gap_R": 0.021979984215310992
+ },
+ "counted_as_new_trial": true,
+ "n_trials_total": 48,
+ "windows": [
+  {
+   "train_start": "2023-05-29 05:45:00",
+   "test_start": "2024-05-28 05:45:00",
+   "test_end": "2024-08-26 05:45:00",
+   "chosen": "buf=0.1,expiry=100",
+   "train_E": 0.008592643921355525,
+   "train_n": 235,
+   "oos_n": 65,
+   "oos_E": 0.12403067790517243,
+   "note": ""
+  },
+  {
+   "train_start": "2023-08-27 05:45:00",
+   "test_start": "2024-08-26 05:45:00",
+   "test_end": "2024-11-24 05:45:00",
+   "chosen": "buf=0.1,expiry=100",
+   "train_E": 0.04352220364545734,
+   "train_n": 248,
+   "oos_n": 64,
+   "oos_E": -0.11878596884860715,
+   "note": ""
+  },
+  {
+   "train_start": "2023-11-25 05:45:00",
+   "test_start": "2024-11-24 05:45:00",
+   "test_end": "2025-02-22 05:45:00",
+   "chosen": "buf=0.1,expiry=100",
+   "train_E": 0.003739251928029245,
+   "train_n": 251,
+   "oos_n": 70,
+   "oos_E": 0.024379218679199288,
+   "note": ""
+  },
+  {
+   "train_start": "2024-02-23 05:45:00",
+   "test_start": "2025-02-22 05:45:00",
+   "test_end": "2025-05-23 05:45:00",
+   "chosen": "buf=0.5,expiry=25",
+   "train_E": 0.08871208289898273,
+   "train_n": 202,
+   "oos_n": 45,
+   "oos_E": 0.24746468867254454,
+   "note": ""
+  },
+  {
+   "train_start": "2024-05-23 05:45:00",
+   "test_start": "2025-05-23 05:45:00",
+   "test_end": "2025-08-21 05:45:00",
+   "chosen": "buf=0.5,expiry=25",
+   "train_E": 0.18409799202175867,
+   "train_n": 195,
+   "oos_n": 54,
+   "oos_E": -0.0048851640060686265,
+   "note": ""
+  }
+ ]
+}

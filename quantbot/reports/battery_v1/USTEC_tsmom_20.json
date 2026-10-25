@@ -1,0 +1,20 @@
+{
+ "instrument": "USTEC",
+ "hypothesis": "tsmom_20",
+ "n_days": 597,
+ "mean_bps": 4.419144679505109,
+ "sharpe_annual": 0.5402802829923358,
+ "t_nw": 0.8835220335748712,
+ "hit_rate": 0.5142378559463987,
+ "mean_first_half_bps": 4.312416507803497,
+ "mean_second_half_bps": 4.525515900799691,
+ "max_drawdown_unit": 0.28253981128747974,
+ "bh_alpha": 0.0005185246749665003,
+ "bh_beta": -0.06415936918109706,
+ "bh_t_alpha": 0.948955497279631,
+ "mean_bps_costs_x2": 4.374231481846319,
+ "cost_rt_bps": 0.6308983294658169,
+ "n_trades": 42,
+ "dsr": 8.854165389937663e-05,
+ "verdict": "WATCH"
+}

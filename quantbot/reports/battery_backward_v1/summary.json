@@ -1,0 +1,150 @@
+{
+ "reality_check": {
+  "p": 0.9300349825087456,
+  "best": 5,
+  "n_days": 3582
+ },
+ "n_trials_registry": 55,
+ "n_hypotheses": 6,
+ "days": 3582,
+ "results": {
+  "XAUUSD|tsmom_20": {
+   "n_days": 3416,
+   "mean_bps": -0.7066345423967857,
+   "sharpe_annual": -0.1141600171992093,
+   "t_nw": -0.42655070411219737,
+   "hit_rate": 0.48916861826697894,
+   "mean_first_half_bps": 0.6715355318969222,
+   "mean_second_half_bps": -2.0848046166904934,
+   "max_drawdown_unit": 0.5801014400950444,
+   "bh_alpha": -8.559942344199615e-05,
+   "bh_beta": 0.06231473494979186,
+   "bh_t_alpha": -0.511875369783721,
+   "mean_bps_costs_x2": -0.8824526931202974,
+   "cost_rt_bps": 1.758696348086433,
+   "n_trades": 341,
+   "segment": {
+    "start": "2009-09-22 16:00:00",
+    "end": "2023-05-29 05:00:00",
+    "bars": 79976
+   },
+   "dsr": 0.0,
+   "verdict": "REJET\u00c9"
+  },
+  "XAUUSD|tsmom_60": {
+   "n_days": 3416,
+   "mean_bps": 0.2739872155512732,
+   "sharpe_annual": 0.04471103882883814,
+   "t_nw": 0.1644561850027321,
+   "hit_rate": 0.5017564402810304,
+   "mean_first_half_bps": -1.4202413788066872,
+   "mean_second_half_bps": 1.9682158099092335,
+   "max_drawdown_unit": 0.5087386838247703,
+   "bh_alpha": -1.1102919304922796e-05,
+   "bh_beta": 0.16063366982262903,
+   "bh_t_alpha": -0.06560102330260197,
+   "mean_bps_costs_x2": 0.2006223942391193,
+   "cost_rt_bps": 1.758696348086433,
+   "n_trades": 142,
+   "segment": {
+    "start": "2009-09-22 16:00:00",
+    "end": "2023-05-29 05:00:00",
+    "bars": 79976
+   },
+   "dsr": 0.0,
+   "verdict": "REJET\u00c9"
+  },
+  "XAUUSD|reversal_1d": {
+   "n_days": 3416,
+   "mean_bps": -0.17085091661974508,
+   "sharpe_annual": -0.02752403332264905,
+   "t_nw": -0.10356056038640543,
+   "hit_rate": 0.5196135831381733,
+   "mean_first_half_bps": 1.7213473863010884,
+   "mean_second_half_bps": -2.063049219540579,
+   "max_drawdown_unit": 0.53980213605385,
+   "bh_alpha": -1.7668495666406978e-05,
+   "bh_beta": 0.0024340346054830065,
+   "bh_t_alpha": -0.10633283839145843,
+   "mean_bps_costs_x2": -1.0957625060041944,
+   "cost_rt_bps": 1.758696348086433,
+   "n_trades": 1797,
+   "segment": {
+    "start": "2009-09-22 16:00:00",
+    "end": "2023-05-29 05:00:00",
+    "bars": 79976
+   },
+   "dsr": 0.0,
+   "verdict": "REJET\u00c9"
+  },
+  "EURUSD|tsmom_20": {
+   "n_days": 3330,
+   "mean_bps": -1.03173579108192,
+   "sharpe_annual": -0.3137262345027589,
+   "t_nw": -1.1467048736130776,
+   "hit_rate": 0.4816816816816817,
+   "mean_first_half_bps": -0.5532353499941136,
+   "mean_second_half_bps": -1.5102362321697267,
+   "max_drawdown_unit": 0.4228177981930109,
+   "bh_alpha": -0.0001059190733322618,
+   "bh_beta": -0.07234010402749354,
+   "bh_t_alpha": -1.1823010427738878,
+   "mean_bps_costs_x2": -1.1924565118026411,
+   "cost_rt_bps": 1.6,
+   "n_trades": 334,
+   "segment": {
+    "start": "2010-09-14 14:00:00",
+    "end": "2023-08-03 10:00:00",
+    "bars": 79990
+   },
+   "dsr": 0.0,
+   "verdict": "REJET\u00c9"
+  },
+  "EURUSD|tsmom_60": {
+   "n_days": 3330,
+   "mean_bps": 0.21032777744988507,
+   "sharpe_annual": 0.06497888617686633,
+   "t_nw": 0.2376944791361061,
+   "hit_rate": 0.4894894894894895,
+   "mean_first_half_bps": 0.006890127380089471,
+   "mean_second_half_bps": 0.41376542751968076,
+   "max_drawdown_unit": 0.3007087304288316,
+   "bh_alpha": 1.424621907067472e-05,
+   "bh_beta": -0.17881675225701663,
+   "bh_t_alpha": 0.16457069590125198,
+   "mean_bps_costs_x2": 0.10870615582826318,
+   "cost_rt_bps": 1.6,
+   "n_trades": 212,
+   "segment": {
+    "start": "2010-09-14 14:00:00",
+    "end": "2023-08-03 10:00:00",
+    "bars": 79990
+   },
+   "dsr": 0.0,
+   "verdict": "REJET\u00c9"
+  },
+  "EURUSD|reversal_1d": {
+   "n_days": 3330,
+   "mean_bps": 0.34866501658591403,
+   "sharpe_annual": 0.10538193248965948,
+   "t_nw": 0.3915564561956472,
+   "hit_rate": 0.5045045045045045,
+   "mean_first_half_bps": 2.0563925388236646,
+   "mean_second_half_bps": -1.3590625056518364,
+   "max_drawdown_unit": 0.31749538218494033,
+   "bh_alpha": 3.325175074817323e-05,
+   "bh_beta": -0.042546528713874716,
+   "bh_t_alpha": 0.3723808582779015,
+   "mean_bps_costs_x2": -0.47415780623690895,
+   "cost_rt_bps": 1.6,
+   "n_trades": 1712,
+   "segment": {
+    "start": "2010-09-14 14:00:00",
+    "end": "2023-08-03 10:00:00",
+    "bars": 79990
+   },
+   "dsr": 0.0,
+   "verdict": "REJET\u00c9"
+  }
+ }
+}

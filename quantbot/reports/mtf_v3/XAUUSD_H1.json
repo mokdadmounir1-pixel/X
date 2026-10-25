@@ -1,0 +1,195 @@
+{
+ "instrument": "XAUUSD",
+ "timeframe": "H1",
+ "spec": "mtf_v3",
+ "model_hash": "4c795d7b4dfccfb931b82716f7d96aad6e1dba2d2a3f7ecca51bd1bbbc6dba64",
+ "cells": {
+  "long|\u00e9tat-1|score>=0.65": {
+   "n_train": 225,
+   "E_train": -0.0938,
+   "n_valid": 0,
+   "E_valid": null
+  },
+  "long|\u00e9tat-1|score 0.35-0.65": {
+   "n_train": 242,
+   "E_train": -0.0094,
+   "n_valid": 0,
+   "E_valid": null
+  },
+  "long|\u00e9tat+0|score>=0.65": {
+   "n_train": 1528,
+   "E_train": 0.0613,
+   "n_valid": 912,
+   "E_valid": 0.0985
+  },
+  "long|\u00e9tat+0|score 0.35-0.65": {
+   "n_train": 2146,
+   "E_train": 0.1398,
+   "n_valid": 1126,
+   "E_valid": 0.1946
+  },
+  "long|\u00e9tat+1|score>=0.65": {
+   "n_train": 1349,
+   "E_train": 0.1928,
+   "n_valid": 1220,
+   "E_valid": 0.0928
+  },
+  "long|\u00e9tat+1|score 0.35-0.65": {
+   "n_train": 1716,
+   "E_train": 0.0998,
+   "n_valid": 1561,
+   "E_valid": 0.2452
+  },
+  "short|\u00e9tat-1|score>=0.65": {
+   "n_train": 216,
+   "E_train": 0.0021,
+   "n_valid": 0,
+   "E_valid": null
+  },
+  "short|\u00e9tat-1|score 0.35-0.65": {
+   "n_train": 265,
+   "E_train": 0.041,
+   "n_valid": 0,
+   "E_valid": null
+  },
+  "short|\u00e9tat+0|score>=0.65": {
+   "n_train": 1525,
+   "E_train": -0.1482,
+   "n_valid": 822,
+   "E_valid": -0.0697
+  },
+  "short|\u00e9tat+0|score 0.35-0.65": {
+   "n_train": 2066,
+   "E_train": -0.1727,
+   "n_valid": 1156,
+   "E_valid": -0.1331
+  },
+  "short|\u00e9tat+1|score>=0.65": {
+   "n_train": 1232,
+   "E_train": -0.0139,
+   "n_valid": 1120,
+   "E_valid": -0.1043
+  },
+  "short|\u00e9tat+1|score 0.35-0.65": {
+   "n_train": 1614,
+   "E_train": -0.0784,
+   "n_valid": 1472,
+   "E_valid": -0.0548
+  }
+ },
+ "curve_points": {
+  "long|-1": 224,
+  "short|-1": 221,
+  "long|0": 1696,
+  "short|0": 1674,
+  "long|1": 1307,
+  "short|1": 1414
+ },
+ "state_share_train": {
+  "-1": 0.06735508096690918,
+  "0": 0.5203003989673786,
+  "1": 0.41234452006571226
+ },
+ "evaluation": {
+  "verdict": "FAIL",
+  "reason": "\u00e9choue : expectancy,null_test,risk_envelope,deflated_sharpe | \u00e9liminatoire(s) : null_test,risk_envelope,deflated_sharpe",
+  "n_trials": 14,
+  "spec_hash": "5484313ac3385e3c9d3920e27c3d485ffbf69a8dbad999952f664202c1d98842",
+  "data_hash": "ccdff00197d79a69ddce67986d0cc272586ccd0d757bb42667a2d0ae2bf7300a",
+  "metrics": {
+   "n_trades": 524,
+   "expectancy_R": 0.12761240167280324,
+   "profit_factor": 1.2673264816444394,
+   "years": 0.9801505817932923,
+   "sharpe_per_trade": 0.10725062968025184,
+   "worst_trade_R": -1.3014561827225661,
+   "median_R": -0.6253760437433146,
+   "total_return": 0.3840474462990833,
+   "max_drawdown": 0.08624575451086383
+  },
+  "gates": [
+   {
+    "name": "n_trades",
+    "ok": true,
+    "value": 524,
+    "threshold": 60,
+    "eliminatory": true
+   },
+   {
+    "name": "expectancy",
+    "ok": false,
+    "value": 0.1276,
+    "threshold": 0.15,
+    "eliminatory": false
+   },
+   {
+    "name": "profit_factor",
+    "ok": true,
+    "value": 1.267,
+    "threshold": 1.2,
+    "eliminatory": false
+   },
+   {
+    "name": "null_test",
+    "ok": false,
+    "value": 0.008,
+    "threshold": 0.0075,
+    "eliminatory": true
+   },
+   {
+    "name": "costs_x2",
+    "ok": true,
+    "value": 0.1204,
+    "threshold": 0.0,
+    "eliminatory": true
+   },
+   {
+    "name": "monte_carlo_p5",
+    "ok": true,
+    "value": 1.1005,
+    "threshold": 1.0,
+    "eliminatory": true
+   },
+   {
+    "name": "top3_share",
+    "ok": true,
+    "value": 0.091,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "folds_positive",
+    "ok": true,
+    "value": 0.75,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "risk_envelope",
+    "ok": false,
+    "value": {
+     "dd95_pct": 14.35,
+     "streak95": 15.0
+    },
+    "threshold": {
+     "max_pct": 6.0
+    },
+    "eliminatory": true
+   },
+   {
+    "name": "worst_trade",
+    "ok": true,
+    "value": -1.301,
+    "threshold": -5.0,
+    "eliminatory": true
+   },
+   {
+    "name": "deflated_sharpe",
+    "ok": false,
+    "value": 0.3311,
+    "threshold": 0.5,
+    "eliminatory": true
+   }
+  ]
+ }
+}

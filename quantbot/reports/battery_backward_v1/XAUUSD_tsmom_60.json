@@ -1,0 +1,25 @@
+{
+ "instrument": "XAUUSD",
+ "hypothesis": "tsmom_60",
+ "n_days": 3416,
+ "mean_bps": 0.2739872155512732,
+ "sharpe_annual": 0.04471103882883814,
+ "t_nw": 0.1644561850027321,
+ "hit_rate": 0.5017564402810304,
+ "mean_first_half_bps": -1.4202413788066872,
+ "mean_second_half_bps": 1.9682158099092335,
+ "max_drawdown_unit": 0.5087386838247703,
+ "bh_alpha": -1.1102919304922796e-05,
+ "bh_beta": 0.16063366982262903,
+ "bh_t_alpha": -0.06560102330260197,
+ "mean_bps_costs_x2": 0.2006223942391193,
+ "cost_rt_bps": 1.758696348086433,
+ "n_trades": 142,
+ "segment": {
+  "start": "2009-09-22 16:00:00",
+  "end": "2023-05-29 05:00:00",
+  "bars": 79976
+ },
+ "dsr": 0.0,
+ "verdict": "REJET\u00c9"
+}

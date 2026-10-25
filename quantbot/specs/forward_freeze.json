@@ -1,0 +1,23 @@
+{
+ "name": "forward_freeze",
+ "preregistered": "2026-10-25, AVANT l'arrivée de toute donnée postérieure au gel (marché fermé depuis le vendredi 23 octobre 2026)",
+ "freeze_utc": "2026-10-24T00:00:00+00:00",
+ "definition": "L'échantillon FUTUR est l'ensemble des barres dont l'heure UTC reconstruite est strictement postérieure à freeze_utc, collectées par scripts/data_daemon.py dans data/live/. Les barres antérieures (y compris les ~1000 premières barres du magasin qui recouvrent la période de recherche) ne font PAS partie de l'échantillon futur.",
+ "why": "Aucun des 48 essais du registre n'a vu ces barres : c'est la seule source d'évaluation réellement hors échantillon qui ne coûte pas la tranche verrouillée.",
+ "frozen_specs_sha256": {
+  "specs/baseline_v0.json": "5aee7d841363a9bb012b5865d26c2b23149a3ff25915be60df7350c7e1249bce",
+  "specs/baseline_v1.json": "410daa8f5a3ab30ca05b9cdca6720bd50eb3c3d9fcf37f0b60633d7e6b8164af",
+  "specs/v2_calibrated.json": "8b2fbc5932b9ef906f8f89ba7eab824dc7a2c1ae13dba1568ab8c16e97936cc8",
+  "specs/mtf_v3.json": "2621681b7fb5c02c6c53204107d5d18559a0c61fdb6e084d49a1b47e6ee81c5c",
+  "specs/battery_v1.json": "56ae2d9e0d620d8c5490828ab56e937d3ee79bfa367a2f1d48bc2a6821725288",
+  "specs/inst_strategies_v1.json": "ceced2b4bd48b2b20d8bc61dac09a2e988bb23b2765976101ebf99c44b56a9ce",
+  "specs/wf_v1.json": "997070d4c5f53606aa4075b05f348bfd9215e9c5aa298443a3b98a5a14e81b25",
+  "specs/gold_scalp_v1.json": "821e473f19e898f029a85c60143178ea32f5b8513c53adb3abbc38cdc9927dcd"
+ },
+ "rules": [
+  "Les spécifications ci-dessus sont figées : toute modification crée une NOUVELLE spec qui n'hérite pas de ce gel.",
+  "Aucune lecture de l'échantillon futur avant qu'une spec d'évaluation préenregistrée (specs/forward_*.json) n'existe et soit commitée.",
+  "Une évaluation sur l'échantillon futur n'est lue qu'une fois par stratégie candidate, et seulement quand elle compte au moins 60 trades futurs ; chaque lecture compte comme un essai au registre.",
+  "Aucun résultat sur l'échantillon futur ne justifie à lui seul une approbation : la décision d'approuver reste humaine."
+ ]
+}

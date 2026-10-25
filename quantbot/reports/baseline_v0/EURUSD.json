@@ -1,0 +1,108 @@
+{
+ "instrument": "EURUSD",
+ "spec": "baseline_v0",
+ "evaluation": {
+  "verdict": "FAIL",
+  "reason": "\u00e9choue : expectancy,profit_factor,null_test,costs_x2,monte_carlo_p5,top3_share,folds_positive,risk_envelope,deflated_sharpe | \u00e9liminatoire(s) : null_test,costs_x2,monte_carlo_p5,risk_envelope,deflated_sharpe",
+  "n_trials": 1,
+  "spec_hash": "6dc7a9cf645cc049aab58828c93d0708b231a7dec9222a1e82c083a33fa5faa6",
+  "data_hash": "eb3551f84f0601659175727e2a7acd03d1b45e137503af4612a45bb8a68e05f7",
+  "metrics": {
+   "n_trades": 2956,
+   "expectancy_R": -0.25910390310423786,
+   "profit_factor": 0.692991036598319,
+   "years": 2.223134839151266,
+   "sharpe_per_trade": -0.1803161906311528,
+   "total_return": -0.7923790458045414,
+   "max_drawdown": 0.7942826958203489
+  },
+  "gates": [
+   {
+    "name": "n_trades",
+    "ok": true,
+    "value": 2956,
+    "threshold": 60,
+    "eliminatory": true
+   },
+   {
+    "name": "expectancy",
+    "ok": false,
+    "value": -0.2591,
+    "threshold": 0.15,
+    "eliminatory": false
+   },
+   {
+    "name": "profit_factor",
+    "ok": false,
+    "value": 0.693,
+    "threshold": 1.2,
+    "eliminatory": false
+   },
+   {
+    "name": "null_test",
+    "ok": false,
+    "value": 1.0,
+    "threshold": 0.1,
+    "eliminatory": true
+   },
+   {
+    "name": "costs_x2",
+    "ok": false,
+    "value": -0.4717,
+    "threshold": 0.0,
+    "eliminatory": true
+   },
+   {
+    "name": "monte_carlo_p5",
+    "ok": false,
+    "value": -3.4637,
+    "threshold": 1.0,
+    "eliminatory": true
+   },
+   {
+    "name": "top3_share",
+    "ok": false,
+    "value": 1.0,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "folds_positive",
+    "ok": false,
+    "value": 0.0,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "risk_envelope",
+    "ok": false,
+    "value": {
+     "dd95_pct": 218.57,
+     "streak95": 23.0
+    },
+    "threshold": {
+     "max_pct": 6.0
+    },
+    "eliminatory": true
+   },
+   {
+    "name": "deflated_sharpe",
+    "ok": false,
+    "value": 0.0,
+    "threshold": 0.5,
+    "eliminatory": true
+   }
+  ]
+ },
+ "costs_used": {
+  "spread": 9e-05,
+  "fee_rate": 2.5e-05,
+  "slippage": 1e-05,
+  "measured": {
+   "spread_frac": null,
+   "reliable": false,
+   "zero_share": 0.429
+  }
+ },
+ "holes": []
+}

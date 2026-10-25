@@ -1,0 +1,25 @@
+{
+ "instrument": "XAUUSD",
+ "hypothesis": "reversal_1d",
+ "n_days": 3416,
+ "mean_bps": -0.17085091661974508,
+ "sharpe_annual": -0.02752403332264905,
+ "t_nw": -0.10356056038640543,
+ "hit_rate": 0.5196135831381733,
+ "mean_first_half_bps": 1.7213473863010884,
+ "mean_second_half_bps": -2.063049219540579,
+ "max_drawdown_unit": 0.53980213605385,
+ "bh_alpha": -1.7668495666406978e-05,
+ "bh_beta": 0.0024340346054830065,
+ "bh_t_alpha": -0.10633283839145843,
+ "mean_bps_costs_x2": -1.0957625060041944,
+ "cost_rt_bps": 1.758696348086433,
+ "n_trades": 1797,
+ "segment": {
+  "start": "2009-09-22 16:00:00",
+  "end": "2023-05-29 05:00:00",
+  "bars": 79976
+ },
+ "dsr": 0.0,
+ "verdict": "REJET\u00c9"
+}

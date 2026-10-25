@@ -1,0 +1,124 @@
+{
+ "instrument": "EURUSD",
+ "strategy": "vwap",
+ "label": "#5 VWAP bandes \u00b12,5\u03c3",
+ "n_events": 614,
+ "by_side": {
+  "long": {
+   "n": 301,
+   "E_R": -0.0563
+  },
+  "short": {
+   "n": 308,
+   "E_R": -0.07
+  }
+ },
+ "buy_hold_research_pct": 6.2,
+ "rejections": {},
+ "evaluation": {
+  "verdict": "FAIL",
+  "reason": "\u00e9choue : expectancy,profit_factor,null_test,costs_x2,monte_carlo_p5,top3_share,folds_positive,risk_envelope,deflated_sharpe | \u00e9liminatoire(s) : null_test,costs_x2,monte_carlo_p5,risk_envelope,deflated_sharpe",
+  "n_trials": 34,
+  "spec_hash": "3cfb20e6688c9cd45d216f5c83ad4d90b32bea0284a93cd13b5140cbebe2ec6d",
+  "data_hash": "e9602ce46ad6776a62dad8de367efa7d8c61111810277bda60dcfe3b0af61aaf",
+  "metrics": {
+   "n_trades": 609,
+   "expectancy_R": -0.06322479871482964,
+   "profit_factor": 0.681491696770674,
+   "years": 2.223134839151266,
+   "sharpe_per_trade": -0.14963705257880008,
+   "worst_trade_R": -1.049787081439047,
+   "median_R": -0.19536717794876257,
+   "total_return": -0.1762628741648169,
+   "max_drawdown": 0.19421299161520303
+  },
+  "gates": [
+   {
+    "name": "n_trades",
+    "ok": true,
+    "value": 609,
+    "threshold": 60,
+    "eliminatory": true
+   },
+   {
+    "name": "expectancy",
+    "ok": false,
+    "value": -0.0632,
+    "threshold": 0.15,
+    "eliminatory": false
+   },
+   {
+    "name": "profit_factor",
+    "ok": false,
+    "value": 0.681,
+    "threshold": 1.2,
+    "eliminatory": false
+   },
+   {
+    "name": "null_test",
+    "ok": false,
+    "value": 1.0,
+    "threshold": 0.00309,
+    "eliminatory": true
+   },
+   {
+    "name": "costs_x2",
+    "ok": false,
+    "value": -0.1354,
+    "threshold": 0.0,
+    "eliminatory": true
+   },
+   {
+    "name": "monte_carlo_p5",
+    "ok": false,
+    "value": 0.7276,
+    "threshold": 1.0,
+    "eliminatory": true
+   },
+   {
+    "name": "top3_share",
+    "ok": false,
+    "value": 1.0,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "folds_positive",
+    "ok": false,
+    "value": 0.25,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "risk_envelope",
+    "ok": false,
+    "value": {
+     "dd95_pct": 14.63,
+     "streak95": 25.0
+    },
+    "threshold": {
+     "max_pct": 6.0
+    },
+    "eliminatory": true
+   },
+   {
+    "name": "worst_trade",
+    "ok": true,
+    "value": -1.05,
+    "threshold": -5.0,
+    "eliminatory": true
+   },
+   {
+    "name": "deflated_sharpe",
+    "ok": false,
+    "value": 0.0,
+    "threshold": 0.5,
+    "eliminatory": true
+   }
+  ]
+ },
+ "costs_used": {
+  "spread": 9e-05,
+  "max_leverage": 2.439591776645547
+ }
+}

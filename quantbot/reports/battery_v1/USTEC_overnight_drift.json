@@ -1,0 +1,20 @@
+{
+ "instrument": "USTEC",
+ "hypothesis": "overnight_drift",
+ "n_days": 598,
+ "mean_bps": 7.14201560398742,
+ "sharpe_annual": 1.3709702367995802,
+ "t_nw": 2.199013469105079,
+ "hit_rate": 0.5702341137123745,
+ "mean_first_half_bps": 6.678010642847111,
+ "mean_second_half_bps": 7.606020565127728,
+ "max_drawdown_unit": 0.18348693069903566,
+ "bh_alpha": 0.00025708551936766405,
+ "bh_beta": 0.3658975573696243,
+ "bh_t_alpha": 1.006014913392406,
+ "mean_bps_costs_x2": 6.511117274521603,
+ "cost_rt_bps": 0.6308983294658169,
+ "n_trades": 598,
+ "dsr": 0.00652902014001816,
+ "verdict": "WATCH"
+}

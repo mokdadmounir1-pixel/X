@@ -1,0 +1,7 @@
+Reality Check (6 hypothèses, 3582 jours) : p = 0.9300349825087456 | essais cumulés = 67
+EURUSD   reversal_1d  2010-09-14→2023-08-03 jours= 3330 moy=  0.35bps x2= -0.47 Sharpe= 0.11 t_NW= 0.39 1/2=  2.06 2/2= -1.36 alpha_t= 0.37 DSR=0.00 REJETÉ
+EURUSD   tsmom_60     2010-09-14→2023-08-03 jours= 3330 moy=  0.21bps x2=  0.11 Sharpe= 0.06 t_NW= 0.24 1/2=  0.01 2/2=  0.41 alpha_t= 0.16 DSR=0.00 REJETÉ
+XAUUSD   tsmom_60     2009-09-22→2023-05-29 jours= 3416 moy=  0.27bps x2=  0.20 Sharpe= 0.04 t_NW= 0.16 1/2= -1.42 2/2=  1.97 alpha_t=-0.07 DSR=0.00 REJETÉ
+XAUUSD   reversal_1d  2009-09-22→2023-05-29 jours= 3416 moy= -0.17bps x2= -1.10 Sharpe=-0.03 t_NW=-0.10 1/2=  1.72 2/2= -2.06 alpha_t=-0.11 DSR=0.00 REJETÉ
+XAUUSD   tsmom_20     2009-09-22→2023-05-29 jours= 3416 moy= -0.71bps x2= -0.88 Sharpe=-0.11 t_NW=-0.43 1/2=  0.67 2/2= -2.08 alpha_t=-0.51 DSR=0.00 REJETÉ
+EURUSD   tsmom_20     2010-09-14→2023-08-03 jours= 3330 moy= -1.03bps x2= -1.19 Sharpe=-0.31 t_NW=-1.15 1/2= -0.55 2/2= -1.51 alpha_t=-1.18 DSR=0.00 REJETÉ

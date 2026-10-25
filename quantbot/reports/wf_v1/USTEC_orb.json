@@ -1,0 +1,121 @@
+{
+ "instrument": "USTEC",
+ "strategy": "orb",
+ "grid": {
+  "vol_mult": [
+   1.0,
+   1.2,
+   1.5,
+   2.0
+  ],
+  "end_hour": [
+   11,
+   12,
+   14
+  ]
+ },
+ "n_configs": 12,
+ "trades_per_config": {
+  "end_hour=11,vol_mult=1.0": 222,
+  "end_hour=11,vol_mult=1.2": 222,
+  "end_hour=11,vol_mult=1.5": 215,
+  "end_hour=11,vol_mult=2.0": 167,
+  "end_hour=12,vol_mult=1.0": 286,
+  "end_hour=12,vol_mult=1.2": 284,
+  "end_hour=12,vol_mult=1.5": 269,
+  "end_hour=12,vol_mult=2.0": 201,
+  "end_hour=14,vol_mult=1.0": 335,
+  "end_hour=14,vol_mult=1.2": 324,
+  "end_hour=14,vol_mult=1.5": 305,
+  "end_hour=14,vol_mult=2.0": 225
+ },
+ "walk": {
+  "train_days": 365,
+  "test_days": 90,
+  "min_train_trades": 30
+ },
+ "summary": {
+  "n_windows": 6,
+  "n_windows_traded": 6,
+  "n_oos_trades": 138,
+  "n_configs": 12,
+  "oos_expectancy_R": 0.033867816902526555,
+  "oos_profit_factor": 1.125987303665248,
+  "oos_positive_window_share": 0.5,
+  "mean_train_expectancy_of_chosen": 0.0859685902127074,
+  "unselected_average_config_oos_R": -0.01918493767107776,
+  "distinct_choices": 4,
+  "oos_sign_flip_p": 0.295,
+  "optimism_gap_R": 0.05210077331018085
+ },
+ "counted_as_new_trial": true,
+ "n_trials_total": 46,
+ "windows": [
+  {
+   "train_start": "2023-03-30 03:00:00",
+   "test_start": "2024-03-29 03:00:00",
+   "test_end": "2024-06-27 03:00:00",
+   "chosen": "end_hour=11,vol_mult=2.0",
+   "train_E": 0.1363460190720234,
+   "train_n": 82,
+   "oos_n": 24,
+   "oos_E": 0.09111354275140597,
+   "note": ""
+  },
+  {
+   "train_start": "2023-06-28 03:00:00",
+   "test_start": "2024-06-27 03:00:00",
+   "test_end": "2024-09-25 03:00:00",
+   "chosen": "end_hour=12,vol_mult=1.0",
+   "train_E": 0.1218885336005779,
+   "train_n": 136,
+   "oos_n": 34,
+   "oos_E": -0.018615404947414187,
+   "note": ""
+  },
+  {
+   "train_start": "2023-09-26 03:00:00",
+   "test_start": "2024-09-25 03:00:00",
+   "test_end": "2024-12-24 03:00:00",
+   "chosen": "end_hour=14,vol_mult=1.0",
+   "train_E": 0.09979371859945003,
+   "train_n": 164,
+   "oos_n": 5,
+   "oos_E": -0.17452196103417933,
+   "note": ""
+  },
+  {
+   "train_start": "2023-12-25 03:00:00",
+   "test_start": "2024-12-24 03:00:00",
+   "test_end": "2025-03-24 03:00:00",
+   "chosen": "end_hour=14,vol_mult=1.0",
+   "train_E": 0.03856824619576778,
+   "train_n": 124,
+   "oos_n": 35,
+   "oos_E": 0.1055402858554385,
+   "note": ""
+  },
+  {
+   "train_start": "2024-03-24 03:00:00",
+   "test_start": "2025-03-24 03:00:00",
+   "test_end": "2025-06-22 03:00:00",
+   "chosen": "end_hour=14,vol_mult=1.5",
+   "train_E": 0.08308004098458645,
+   "train_n": 114,
+   "oos_n": 25,
+   "oos_E": -0.09931288542771742,
+   "note": ""
+  },
+  {
+   "train_start": "2024-06-22 03:00:00",
+   "test_start": "2025-06-22 03:00:00",
+   "test_end": "2025-09-20 03:00:00",
+   "chosen": "end_hour=14,vol_mult=1.0",
+   "train_E": 0.03613498282383887,
+   "train_n": 112,
+   "oos_n": 15,
+   "oos_E": 0.18543196071003276,
+   "note": ""
+  }
+ ]
+}

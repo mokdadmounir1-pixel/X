@@ -1,0 +1,20 @@
+{
+ "instrument": "XAUUSD",
+ "hypothesis": "reversal_1d",
+ "n_days": 600,
+ "mean_bps": 0.9904364878490513,
+ "sharpe_annual": 0.15400170025720092,
+ "t_nw": 0.21552196789590897,
+ "hit_rate": 0.5166666666666667,
+ "mean_first_half_bps": 2.883049553053412,
+ "mean_second_half_bps": -0.9021765773553091,
+ "max_drawdown_unit": 0.22702139159489865,
+ "bh_alpha": 0.00040092393323252763,
+ "bh_beta": -0.23531938368930902,
+ "bh_t_alpha": 0.8922085143239429,
+ "mean_bps_costs_x2": 0.7538731213970955,
+ "cost_rt_bps": 0.45565977486733283,
+ "n_trades": 311,
+ "dsr": 4.642388336084657e-06,
+ "verdict": "REJET\u00c9"
+}

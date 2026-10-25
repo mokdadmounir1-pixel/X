@@ -1,0 +1,118 @@
+{
+ "instrument": "USTEC",
+ "strategy": "orb",
+ "label": "#9 ORB 15 min + pullback",
+ "segment": {
+  "start": "2022-07-06 09:30:00",
+  "end": "2023-03-30 02:45:00",
+  "bars": 17144
+ },
+ "n_events": 101,
+ "buy_hold_pct": 8.9,
+ "evaluation": {
+  "verdict": "FAIL",
+  "reason": "\u00e9choue : null_test,deflated_sharpe | \u00e9liminatoire(s) : null_test,deflated_sharpe",
+  "n_trials": 65,
+  "spec_hash": "c11897566dab99ebaa93656faa4b85ef9b01e3669a041e341c786bb2a8c440c4",
+  "data_hash": "2abd650fd605c3f9534980800a1309260ee1f918efa6605c55ba1eebaf1a5383",
+  "metrics": {
+   "n_trades": 101,
+   "expectancy_R": 0.16602470370187333,
+   "profit_factor": 1.4402815998971685,
+   "years": 0.7282683093771389,
+   "sharpe_per_trade": 0.1584234538815671,
+   "worst_trade_R": -1.0991257429092844,
+   "median_R": 0.10017664059296966,
+   "total_return": 0.08593186073138326,
+   "max_drawdown": 0.023162077017048536
+  },
+  "gates": [
+   {
+    "name": "n_trades",
+    "ok": true,
+    "value": 101,
+    "threshold": 60,
+    "eliminatory": true
+   },
+   {
+    "name": "expectancy",
+    "ok": true,
+    "value": 0.166,
+    "threshold": 0.15,
+    "eliminatory": false
+   },
+   {
+    "name": "profit_factor",
+    "ok": true,
+    "value": 1.44,
+    "threshold": 1.2,
+    "eliminatory": false
+   },
+   {
+    "name": "null_test",
+    "ok": false,
+    "value": 0.026,
+    "threshold": 0.00162,
+    "eliminatory": true
+   },
+   {
+    "name": "costs_x2",
+    "ok": true,
+    "value": 0.1433,
+    "threshold": 0.0,
+    "eliminatory": true
+   },
+   {
+    "name": "monte_carlo_p5",
+    "ok": true,
+    "value": 1.0155,
+    "threshold": 1.0,
+    "eliminatory": true
+   },
+   {
+    "name": "top3_share",
+    "ok": true,
+    "value": 0.356,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "folds_positive",
+    "ok": true,
+    "value": 1.0,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "risk_envelope",
+    "ok": true,
+    "value": {
+     "dd95_pct": 5.31,
+     "streak95": 8.0
+    },
+    "threshold": {
+     "max_pct": 6.0
+    },
+    "eliminatory": true
+   },
+   {
+    "name": "worst_trade",
+    "ok": true,
+    "value": -1.099,
+    "threshold": -5.0,
+    "eliminatory": true
+   },
+   {
+    "name": "deflated_sharpe",
+    "ok": false,
+    "value": 0.2771,
+    "threshold": 0.5,
+    "eliminatory": true
+   }
+  ]
+ },
+ "costs_used": {
+  "spread": 0.00016273260592935854,
+  "max_leverage": 1.0634923299432877
+ }
+}

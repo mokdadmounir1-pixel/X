@@ -1,0 +1,216 @@
+{
+ "name": "crypto_paper_v1",
+ "parent": "inst_strategies_v1",
+ "preregistered": "2026-10-25 : SIMULATION PAPER uniquement ; aucune validation, aucun essai compté, aucune lecture de période verrouillée",
+ "origin": "Mêmes stratégies figées que inst_strategies_v1 (sans l'ORB, spécifique à l'ouverture de New York), appliquées à BTC-USD et ETH-USD via l'API publique de Coinbase.",
+ "hypothesis": "Voir ce que ces règles figées font sur des barres crypto réelles, en simulation, pour collecter des trades et des coûts réalistes. Un éventuel jugement formel exigera une NOUVELLE spec préenregistrée (loader UTC, données exportées, essais comptés).",
+ "instruments": {
+  "BTC-USD": "BTC-USD_M15.csv",
+  "ETH-USD": "ETH-USD_M15.csv"
+ },
+ "lock_months": 12,
+ "lock_min_frac": 0.2,
+ "clock": "UTC natif (Coinbase)",
+ "costs": {
+  "_note": "HYPOTHÈSES déclarées, à remplacer par le palier de frais RÉEL du compte : les frais Coinbase de détail sont élevés et tuent la plupart des stratégies courtes ; Coinbase est ici une source de DONNÉES et de simulation, pas un lieu d'exécution décidé.",
+  "BTC-USD": {
+   "spread_frac": 0.0002,
+   "fee_rate": 0.004,
+   "slippage": 0.0005,
+   "basis": "HYPOTHÈSE : frais taker ~0,40 % par côté (palier intermédiaire de détail, à vérifier sur le compte), spread ~0,02-0,03 %, glissement 0,05 %"
+  },
+  "ETH-USD": {
+   "spread_frac": 0.0003,
+   "fee_rate": 0.004,
+   "slippage": 0.0005,
+   "basis": "HYPOTHÈSE : frais taker ~0,40 % par côté (palier intermédiaire de détail, à vérifier sur le compte), spread ~0,02-0,03 %, glissement 0,05 %"
+  }
+ },
+ "settings": {
+  "tolerance": {
+   "tolerance_percentage": 0.15,
+   "deviation_threshold": 0.35,
+   "min_score": 0.6
+  },
+  "detection": {
+   "pivot_order": 3,
+   "atr_period": 14,
+   "max_pivot_age": 12,
+   "context_bars": 5,
+   "context_weight": 0.25,
+   "context_move_atr": 2.0,
+   "min_height_atr": 1.5,
+   "min_bars_between": 4,
+   "enabled": null
+  },
+  "signals": {
+   "min_confidence": 0.55,
+   "category_weights": {
+    "candle": 0.8,
+    "chart": 1.0,
+    "harmonic": 0.9
+   },
+   "unconfirmed_penalty": 0.8,
+   "require_confirmation": false,
+   "min_edge": 0.1,
+   "confluence_bonus": 0.05,
+   "trend_filter": "none",
+   "ema_fast": 20,
+   "ema_slow": 50,
+   "counter_trend_penalty": 0.6,
+   "htf_rule": "4h",
+   "atr_floor_frac": 0.5
+  },
+  "risk": {
+   "risk_per_trade": 0.005,
+   "atr_stop_mult": 1.5,
+   "reward_risk": 2.0,
+   "min_reward_risk": 1.3,
+   "max_leverage": 3.0,
+   "max_daily_loss": 0.03,
+   "max_trades_per_day": 5,
+   "flat_before_weekend": false,
+   "weekend_cutoff_hour": 20,
+   "session_tz": "Europe/Prague",
+   "min_stop_atr": 0.5
+  },
+  "backtest": {
+   "initial_equity": 100000.0,
+   "warmup_bars": 100,
+   "window_bars": 300,
+   "max_hold_bars": 100,
+   "max_gap_hours": 120.0
+  },
+  "execution": {
+   "mode": "paper",
+   "allow_live": false,
+   "fee_rate": 0.0005,
+   "slippage": 0.0002,
+   "spread": 0.0,
+   "exchange": "binance",
+   "symbol": "BTC/USDT",
+   "timeframe": "1h",
+   "live_auto_adopt": false,
+   "mt5_symbol": "EURUSD",
+   "mt5_timeframe": "H1",
+   "mt5_server_utc_offset_hours": 0,
+   "mt5_magic": 20260101,
+   "mt5_deviation_points": 20
+  },
+  "ftmo": {
+   "enabled": false,
+   "phase": "challenge",
+   "initial_balance": 100000.0,
+   "profit_target_challenge": 0.1,
+   "profit_target_verification": 0.05,
+   "max_daily_loss": 0.05,
+   "max_total_loss": 0.1,
+   "daily_loss_buffer": 0.01,
+   "total_loss_buffer": 0.02,
+   "min_trading_days": 4,
+   "timezone": "Europe/Prague",
+   "flat_before_weekend": false,
+   "weekend_cutoff_hour": 20,
+   "news_blackouts": [],
+   "stop_after_target": true,
+   "max_risk_per_trade": 0.005,
+   "expected_login": null
+  }
+ },
+ "gates": {
+  "min_trades": 60,
+  "min_expectancy": 0.15,
+  "min_profit_factor": 1.2,
+  "null_alpha": 0.1,
+  "top3_max": 0.5,
+  "min_positive_folds": 0.5,
+  "mc_paths": 2000,
+  "dd_frac": 0.6,
+  "dsr_min": 0.5,
+  "min_years": 2.0,
+  "base_B": 999,
+  "worst_trade_r": 5.0
+ },
+ "leverage_rule": {
+  "loss_budget": 0.01,
+  "quantile": 0.9999,
+  "min": 0.25,
+  "max": 1.0,
+  "doc": "spot Coinbase : pas de levier (plafond 1)"
+ },
+ "strategies": {
+  "vwap": {
+   "label": "#5 VWAP bandes ±2,5σ",
+   "params": {
+    "k": 2.5,
+    "stop_k": 3.5,
+    "min_bars": 16,
+    "min_rr": 1.5
+   },
+   "instruments": [
+    "BTC-USD",
+    "ETH-USD"
+   ],
+   "max_hold_bars": 32,
+   "note": "VWAP remis à zéro à 00:00 UTC ; volume Coinbase = volume RÉEL"
+  },
+  "fvg_h1": {
+   "label": "#6 FVG mitigation H1",
+   "rule": "1h",
+   "params": {
+    "buf": 0.25,
+    "expiry": 50,
+    "atr_period": 14
+   },
+   "instruments": [
+    "BTC-USD",
+    "ETH-USD"
+   ],
+   "max_hold_bars": 48,
+   "note": "entrée MARCHÉ à la barre suivant le contact du CE (approximation prudente d'un ordre limite)"
+  },
+  "fvg_h4": {
+   "label": "#6 FVG mitigation H4",
+   "rule": "4h",
+   "params": {
+    "buf": 0.25,
+    "expiry": 50,
+    "atr_period": 14
+   },
+   "instruments": [
+    "BTC-USD",
+    "ETH-USD"
+   ],
+   "max_hold_bars": 96,
+   "note": "idem"
+  },
+  "amd": {
+   "label": "#1 AMD / Power of 3",
+   "params": {
+    "asia": [
+     0,
+     7
+    ],
+    "manip": [
+     7,
+     10
+    ],
+    "buf": 0.1,
+    "stop_buf": 0.1,
+    "min_rr": 1.5,
+    "min_asia_bars": 20
+   },
+   "instruments": [
+    "BTC-USD",
+    "ETH-USD"
+   ],
+   "max_hold_bars": 40,
+   "note": "Asie 00-07 UTC, sweep 07-10 UTC : heures UTC fixes, appliquées telles quelles à un marché 24/7 (hypothèse non vérifiée pour la crypto)"
+  }
+ },
+ "max_trials_budget": 80,
+ "rules": [
+  "Simulation PAPER : prix réels Coinbase, exécutions et PnL simulés ; coûts = hypothèses déclarées.",
+  "Aucun ordre n'est jamais envoyé à Coinbase : API publique en lecture seule, aucune clé."
+ ]
+}

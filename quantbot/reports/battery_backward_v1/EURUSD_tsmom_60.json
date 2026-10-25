@@ -1,0 +1,25 @@
+{
+ "instrument": "EURUSD",
+ "hypothesis": "tsmom_60",
+ "n_days": 3330,
+ "mean_bps": 0.21032777744988507,
+ "sharpe_annual": 0.06497888617686633,
+ "t_nw": 0.2376944791361061,
+ "hit_rate": 0.4894894894894895,
+ "mean_first_half_bps": 0.006890127380089471,
+ "mean_second_half_bps": 0.41376542751968076,
+ "max_drawdown_unit": 0.3007087304288316,
+ "bh_alpha": 1.424621907067472e-05,
+ "bh_beta": -0.17881675225701663,
+ "bh_t_alpha": 0.16457069590125198,
+ "mean_bps_costs_x2": 0.10870615582826318,
+ "cost_rt_bps": 1.6,
+ "n_trades": 212,
+ "segment": {
+  "start": "2010-09-14 14:00:00",
+  "end": "2023-08-03 10:00:00",
+  "bars": 79990
+ },
+ "dsr": 0.0,
+ "verdict": "REJET\u00c9"
+}

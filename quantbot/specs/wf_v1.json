@@ -1,0 +1,20 @@
+{
+ "name": "wf_v1",
+ "preregistered": "2026-10-25, AVANT toute exécution de scripts/optimize.py",
+ "hypothesis": "Les trois stratégies à règles explicites ayant montré une espérance faiblement positive en recherche (USTEC orb +0,075 R, XAUUSD vwap +0,033 R, XAUUSD fvg_h4 +0,040 R) conservent-elles un avantage lorsque leurs paramètres sont CHOISIS sur une fenêtre d'entraînement puis jugés sur la fenêtre suivante ?",
+ "base_spec": "specs/inst_strategies_v1.json",
+ "walk": {"train_days": 365, "test_days": 90, "min_train_trades": 30},
+ "jobs": [
+  {"instrument": "USTEC", "strategy": "orb", "grid": {"vol_mult": [1.0, 1.2, 1.5, 2.0], "end_hour": [11, 12, 14]}},
+  {"instrument": "XAUUSD", "strategy": "vwap", "grid": {"k": [2.0, 2.5, 3.0], "stop_k": [3.0, 3.5, 4.5], "min_rr": [1.0, 1.5, 2.0]}},
+  {"instrument": "XAUUSD", "strategy": "fvg_h4", "grid": {"buf": [0.1, 0.25, 0.5], "expiry": [25, 50, 100]}}
+ ],
+ "rules": [
+  "La grille, les fenêtres (365 j / 90 j) et le minimum de trades (30) sont figés par ce fichier ; aucun changement après avoir vu les résultats.",
+  "Seule la période de RECHERCHE est lue ; la période verrouillée n'est pas touchée.",
+  "Chaque balayage (un job) compte pour UN essai au registre ; la taille de la grille est consignée.",
+  "Le résultat qui compte est l'espérance HORS ÉCHANTILLON recollée des fenêtres de test, comparée à la configuration moyenne non sélectionnée et à l'écart d'optimisme (entraînement choisi - hors échantillon).",
+  "Aucune lecture n'autorise de passer en DEMO_ACTIF : la validation reste celle de lab/gates et de la période verrouillée."
+ ],
+ "max_trials_budget": 60
+}

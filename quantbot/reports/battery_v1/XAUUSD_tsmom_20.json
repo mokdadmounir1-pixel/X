@@ -1,0 +1,20 @@
+{
+ "instrument": "XAUUSD",
+ "hypothesis": "tsmom_20",
+ "n_days": 600,
+ "mean_bps": 0.5387620989752335,
+ "sharpe_annual": 0.08442439612125979,
+ "t_nw": 0.11883254038705544,
+ "hit_rate": 0.47833333333333333,
+ "mean_first_half_bps": -4.440389634649492,
+ "mean_second_half_bps": 5.517913832599958,
+ "max_drawdown_unit": 0.24769927309178397,
+ "bh_alpha": -0.0007319226670740339,
+ "bh_beta": 0.6125398608625648,
+ "bh_t_alpha": -2.1688311967542666,
+ "mean_bps_costs_x2": 0.4814249106377612,
+ "cost_rt_bps": 0.45565977486733283,
+ "n_trades": 75,
+ "dsr": 2.9402414362111884e-06,
+ "verdict": "REJET\u00c9"
+}

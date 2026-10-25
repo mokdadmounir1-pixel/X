@@ -1,0 +1,115 @@
+{
+ "instrument": "USTEC",
+ "spec": "baseline_v0",
+ "evaluation": {
+  "verdict": "FAIL",
+  "reason": "\u00e9choue : expectancy,profit_factor,null_test,costs_x2,monte_carlo_p5,top3_share,folds_positive,risk_envelope,deflated_sharpe | \u00e9liminatoire(s) : null_test,costs_x2,monte_carlo_p5,risk_envelope,deflated_sharpe",
+  "n_trials": 3,
+  "spec_hash": "eb0d34ab4cb24ca90966d394d5c0a2519f3bcd2fddd08861bec6f906bbe9e381",
+  "data_hash": "52d5eb15f7ce568a2922d965046560c505b1e2c132f6fd3e1080d404cc58cc38",
+  "metrics": {
+   "n_trades": 2928,
+   "expectancy_R": -0.49665489191824413,
+   "profit_factor": 0.5716362721867614,
+   "years": 2.565366187542779,
+   "sharpe_per_trade": -0.019804065436792122,
+   "total_return": -0.4069566724578364,
+   "max_drawdown": 0.5703788306907669
+  },
+  "gates": [
+   {
+    "name": "n_trades",
+    "ok": true,
+    "value": 2928,
+    "threshold": 60,
+    "eliminatory": true
+   },
+   {
+    "name": "expectancy",
+    "ok": false,
+    "value": -0.4967,
+    "threshold": 0.15,
+    "eliminatory": false
+   },
+   {
+    "name": "profit_factor",
+    "ok": false,
+    "value": 0.572,
+    "threshold": 1.2,
+    "eliminatory": false
+   },
+   {
+    "name": "null_test",
+    "ok": false,
+    "value": 0.961,
+    "threshold": 0.03451,
+    "eliminatory": true
+   },
+   {
+    "name": "costs_x2",
+    "ok": false,
+    "value": -0.547,
+    "threshold": 0.0,
+    "eliminatory": true
+   },
+   {
+    "name": "monte_carlo_p5",
+    "ok": false,
+    "value": -19.6241,
+    "threshold": 1.0,
+    "eliminatory": true
+   },
+   {
+    "name": "top3_share",
+    "ok": false,
+    "value": 1.0,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "folds_positive",
+    "ok": false,
+    "value": 0.0,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "risk_envelope",
+    "ok": false,
+    "value": {
+     "dd95_pct": 1373.5,
+     "streak95": 21.0
+    },
+    "threshold": {
+     "max_pct": 6.0
+    },
+    "eliminatory": true
+   },
+   {
+    "name": "deflated_sharpe",
+    "ok": false,
+    "value": 0.0,
+    "threshold": 0.5,
+    "eliminatory": true
+   }
+  ]
+ },
+ "costs_used": {
+  "spread": 4.30898329465817e-05,
+  "fee_rate": 0.0,
+  "slippage": 1e-05,
+  "measured": {
+   "spread_frac": 4.30898329465817e-05,
+   "reliable": true,
+   "zero_share": 0.006
+  }
+ },
+ "holes": [
+  {
+   "from": "2025-07-16 07:30:00",
+   "to": "2025-09-09 11:30:00",
+   "hours": 1324.0,
+   "price_jump_pct": 4.32
+  }
+ ]
+}

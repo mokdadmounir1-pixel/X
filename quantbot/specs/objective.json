@@ -1,0 +1,11 @@
+{
+ "target_r_per_day": 0.33,
+ "set_by": "utilisateur, 2026-10-25",
+ "unit": "R nominal par jour OUVRÉ de la fenêtre (les jours sans trade comptent pour 0)",
+ "note": "OBJECTIF = repère de lecture, jamais un réglage : il n'entre dans AUCUNE porte de validation, aucun seuil ni aucun paramètre n'est modifié pour l'atteindre. Les portes (specs/inst_strategies_v1.json: gates) restent celles préenregistrées.",
+ "beta_flags": {
+  "mtf_v3:XAUUSD": "bêta haussier de l'or : des achats SANS signal font autant ou plus sur la même période (reports/mtf_v3) ; ce n'est pas un avantage du modèle"
+ },
+ "target_monthly_net": 0.02,
+ "monthly_note": "2 % net par mois (demande utilisateur 2026-10-25) : repère de lecture mensuel, jamais un réglage ; aucune porte n'est modifiée pour l'atteindre."
+}

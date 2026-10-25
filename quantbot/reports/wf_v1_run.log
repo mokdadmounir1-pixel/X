@@ -1,0 +1,3 @@
+[USTEC orb  ] configs= 12 fenêtres tradées=6/6 | OOS n= 138 E=+0.034R PF=+1.13 fenêtres>0=+0.50 | entraînement choisi E=+0.086R écart d'optimisme=+0.052R | config moyenne non sélectionnée E=-0.019R | p(sign-flip)=+0.295 | essais=46
+[XAUUSD vwap ] configs= 27 fenêtres tradées=5/5 | OOS n= 116 E=-0.033R PF=+0.88 fenêtres>0=+0.40 | entraînement choisi E=+0.090R écart d'optimisme=+0.123R | config moyenne non sélectionnée E=-0.024R | p(sign-flip)=+0.727 | essais=47
+[XAUUSD fvg_h4] configs=  9 fenêtres tradées=5/5 | OOS n= 298 E=+0.044R PF=+1.10 fenêtres>0=+0.60 | entraînement choisi E=+0.066R écart d'optimisme=+0.022R | config moyenne non sélectionnée E=+0.089R | p(sign-flip)=+0.233 | essais=48

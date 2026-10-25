@@ -1,0 +1,5 @@
+{
+ "budget": 60,
+ "note": "File de recherche 24 h/24. Chaque item est une spec PRÉENREGISTRÉE (commitée) exécutée une seule fois ; le budget d'essais est appliqué par scripts/research_queue.py. Les essais déjà faits (inst_strategies_v1, wf_v1, ...) ne sont pas répétés ici.",
+ "items": []
+}
