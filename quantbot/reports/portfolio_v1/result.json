@@ -1,0 +1,53 @@
+{
+ "spec": "portfolio_v1",
+ "strategies": [
+  "EURUSD:amd",
+  "EURUSD:vwap",
+  "EURUSD:fvg_h1",
+  "EURUSD:fvg_h4",
+  "XAUUSD:amd",
+  "XAUUSD:vwap",
+  "XAUUSD:fvg_h1",
+  "XAUUSD:fvg_h4",
+  "USTEC:amd",
+  "USTEC:vwap",
+  "USTEC:orb",
+  "USTEC:fvg_h1",
+  "USTEC:fvg_h4",
+  "EURUSD:smc_h1",
+  "XAUUSD:smc_h1",
+  "USTEC:smc_h1",
+  "XAUUSD:gq_sweep",
+  "XAUUSD:gq_asia_break",
+  "XAUUSD:gq_ema_pull",
+  "XAUUSD:gq_squeeze",
+  "XAUUSD:gq_zrev"
+ ],
+ "days": 670,
+ "schemes": {
+  "invvol": {
+   "days": 490,
+   "mean_r_day": -0.04067710000861658,
+   "vol_r_day": 0.31440270969474965,
+   "sharpe_ann": -2.053827540785346,
+   "max_dd_r": 20.872636184628163,
+   "avg_pair_corr": 0.0031288790067639932,
+   "diversification_ratio": 1.8443313547369502,
+   "sign_flip_p": 0.996,
+   "dsr": 9.053868765818152e-14,
+   "verdict": "FAIL"
+  },
+  "tilt": {
+   "days": 490,
+   "mean_r_day": -0.029925338304783215,
+   "vol_r_day": 0.5871761034170946,
+   "sharpe_ann": -0.8090418114072034,
+   "max_dd_r": 25.665364933620037,
+   "avg_pair_corr": 0.0031288790067639932,
+   "diversification_ratio": 0.9875449156219936,
+   "sign_flip_p": 0.841,
+   "dsr": 4.008617937589776e-09,
+   "verdict": "FAIL"
+  }
+ }
+}
