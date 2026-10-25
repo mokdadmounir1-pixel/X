@@ -212,7 +212,7 @@ class HardenedMT5Broker(Broker):
         pnl = sum(getattr(d, "profit", 0.0) + getattr(d, "commission", 0.0) + getattr(d, "swap", 0.0) + getattr(d, "fee", 0.0) for d in deals)
         exit_price = float(deals[-1].price) if deals else pos.entry
         t = Trade(pos.side, pos.entry_time, ts, pos.entry, exit_price, pos.size, float(pnl), reason, pos.confidence, pos.patterns,
-                  idx - pos.entry_idx, pos.risk_amount, pos.nominal_risk)
+                  idx - pos.entry_idx, pos.risk_amount, pos.nominal_risk, pos.stop, pos.take_profit)
         self.trades.append(t)
         self.position, self._ticket = None, None
         return t

@@ -39,7 +39,7 @@ def test_http_server_binds_locally_and_serves_state():
     try:
         port = httpd.server_address[1]
         html = urllib.request.urlopen(f"http://127.0.0.1:{port}/").read().decode()
-        assert "quantbot" in html and "Aucun edge" in html
+        assert "quantbot" in html and "Aucun avantage de trading valid" in html and "Tester une strat" in html
         state = json.loads(urllib.request.urlopen(f"http://127.0.0.1:{port}/api/state").read())
         assert state["status"]["live_trading"].startswith("AUCUN ordre")
         err = urllib.request.urlopen(f"http://127.0.0.1:{port}/api/replay?instrument=NOPE") if False else None
@@ -101,3 +101,44 @@ def test_live_endpoint_is_get_only_local(tmp_path, monkeypatch):
         assert 'id="view"' in urllib.request.urlopen(f"http://127.0.0.1:{port}/").read().decode()
     finally:
         httpd.shutdown()
+
+
+# --- test de stratégie trade par trade (entrées / SL / TP / sorties) ----------------------------------------------------
+import pytest as _pytest
+from pathlib import Path as _Path
+
+_REAL = _Path(__file__).resolve().parents[1] / "data" / "real" / "USTEC_M15.csv"
+
+
+def test_daily_stats_counts_days_without_trade_as_zero():
+    from types import SimpleNamespace as NS
+    from quantbot.ui.replay import daily_stats
+    idx = pd.date_range("2024-01-01", periods=5 * 96, freq="15min")          # 5 jours ouvrés (lun-ven)
+    df = pd.DataFrame({"close": 1.0}, index=idx)
+    trades = [NS(exit_time=idx[10], r_nominal=1.0), NS(exit_time=idx[200], r_nominal=-0.5)]
+    d = daily_stats(trades, df, 0.33)
+    assert d["window_days"] == 5 and d["total_R"] == 0.5 and abs(d["avg_R_per_day"] - 0.1) < 1e-9
+    assert d["days_with_trade"] == 2 and abs(d["days_ge_target_pct"] - 0.2) < 1e-9
+
+
+@_pytest.mark.skipif(not _REAL.exists(), reason="exports MT5 absents (data/real non suivi par Git)")
+def test_strategy_replay_returns_every_trade_with_levels_and_never_the_locked_period():
+    from quantbot.ui.replay import run_strategy_replay
+    out = run_strategy_replay("USTEC", 3000, "orb", "recherche", _Path(__file__).resolve().parents[1])
+    assert out["trades"] and out["metrics"]["n_trades"] == len(out["trades"]) and out["daily"]["target"] == 0.33
+    for t in out["trades"]:
+        assert t["stop"] and t["tp"] and 0 <= t["i0"] <= t["i1"] < out["n_bars"]
+        assert (t["stop"] < t["entry"] < t["tp"]) if t["side"] == "long" else (t["tp"] < t["entry"] < t["stop"])
+    from quantbot.data.mt5 import load_mt5_csv
+    from quantbot.lab.locked import split_locked
+    full = load_mt5_csv(_REAL)
+    research, locked = split_locked(full, 12, 0.2)
+    assert pd.Timestamp(out["end"]) <= research.index[-1]                          # jamais la période verrouillée
+
+
+def test_strategy_endpoints_reject_unknown_values():
+    from quantbot.ui.replay import run_strategy_replay
+    with pytest.raises(ValueError):
+        run_strategy_replay("NOPE", 1000, "orb", "recherche", _Path(__file__).resolve().parents[1])
+    with pytest.raises(ValueError):
+        run_strategy_replay("USTEC", 1000, "orb", "verrouille", _Path(__file__).resolve().parents[1])

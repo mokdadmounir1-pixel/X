@@ -5,67 +5,69 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>quantbot — laboratoire</title>
 <style>
-:root{--bg:#f6f7f9;--card:#fff;--ink:#16181d;--mute:#5d6572;--line:#e1e4ea;--ok:#117a43;--okbg:#e4f4ea;--bad:#b3261e;--badbg:#fbe9e7;--warn:#8a5a00;--warnbg:#fff3d6;--acc:#2554d6;--accbg:#e8eefc}
-@media (prefers-color-scheme:dark){:root{--bg:#0f1115;--card:#171a21;--ink:#e8eaef;--mute:#9aa3b2;--line:#2a2f3a;--ok:#4cc38a;--okbg:#12281d;--bad:#ff8a80;--badbg:#321816;--warn:#f0b64a;--warnbg:#2e2410;--acc:#7da2ff;--accbg:#18223b}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-header{padding:16px;border-bottom:1px solid var(--line);background:var(--card)}
-h1{margin:0;font-size:18px}h2{font-size:16px;margin:0 0 8px}h3{font-size:14px;margin:14px 0 6px;color:var(--mute);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-main{max-width:1100px;margin:0 auto;padding:16px}
-.banner{margin-top:10px;padding:10px 12px;border-radius:8px;background:var(--warnbg);color:var(--warn);font-weight:600}
+:root{--bg:#f4f5f8;--card:#fff;--ink:#14171f;--mute:#5a6372;--line:#e2e5ec;--ok:#0f7a43;--okbg:#e3f4ea;--bad:#b3261e;--badbg:#fbe8e6;--warn:#8a5a00;--warnbg:#fff2d3;--acc:#2554d6;--accbg:#e7edfc;--shadow:0 1px 2px rgba(16,24,40,.06),0 1px 3px rgba(16,24,40,.08);--r:12px}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1015;--card:#161a22;--ink:#e8eaf0;--mute:#9aa3b3;--line:#272d39;--ok:#4cc38a;--okbg:#10281d;--bad:#ff8a80;--badbg:#341a17;--warn:#f0b64a;--warnbg:#2d2411;--acc:#7b9bff;--accbg:#18213d;--shadow:none}}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--acc)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:6px}
+header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
+.top{max-width:1180px;margin:0 auto;padding:10px 16px 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{font-weight:800;letter-spacing:-.01em;font-size:17px}.brand small{font-weight:500;color:var(--mute);margin-left:6px}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:99px;font-size:12.5px;font-weight:600;background:var(--line);color:var(--mute);white-space:nowrap}
+.pill i{width:8px;height:8px;border-radius:50%;background:currentColor;display:inline-block}
+.pill.ok{background:var(--okbg);color:var(--ok)}.pill.bad{background:var(--badbg);color:var(--bad)}.pill.warn{background:var(--warnbg);color:var(--warn)}.pill.acc{background:var(--accbg);color:var(--acc)}
+nav{max-width:1180px;margin:0 auto;padding:8px 16px 0;display:flex;gap:2px;overflow-x:auto;scrollbar-width:thin}
+nav button{border:0;background:none;color:var(--mute);padding:9px 14px;border-bottom:3px solid transparent;cursor:pointer;font:inherit;font-weight:600;white-space:nowrap}
+nav button:hover{color:var(--ink)}nav button[aria-selected=true]{color:var(--acc);border-bottom-color:var(--acc)}
+main{max-width:1180px;margin:0 auto;padding:16px}
+h2{font-size:16px;margin:0 0 8px;letter-spacing:-.005em}h3{font-size:12.5px;margin:16px 0 6px;color:var(--mute);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.banner{padding:10px 12px;border-radius:10px;background:var(--warnbg);color:var(--warn);font-weight:600;margin:8px 0}
 .banner.ok{background:var(--okbg);color:var(--ok)}
-nav{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
-nav button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font:inherit}
-nav button[aria-selected=true]{background:var(--acc);color:#fff;border-color:var(--acc)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
-.kpi{border:1px solid var(--line);border-radius:8px;padding:10px}.kpi b{display:block;font-size:20px}.kpi span{color:var(--mute);font-size:13px}
-table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--mute);font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.kpi{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--card)}.kpi b{display:block;font-size:21px;letter-spacing:-.01em;font-variant-numeric:tabular-nums}.kpi span{color:var(--mute);font-size:12.5px}
+.kpi.good b{color:var(--ok)}.kpi.badk b{color:var(--bad)}
+.twocol{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}@media(max-width:860px){.twocol{grid-template-columns:1fr}}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px}.tw table{border:0}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;white-space:nowrap}
+th{color:var(--mute);font-weight:700;font-size:12px;position:sticky;top:0;background:var(--card);z-index:1}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
-.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12.5px;font-weight:700}
+tbody tr:hover{background:var(--accbg)}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:700}
 .PASS{background:var(--okbg);color:var(--ok)}.WATCH{background:var(--warnbg);color:var(--warn)}.FAIL{background:var(--badbg);color:var(--bad)}.NA{background:var(--line);color:var(--mute)}
 .gates{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.g{font-size:12px;padding:1px 7px;border-radius:5px;background:var(--okbg);color:var(--ok)}.g.x{background:var(--badbg);color:var(--bad)}
-.muted{color:var(--mute);font-size:13px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-select,input,button.go{font:inherit;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
-button.go{background:var(--acc);color:#fff;border-color:var(--acc);cursor:pointer}button.go:disabled{opacity:.5;cursor:wait}
-svg{width:100%;height:auto;display:block}.axis{stroke:var(--line)}.lbl{fill:var(--mute);font-size:11px}
+.muted{color:var(--mute);font-size:13px}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+label.f{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--mute);font-weight:600}
+select,input,button.go,button.sm{font:inherit;padding:8px 11px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+button.go{background:var(--acc);color:#fff;border-color:var(--acc);cursor:pointer;font-weight:700}button.go:disabled{opacity:.55;cursor:wait}
+button.sm{padding:5px 10px;font-size:13px;cursor:pointer}button.sm:hover{border-color:var(--acc)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}.seg button{border:0;background:var(--card);color:var(--ink);padding:6px 11px;cursor:pointer;font:inherit;font-size:13px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}.seg button[aria-pressed=true]{background:var(--acc);color:#fff}
+svg{width:100%;height:auto;display:block}.axis{stroke:var(--line)}.lbl{fill:var(--mute);font-size:11px}.lblb{fill:var(--ink);font-size:11.5px;font-weight:700}
 details{margin-top:6px}summary{cursor:pointer;color:var(--acc)}
-.hidden{display:none}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;min-width:90px}.bar i{display:block;height:100%;background:var(--acc)}.bar.beta i{background:var(--warn)}
+tr.sel{background:var(--accbg)!important;outline:2px solid var(--acc);outline-offset:-2px}tr.sel td{font-weight:600}
+td.win{color:var(--ok)}td.lose{color:var(--bad)}
+.skel{height:14px;border-radius:7px;background:linear-gradient(90deg,var(--line),var(--card),var(--line));background-size:200% 100%;animation:sk 1.2s infinite;margin:8px 0}@keyframes sk{to{background-position:-200% 0}}
+@media (prefers-reduced-motion:reduce){.skel{animation:none}html{scroll-behavior:auto}}
+.hint{border-left:3px solid var(--acc);padding:6px 10px;background:var(--accbg);border-radius:0 8px 8px 0;margin:8px 0;font-size:13px}
+.toast{position:fixed;right:14px;bottom:14px;max-width:420px;background:var(--bad);color:#fff;padding:10px 14px;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.25);z-index:50}
+code{background:var(--line);padding:1px 5px;border-radius:5px;font-size:12.5px}
 </style>
 </head>
 <body>
 <header>
-  <h1>quantbot — laboratoire de trading quantitatif</h1>
-  <div id="banner" class="banner">Chargement…</div>
+  <div class="top"><div class="brand">quantbot<small>laboratoire de trading quantitatif</small></div><div class="pills" id="pills"></div></div>
+  <nav role="tablist" id="tabs" aria-label="Sections"></nav>
 </header>
 <main>
-  <nav role="tablist" id="tabs"></nav>
-  <section id="view"></section>
+  <div id="banner" class="banner">Chargement…</div>
+  <section id="view" aria-live="polite"><div class="card"><div class="skel" style="width:40%"></div><div class="skel"></div><div class="skel" style="width:80%"></div></div></section>
 </main>
 <script>
-const TABS=[["etat","État"],["res","Résultats"],["cal","Calibration v2"],["rejeu","Rejouer un backtest"],["data","Données"],["wf","Optimisation"],["live","En direct"]];
-let S=null,L=null,tab="etat",timer=null;
-const $=s=>document.querySelector(s),esc=t=>String(t??"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
-const f=(x,d=3)=>x==null||!isFinite(x)?"—":Number(x).toFixed(d);
-const tag=v=>`<span class="tag ${v||"NA"}">${v||"—"}</span>`;
-function tabs(){$("#tabs").innerHTML=TABS.map(([k,l])=>`<button role="tab" aria-selected="${k===tab}" data-k="${k}">${l}</button>`).join("");
-  $("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>{tab=b.dataset.k;render()});}
-function banner(){const s=S.status;const b=$("#banner");
-  b.className="banner"+(s.edge_validated?" ok":"");
-  b.textContent=s.edge_validated?"Au moins une stratégie a franchi les portes de recherche — pas encore confirmée sur la période verrouillée.":
-   "Aucun edge validé à ce jour · cette interface n'envoie jamais d'ordre et n'écrit aucune approbation.";}
-function etat(){const s=S.status;
-  return `<div class="card"><h2>État du projet</h2><div class="grid">
-   <div class="kpi"><b>${esc(s.live_trading.split(" ")[0])}</b><span>Ordres depuis cette interface</span></div>
-   <div class="kpi"><b>${s.edge_validated?"oui":"non"}</b><span>Edge validé</span></div>
-   <div class="kpi"><b>${s.trials} / ${s.trials_budget}</b><span>Essais consommés (budget)</span></div>
-   <div class="kpi"><b>${s.locked_reads}</b><span>Lectures de la période verrouillée</span></div>
-   <div class="kpi"><b>${s.registry_chain_ok?"intègre":"ALTÉRÉE"}</b><span>Chaîne du registre d'essais</span></div></div>
-   <p class="muted">Runtime MetaTrader 5 : ${esc(s.mt5_broker)}.</p></div>
-   <div class="card"><h2>Ce que le projet est, aujourd'hui</h2>
-   <p>Un <b>laboratoire de recherche et de validation</b> : moteur de simulation unique, statistiques anti-sur-apprentissage (DSR, test nul, Monte-Carlo par blocs),
-   registre d'essais chaîné par hachage, période verrouillée à lecture unique, garde-fou FTMO, et un <b>runtime MT5</b> (onglet « En direct »)
-   qui reste en <b>OBSERVATION</b> (prix réels, exécutions simulées) tant qu'un humain n'a pas signé une approbation liée à l'empreinte de la spec.</p>
-   <p class="muted">Aucune stratégie n'a franchi les portes de validation : l'approbation d'une stratégie n'est pas recommandée à ce jour.</p></div>`;}
 function gatesHtml(gs){return `<div class="gates">`+gs.map(g=>`<span class="g ${g.ok?"":"x"}" title="valeur: ${esc(JSON.stringify(g.value))} · seuil: ${esc(JSON.stringify(g.threshold))}">${esc(g.name)}${g.eliminatory&&!g.ok?" ⛔":""}</span>`).join("")+`</div>`;}
 function res(){return battery()+S.specs.map(sp=>`<div class="card"><h2>${esc(sp.name)} ${sp.parent?`<span class="muted">← ${esc(sp.parent)}</span>`:""}</h2>
   <p class="muted">${esc(sp.change_reason||sp.hypothesis||"")}</p>
@@ -92,29 +94,6 @@ function cal(){const v2=S.specs.find(s=>s.name==="v2_calibrated");if(!v2)return`
   return `<div class="card"><h2>Calibration score → espérance nette</h2><p class="muted">Pour chaque niveau de score flou : espérance moyenne en R nominal, <span style="color:var(--mute)">■ apprentissage</span> vs <span style="color:var(--acc)">■ validation (hors échantillon)</span>. Une courbe qui monte et se confirme serait un edge ; une courbe plate sous zéro = les coûts seuls.</p></div>`+
   v2.results.filter(r=>r.diagnostics).map(r=>`<div class="card"><h2>${esc(r.instrument)} ${tag(r.verdict)}</h2><div class="grid"><div>${bars(r.diagnostics.long,"E_train","E_valid","Achat (score haussier)")}</div><div>${bars(r.diagnostics.short,"E_train","E_valid","Vente (score baissier)")}</div></div>
   <p class="muted">Placebo (part de barres jugées tradables sur des labels permutés) : achat ${f(r.diagnostics.placebo_share_above_margin.long,3)} · vente ${f(r.diagnostics.placebo_share_above_margin.short,3)} — mesure de ce que la méthode invente à vide.</p></div>`).join("");}
-function rejeu(){return `<div class="card"><h2>Rejouer le moteur sur la période de recherche</h2>
-  <p class="muted">Utilise la spec <b>baseline_v1</b> (risque corrigé). Période verrouillée jamais lue. Aucun ordre envoyé. Le rejeu peut prendre 5 à 60 s.</p>
-  <div class="row"><select id="ri">${(S.data.length?S.data.map(d=>d.symbol):["EURUSD","XAUUSD","USTEC"]).map(s=>`<option>${s}</option>`).join("")}</select>
-  <label>barres <select id="rb"><option>3000</option><option selected>6000</option><option>12000</option></select></label>
-  <button class="go" id="rgo">Lancer</button></div><div id="rout" class="muted" style="margin-top:12px"></div></div>`;}
-function curve(pts){const W=900,H=260,p=34;const ys=pts.map(a=>a[1]);const lo=Math.min(...ys),hi=Math.max(...ys),y=v=>p+(hi-v)/(hi-lo||1)*(H-2*p),x=i=>p+i/(pts.length-1||1)*(W-2*p);
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="courbe d'équité"><polyline fill="none" stroke="var(--acc)" stroke-width="2" points="${pts.map((a,i)=>x(i)+","+y(a[1])).join(" ")}"/><line class="axis" x1="${p}" x2="${W-p}" y1="${y(pts[0][1])}" y2="${y(pts[0][1])}"/>
-  <text class="lbl" x="${p}" y="14">équité (capital initial ${f(pts[0][1],0)})</text><text class="lbl" x="${W-p}" y="${H-8}" text-anchor="end">${esc(pts[pts.length-1][0].slice(0,10))}</text><text class="lbl" x="${p}" y="${H-8}">${esc(pts[0][0].slice(0,10))}</text></svg>`;}
-function priceChart(price,marks){if(!price||price.length<2)return "";const W=900,H=300,p=34;const ts=price.map(a=>Date.parse(a[0].replace(" ","T")));const t0=ts[0],t1=ts[ts.length-1];
-  const ys=price.map(a=>a[1]);const lo=Math.min(...ys),hi=Math.max(...ys),y=v=>p+(hi-v)/(hi-lo||1)*(H-2*p),x=t=>p+(t-t0)/(t1-t0||1)*(W-2*p);
-  const tm=s=>Date.parse(s.replace(" ","T"));
-  const seg=(marks||[]).filter(m=>tm(m.t0)>=t0&&tm(m.t1)<=t1).map(m=>`<line x1="${x(tm(m.t0))}" y1="${y(m.p0)}" x2="${x(tm(m.t1))}" y2="${y(m.p1)}" stroke="${m.r>=0?"var(--ok)":"var(--bad)"}" stroke-width="2"><title>${esc(m.side)} · ${esc(m.reason)} · ${m.r} R</title></line>`+
-   `<circle cx="${x(tm(m.t0))}" cy="${y(m.p0)}" r="3" fill="${m.side==="long"?"var(--acc)":"var(--warn)"}"/>`).join("");
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="prix et trades"><polyline fill="none" stroke="var(--mute)" stroke-width="1.2" points="${price.map((a,i)=>x(ts[i])+","+y(a[1])).join(" ")}"/>${seg}
-  <text class="lbl" x="${p}" y="14">prix (clôture) · trait vert/rouge = trade gagnant/perdant · point bleu = achat, orange = vente</text><text class="lbl" x="${p}" y="${H-8}">${esc(price[0][0].slice(0,10))}</text><text class="lbl" x="${W-p}" y="${H-8}" text-anchor="end">${esc(price[price.length-1][0].slice(0,10))}</text></svg>`;}
-async function doReplay(){const b=$("#rgo"),o=$("#rout");b.disabled=true;o.textContent="Calcul en cours…";
-  try{const r=await (await fetch(`/api/replay?instrument=${$("#ri").value}&bars=${$("#rb").value}`)).json();if(r.error)throw new Error(r.error);const m=r.metrics;
-   o.innerHTML=`${priceChart(r.price,r.markers)}${curve(r.equity)}<div class="grid" style="margin-top:10px"><div class="kpi"><b>${m.n_trades}</b><span>trades</span></div><div class="kpi"><b>${f(m.total_return*100,1)} %</b><span>rendement</span></div>
-   <div class="kpi"><b>${f(m.max_drawdown*100,1)} %</b><span>drawdown max</span></div><div class="kpi"><b>${f(m.profit_factor,2)}</b><span>facteur de profit</span></div><div class="kpi"><b>${f(m.win_rate*100,1)} %</b><span>gagnants</span></div></div>
-   <div class="banner" style="margin-top:12px">⚠ Une fenêtre courte ne prouve rien. Buy &amp; hold sur cette fenêtre : ${f(r.buy_hold_return*100,1)} %.
-   ${r.reference?`Verdict de la MÊME spec sur toute la période de recherche (${f(r.reference.years,1)} an(s), ${r.reference.n_trades} trades) : ${tag(r.reference.verdict)} · espérance ${f(r.reference.expectancy_R)} R · PF ${f(r.reference.profit_factor,2)}. C'est ce chiffre qui compte, pas la courbe ci-dessus.`:""}</div>
-   <p class="muted">${esc(r.start.slice(0,10))} → ${esc(r.end.slice(0,10))} · ${r.bars} barres · sorties : ${esc(JSON.stringify(r.reasons))} · ${esc(r.note)}</p>`;}
-  catch(e){o.textContent="Erreur : "+e.message}b.disabled=false;}
 function autoCard(){const d=S.daemon,q=S.queue;const age=d?(Date.now()/1000-d.ts):null;
   return `<div class="card"><h2>Automatisation 24 h/24</h2><div class="grid">
   <div class="kpi"><b>${!d?"jamais lancé":age<180?(d.connected?"actif":"terminal déconnecté"):"arrêté"}</b><span>Extraction MT5 (data_daemon)${d?` · dernier passage il y a ${ago(age)}`:""}</span></div>
@@ -185,9 +164,173 @@ function approvals(){const a=L.approvals;return `<div class="card"><h2>Approbati
    a.entries.map(e=>`<tr><td>${esc(e.id)}</td><td>${esc(e.instrument)}</td><td>${esc(e.spec)}</td><td>${esc(e.approved_by)}</td><td>${esc(e.date)}</td></tr>`).join("")+`</tbody></table>`:"")+`</div>`;}
 async function loadLive(){try{L=await (await fetch("/api/live")).json();}catch(e){L={available:false,note:"Erreur : "+e,approvals:{entries:[],note:""},kill_reasons:[],intents:[],events:[],paper_trades:[]};}
   if(tab==="live")$("#view").innerHTML=live();}
-function render(){tabs();banner();$("#view").innerHTML=({etat,res,cal,rejeu,data,wf,live})[tab]();if(tab==="rejeu")$("#rgo").onclick=doReplay;
-  clearInterval(timer);if(tab==="live"){loadLive();timer=setInterval(loadLive,5000);}}
-fetch("/api/state").then(r=>r.json()).then(s=>{S=s;render()}).catch(e=>{$("#banner").textContent="Impossible de charger l'état : "+e});
+const TABS=[["synthese","Synthèse"],["essai","Tester une stratégie"],["res","Résultats"],["wf","Optimisation"],["cal","Calibration"],["data","Données & automatisation"],["live","En direct"]];
+let S=null,L=null,ST=null,R=null,tab="synthese",timer=null;
+const E={filter:"all",sort:["i",1],sel:0,instrument:"USTEC",strategy:"orb",segment:"recherche",bars:6000};
+const $=s=>document.querySelector(s),esc=t=>String(t??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const f=(x,d=3)=>x==null||!isFinite(x)?"—":Number(x).toFixed(d);
+const sg=(x,d=2)=>x==null||!isFinite(x)?"—":(x>0?"+":"")+Number(x).toFixed(d);
+const pc=(x,d=0)=>x==null||!isFinite(x)?"—":(x*100).toFixed(d)+" %";
+const tag=v=>`<span class="tag ${v||"NA"}">${v||"—"}</span>`;
+const stamp=e=>new Date(e*1000).toISOString().slice(0,16).replace("T"," ");
+const store={get(k,d){try{return localStorage.getItem(k)??d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+function toast(msg){const t=document.createElement("div");t.className="toast";t.setAttribute("role","alert");t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),6000);}
+async function api(path){const r=await fetch(path);const j=await r.json();if(j.error)throw new Error(j.error);return j;}
+
+function tabs(){$("#tabs").innerHTML=TABS.map(([k,l])=>`<button role="tab" aria-selected="${k===tab}" data-k="${k}">${l}</button>`).join("");
+  $("#tabs").querySelectorAll("button").forEach(b=>b.onclick=()=>go(b.dataset.k));}
+function go(k){tab=k;store.set("tab",k);try{history.replaceState(null,"","#"+k)}catch(e){}render();}
+function pills(){const s=S?S.status:null,l=L&&L.available?L:null,d=S&&S.daemon;const P=[];
+  if(s){P.push(`<span class="pill ${s.edge_validated?"ok":"warn"}" title="Une stratégie a-t-elle franchi toutes les portes de validation ?"><i></i>Avantage ${s.edge_validated?"validé":"non validé"}</span>`);
+    P.push(`<span class="pill ${s.trials/s.trials_budget>.85?"bad":"acc"}" title="Essais comptés au registre / budget">Essais ${s.trials}/${s.trials_budget}</span>`);
+    P.push(`<span class="pill ${s.registry_chain_ok?"ok":"bad"}" title="Chaîne de hachage du registre">Registre ${s.registry_chain_ok?"intègre":"ALTÉRÉ"}</span>`);}
+  P.push(`<span class="pill ${l?(l.running?"ok":"warn"):""}" title="Lanceur MT5 (mode ${l?esc(l.mode):"?"})"><i></i>Lanceur ${l?esc(l.mode)+(l.running?"":" · arrêté"):"hors ligne"}</span>`);
+  const age=d?Date.now()/1000-d.ts:null;P.push(`<span class="pill ${d&&age<180&&d.connected?"ok":"warn"}" title="Extraction MT5 en continu"><i></i>Données ${!d?"jamais lancées":age<180?(d.connected?"en direct":"terminal déconnecté"):"arrêtées"}</span>`);
+  $("#pills").innerHTML=P.join("");}
+function banner(){const s=S.status,b=$("#banner");b.className="banner"+(s.edge_validated?" ok":"");
+  b.textContent=s.edge_validated?"Au moins une stratégie a franchi les portes de recherche — pas encore confirmée sur le futur ni sur la période verrouillée.":
+  "Aucun avantage de trading validé à ce jour · cette interface n'envoie jamais d'ordre et n'écrit aucune approbation.";}
+
+/* ---------- Synthèse + objectif ---------- */
+function gauge(v,target,beta){const w=Math.max(0,Math.min(100,v/target*100));return `<div class="bar ${beta?"beta":""}" title="${f(v,3)} R/jour sur ${target} visés"><i style="width:${w}%"></i></div>`;}
+function synthese(){const s=S.status,o=S.objective;if(!o)return `<div class="card muted">Objectif non défini.</div>`;
+  const best=o.best,risk=o.risk_per_trade||0.005,daily=o.target_r_per_day*risk;
+  const need=[0.05,0.1,0.2,0.33].map(e=>`<tr><td class="n">${f(e,2)} R</td><td class="n">${f(o.target_r_per_day/e,1)}</td><td class="n">${f(o.target_r_per_day/e*252,0)}</td></tr>`).join("");
+  return `<div class="card"><h2>Objectif : ${f(o.target_r_per_day,2)} R par jour ouvré</h2>
+  <div class="grid"><div class="kpi"><b>${f(o.target_r_per_day,2)} R</b><span>objectif par jour (jours sans trade = 0)</span></div>
+  <div class="kpi ${best&&best.r_per_day>=o.target_r_per_day?"good":"badk"}"><b>${best?f(best.r_per_day,3)+" R":"—"}</b><span>meilleur résultat hors effet de marché${best?` (${esc(best.name)}, ${esc(best.spec)})`:""}</span></div>
+  <div class="kpi"><b>${o.multiple_of_best?"× "+f(o.multiple_of_best,1):"—"}</b><span>écart entre l'objectif et ce meilleur résultat</span></div>
+  <div class="kpi"><b>${pc(daily,2)}</b><span>du capital par jour si 1 R = ${pc(risk,1)} (≈ ${pc(daily*21,1)} / mois)</span></div></div>
+  <div class="hint"><b>L'objectif est un repère de lecture, pas un réglage.</b> Il n'entre dans aucune porte de validation ; aucun seuil ni paramètre n'est modifié pour l'atteindre (ce serait du sur-apprentissage).
+  À 1 R = ${pc(risk,1)} du capital, ${f(o.target_r_per_day,2)} R/jour ≈ ${f(10/(daily*100),0)} jours ouvrés pour les 10 % de la phase 1 FTMO <i>sans aucun jour perdant</i> : c'est un niveau très élevé.</div>
+  <h3>Classement par R/jour (tous les essais)</h3>
+  <div class="tw"><table><thead><tr><th>Essai</th><th>Verdict</th><th class="n">Trades</th><th class="n">Espérance</th><th class="n">R / jour</th><th>vs objectif</th><th>Lecture</th></tr></thead><tbody>`+
+  o.rows.map(r=>`<tr><td>${esc(r.name)} <span class="muted">${esc(r.spec)}</span></td><td>${tag(r.verdict)}</td><td class="n">${r.n_trades}</td><td class="n">${sg(r.expectancy_R,3)}</td><td class="n"><b>${f(r.r_per_day,3)}</b></td><td>${gauge(r.r_per_day,o.target_r_per_day,!!r.beta)}</td>
+  <td class="muted" style="white-space:normal;min-width:240px">${r.beta?`<b style="color:var(--warn)">bêta, pas un avantage</b> — ${esc(r.beta)}`:"pas d'effet de marché évident repéré"}</td></tr>`).join("")+`</tbody></table></div>
+  <h3>Ce qu'il faudrait pour atteindre ${f(o.target_r_per_day,2)} R/jour</h3>
+  <div class="tw" style="max-width:520px"><table><thead><tr><th class="n">Espérance par trade</th><th class="n">Trades / jour</th><th class="n">Trades / an</th></tr></thead><tbody>${need}</tbody></table></div>
+  <p class="muted">Les espérances solides observées sont de l'ordre de 0,05 à 0,17 R par trade pour moins d'un trade par jour : l'écart avec l'objectif ne se comble ni en réglant des paramètres ni en baissant les seuils.</p></div>
+  <div class="card"><h2>Ce que fait le projet</h2><p>Un <b>laboratoire de recherche et de validation</b> : moteur de simulation unique, statistiques anti-sur-apprentissage (DSR, test nul, Monte-Carlo par blocs), registre d'essais chaîné,
+  période verrouillée à lecture unique, évaluation sur un échantillon futur gelé, garde-fou FTMO, et un <b>runtime MT5</b> qui reste en <b>OBSERVATION</b> (prix réels, exécutions simulées) tant qu'un humain n'a pas signé une approbation.</p>
+  <div class="grid"><div class="kpi"><b>${s.trials}/${s.trials_budget}</b><span>essais consommés</span></div><div class="kpi"><b>${s.locked_reads}</b><span>lectures de la période verrouillée</span></div>
+  <div class="kpi"><b>${s.edge_validated?"oui":"non"}</b><span>avantage validé</span></div></div>
+  <p class="muted" style="margin-top:8px">Runtime MetaTrader 5 : ${esc(s.mt5_broker)}.</p>
+  <p><button class="go" onclick="go('essai')">Tester une stratégie →</button></p></div>`;}
+
+/* ---------- Tester une stratégie : entrées, SL, TP, sorties ---------- */
+function essai(){
+  const strat=ST?ST.strategies:[];const allowed=id=>id==="patterns"?ST.patterns.instruments:(strat.find(s=>s.id===id)||{instruments:[]}).instruments;
+  const insts=ST?allowed(E.strategy):[];if(ST&&!insts.includes(E.instrument))E.instrument=insts[0];
+  const deep=ST&&ST.deep_available&&ST.deep_available[E.instrument];
+  return `<div class="card"><h2>Tester une stratégie, trade par trade</h2>
+  <p class="muted">Chaque trade est tracé avec son <b>entrée</b>, son <b>stop (SL)</b>, son <b>objectif (TP)</b> et sa <b>sortie</b>. Période de recherche ou années d'avant uniquement : la période verrouillée n'est jamais renvoyée. Aucun ordre.</p>
+  ${ST?`<div class="row"><label class="f">Stratégie<select id="es">${strat.map(s=>`<option value="${s.id}" ${s.id===E.strategy?"selected":""}>${esc(s.label)}</option>`).join("")}<option value="patterns" ${E.strategy==="patterns"?"selected":""}>${esc(ST.patterns.label)}</option></select></label>
+  <label class="f">Instrument<select id="ei">${insts.map(i=>`<option ${i===E.instrument?"selected":""}>${i}</option>`).join("")}</select></label>
+  <label class="f">Période<select id="eg"><option value="recherche" ${E.segment==="recherche"?"selected":""}>Recherche (récent)</option><option value="avant" ${E.segment==="avant"?"selected":""} ${deep?"":"disabled"}>Années d'avant ${deep?"":"(historique profond absent)"}</option></select></label>
+  <label class="f">Barres<select id="eb">${[3000,6000,12000].map(b=>`<option ${b===E.bars?"selected":""}>${b}</option>`).join("")}</select></label>
+  <button class="go" id="ego">Lancer le test</button></div><p class="muted" id="enote">${esc((strat.find(s=>s.id===E.strategy)||{}).note||"")}</p>`:`<div class="skel"></div><div class="skel" style="width:60%"></div>`}
+  </div><div id="eout">${R?explorer():`<div class="card muted">Choisissez une stratégie puis « Lancer le test » : les trades apparaissent ici avec leurs entrées, stops et objectifs.</div>`}</div>`;}
+function bindEssai(){const g=id=>document.getElementById(id);if(!g("ego"))return;
+  g("es").onchange=()=>{E.strategy=g("es").value;render();};g("ei").onchange=()=>{E.instrument=g("ei").value;render();};
+  g("eg").onchange=()=>{E.segment=g("eg").value};g("eb").onchange=()=>{E.bars=+g("eb").value};g("ego").onclick=runEssai;if(R)bindExplorer();}
+async function runEssai(){const b=document.getElementById("ego");b.disabled=true;b.textContent="Calcul… (5 à 60 s)";
+  try{R=await api(`/api/strategy_replay?instrument=${E.instrument}&bars=${E.bars}&strategy=${E.strategy}&segment=${E.segment}`);E.sel=0;E.filter="all";E.sort=["i",1];document.getElementById("eout").innerHTML=explorer();bindExplorer();}
+  catch(e){toast("Erreur : "+e.message)}b.disabled=false;b.textContent="Lancer le test";}
+function visible(){const T=R.trades.map((t,i)=>({...t,i}));let v=T;
+  if(E.filter==="win")v=T.filter(t=>t.r>0);else if(E.filter==="loss")v=T.filter(t=>t.r<=0);else if(E.filter==="tp")v=T.filter(t=>t.reason==="take_profit");
+  else if(E.filter==="sl")v=T.filter(t=>t.reason==="stop_loss");else if(E.filter==="time")v=T.filter(t=>!["take_profit","stop_loss"].includes(t.reason));
+  const [k,d]=E.sort;return v.slice().sort((a,b)=>(a[k]>b[k]?1:a[k]<b[k]?-1:0)*d);}
+function reasonLabel(k){return {take_profit:"Objectif atteint (TP)",stop_loss:"Stop touché (SL)",max_hold:"Durée maximale (sortie au temps)",weekend:"Fermeture avant le week-end",ftmo_weekend:"Fermeture avant le week-end (FTMO)",end:"Fin des données",data_hole:"Trou de données",ftmo_flatten:"Fermeture garde-fou FTMO",server_exit:"Sortie serveur"}[k]||k;}
+function explorer(){const m=R.metrics,d=R.daily,t=d.target,rd=d.avg_R_per_day;
+  const reasons=Object.entries(R.reasons).map(([k,v])=>`<tr><td>${esc(reasonLabel(k))}</td><td class="n">${v.n}</td><td class="n">${pc(v.n/m.n_trades)}</td><td class="n ${v.mean_R>0?"win":"lose"}">${sg(v.mean_R,3)}</td><td class="n">${pc(v.win_rate)}</td></tr>`).join("");
+  return `<div class="card"><h2>${esc(R.label)} · ${esc(R.instrument)} <span class="muted">${esc(R.start.slice(0,10))} → ${esc(R.end.slice(0,10))} · ${R.n_bars} barres · ${R.segment==="avant"?"années d'avant":"recherche"}</span></h2>
+  <div class="grid"><div class="kpi"><b>${m.n_trades}</b><span>trades</span></div><div class="kpi ${m.expectancy_R>0?"good":"badk"}"><b>${sg(m.expectancy_R,3)} R</b><span>espérance par trade</span></div>
+  <div class="kpi"><b>${f(m.profit_factor,2)}</b><span>facteur de profit</span></div><div class="kpi"><b>${pc(m.win_rate)}</b><span>trades gagnants</span></div>
+  <div class="kpi ${rd>=t?"good":"badk"}"><b>${sg(rd,3)} R</b><span>par jour ouvré · objectif ${f(t,2)} (${pc(d.days_ge_target_pct)} des jours l'atteignent)</span></div>
+  <div class="kpi"><b>${pc(m.max_drawdown,1)}</b><span>drawdown max</span></div></div>
+  <div class="banner" style="margin-top:12px">Une fenêtre courte ne prouve rien (achat &amp; conservation sur la même fenêtre : ${pc(R.buy_hold_return,1)}). Ce rejeu sert à <b>lire</b> les trades ; le jugement vient des portes (Résultats) et du futur.</div></div>
+  <div class="card"><h2>Où sortent les trades</h2><div class="twocol"><div class="tw"><table><thead><tr><th>Motif de sortie</th><th class="n">Trades</th><th class="n">Part</th><th class="n">R moyen</th><th class="n">Gagnants</th></tr></thead><tbody>${reasons}</tbody></table></div>
+  <div>${dailyChart()}</div></div></div>
+  <div class="card"><h2>Vue d'ensemble <span class="muted">(clic sur un trade pour le détailler)</span></h2>${overview()}</div>
+  <div class="card"><h2>Détail du trade</h2><div id="detail"></div></div>
+  <div class="card"><h2>Tous les trades</h2><div class="row" style="margin-bottom:8px;align-items:center"><div class="seg" role="group" aria-label="Filtre">${
+   [["all","Tous"],["win","Gagnants"],["loss","Perdants"],["tp","TP"],["sl","SL"],["time","Temps / autre"]].map(([k,l])=>`<button data-fl="${k}" aria-pressed="${E.filter===k}">${l}</button>`).join("")}</div>
+   <button class="sm" id="prev">◀ Précédent</button><button class="sm" id="next">Suivant ▶</button><button class="sm" id="best">Meilleur</button><button class="sm" id="worst">Pire</button><span class="muted" id="count"></span></div>
+  <div class="tw" style="max-height:420px;overflow:auto" tabindex="0" id="tbl" aria-label="Liste des trades (flèches haut/bas pour naviguer)"></div></div>
+  <div class="card"><h2>Capital simulé</h2>${equity()}</div>`;}
+function bindExplorer(){document.querySelectorAll("[data-fl]").forEach(b=>b.onclick=()=>{E.filter=b.dataset.fl;E.sel=0;refreshList();});
+  const nav=d=>{const v=visible();if(!v.length)return;const pos=Math.max(0,v.findIndex(t=>t.i===E.sel));E.sel=v[(pos+d+v.length)%v.length].i;refreshList(true);};
+  document.getElementById("prev").onclick=()=>nav(-1);document.getElementById("next").onclick=()=>nav(1);
+  document.getElementById("best").onclick=()=>{E.sel=R.trades.reduce((b,t,i)=>t.r>R.trades[b].r?i:b,0);refreshList(true)};
+  document.getElementById("worst").onclick=()=>{E.sel=R.trades.reduce((b,t,i)=>t.r<R.trades[b].r?i:b,0);refreshList(true)};
+  document.getElementById("tbl").onkeydown=e=>{if(e.key==="ArrowDown"){e.preventDefault();nav(1)}else if(e.key==="ArrowUp"){e.preventDefault();nav(-1)}};
+  document.getElementById("eout").onclick=e=>{const c=e.target.closest("[data-i]");if(c){E.sel=+c.dataset.i;refreshList(true);}};
+  refreshList();}
+function refreshList(scroll){const v=visible();if(!v.length){document.getElementById("tbl").innerHTML=`<p class="muted" style="padding:12px">Aucun trade pour ce filtre.</p>`;document.getElementById("detail").innerHTML="";document.getElementById("count").textContent="0 trade";return;}
+  if(!v.some(t=>t.i===E.sel))E.sel=v[0].i;
+  const th=(k,l,n)=>`<th class="${n?"n":""}" data-sort="${k}" style="cursor:pointer" title="Trier">${l}${E.sort[0]===k?(E.sort[1]>0?" ▲":" ▼"):""}</th>`;
+  const dp=Math.abs(R.trades[0].entry)<50?5:2;
+  document.getElementById("tbl").innerHTML=`<table><thead><tr>${th("i","#",1)}${th("i0","Entrée (UTC)")}<th>Sens</th><th class="n">Prix entrée</th><th class="n">SL</th><th class="n">TP</th><th class="n">Prix sortie</th><th>Motif</th>${th("held","Barres",1)}${th("r","R",1)}</tr></thead><tbody>`+
+   v.map(t=>`<tr data-i="${t.i}" class="${t.i===E.sel?"sel":""}" style="cursor:pointer"><td class="n">${t.i+1}</td><td>${stamp(R.bars.t[Math.max(0,t.i0)])}</td><td>${t.side==="long"?"Achat":"Vente"}</td><td class="n">${f(t.entry,dp)}</td><td class="n lose">${t.stop?f(t.stop,dp):"—"}</td><td class="n win">${t.tp?f(t.tp,dp):"—"}</td><td class="n">${f(t.exit,dp)}</td><td>${esc(reasonLabel(t.reason))}</td><td class="n">${t.held}</td><td class="n ${t.r>0?"win":"lose"}"><b>${sg(t.r,2)}</b></td></tr>`).join("")+`</tbody></table>`;
+  document.querySelectorAll("[data-sort]").forEach(h=>h.onclick=()=>{const k=h.dataset.sort;E.sort=E.sort[0]===k?[k,-E.sort[1]]:[k,k==="r"?-1:1];refreshList();});
+  document.querySelectorAll("[data-fl]").forEach(b=>b.setAttribute("aria-pressed",String(E.filter===b.dataset.fl)));
+  document.getElementById("count").textContent=`${v.length} / ${R.trades.length} trades`;
+  document.getElementById("detail").innerHTML=detail(R.trades[E.sel],E.sel);
+  if(scroll){const r=document.querySelector("tr.sel");if(r)r.scrollIntoView({block:"nearest"});}
+  const ov=document.getElementById("ovsel");if(ov)ov.setAttribute("x",ovx(R.trades[E.sel].i0));}
+function detail(t,idx){if(!t)return"";const dp=Math.abs(t.entry)<50?5:2,B=R.bars,ctx=Math.max(25,Math.round((t.i1-t.i0)*0.6)+20);
+  const a=Math.max(0,t.i0-ctx),z=Math.min(B.t.length-1,Math.max(t.i1,t.i0)+ctx),n=z-a+1;
+  const risk=t.stop?Math.abs(t.entry-t.stop):null,rew=t.tp?Math.abs(t.tp-t.entry):null;
+  const W=980,H=380,pl=10,pr=132,pt=26,pb=34;
+  let hi=-1e18,lo=1e18;for(let i=a;i<=z;i++){hi=Math.max(hi,B.h[i]);lo=Math.min(lo,B.l[i]);}[t.entry,t.exit,t.stop,t.tp].forEach(v=>{if(v!=null){hi=Math.max(hi,v);lo=Math.min(lo,v);}});
+  const padp=(hi-lo)*.06;hi+=padp;lo-=padp;const y=v=>pt+(hi-v)/(hi-lo||1)*(H-pt-pb),bw=(W-pl-pr)/n,x=i=>pl+(i-a+.5)*bw;
+  let g="";for(let k=0;k<=4;k++){const v=lo+(hi-lo)*k/4;g+=`<line class="axis" x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}"/><text class="lbl" x="${W-pr+6}" y="${y(v)+4}">${v.toFixed(dp)}</text>`;}
+  for(let k=0;k<=4;k++){const i=a+Math.round((n-1)*k/4);g+=`<text class="lbl" x="${x(i)}" y="${H-12}" text-anchor="middle">${stamp(B.t[i]).slice(5)}</text>`;}
+  const x0=x(t.i0)-bw/2,x1=x(t.i1)+bw/2;
+  if(t.tp)g+=`<rect x="${x0}" y="${Math.min(y(t.entry),y(t.tp))}" width="${x1-x0}" height="${Math.abs(y(t.tp)-y(t.entry))}" fill="var(--ok)" opacity=".13"/>`;
+  if(t.stop)g+=`<rect x="${x0}" y="${Math.min(y(t.entry),y(t.stop))}" width="${x1-x0}" height="${Math.abs(y(t.stop)-y(t.entry))}" fill="var(--bad)" opacity=".13"/>`;
+  let c="";for(let i=a;i<=z;i++){const up=B.c[i]>=B.o[i],col=up?"var(--ok)":"var(--bad)";
+    c+=`<line x1="${x(i)}" x2="${x(i)}" y1="${y(B.h[i])}" y2="${y(B.l[i])}" stroke="${col}"/><rect x="${x(i)-Math.max(bw*.34,.8)}" width="${Math.max(bw*.68,1.6)}" y="${y(Math.max(B.o[i],B.c[i]))}" height="${Math.max(Math.abs(y(B.o[i])-y(B.c[i])),1)}" fill="${col}"><title>${stamp(B.t[i])} · O ${B.o[i]} H ${B.h[i]} L ${B.l[i]} C ${B.c[i]}</title></rect>`;}
+  const ln=(v,col,l,d)=>v==null?"":`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="${col}" stroke-width="1.6" ${d?'stroke-dasharray="6 4"':""}/><text class="lblb" x="${W-pr+6}" y="${y(v)-3}" fill="${col}">${l} ${v.toFixed(dp)}</text>`;
+  const win=t.r>0,col=win?"var(--ok)":"var(--bad)";
+  const ex=`<g><line x1="${x(t.i0)}" y1="${y(t.entry)}" x2="${x(t.i1)}" y2="${y(t.exit)}" stroke="${col}" stroke-width="2.4"/><circle cx="${x(t.i0)}" cy="${y(t.entry)}" r="5" fill="${t.side==="long"?"var(--acc)":"var(--warn)"}" stroke="var(--card)" stroke-width="1.5"><title>Entrée ${t.side==="long"?"achat":"vente"} ${t.entry.toFixed(dp)}</title></circle>
+   <path d="M${x(t.i1)} ${y(t.exit)-7}l7 7-7 7-7-7z" fill="${col}" stroke="var(--card)" stroke-width="1.5"><title>Sortie ${t.exit.toFixed(dp)} · ${esc(reasonLabel(t.reason))}</title></path></g>`;
+  const svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Trade ${idx+1}">${g}${c}${ln(t.tp,"var(--ok)","TP",1)}${ln(t.stop,"var(--bad)","SL",1)}${ln(t.entry,"var(--acc)","ENTRÉE",0)}${ex}
+   <text class="lblb" x="${pl}" y="15">Trade ${idx+1} · ${t.side==="long"?"Achat":"Vente"} · ${sg(t.r,2)} R · ${esc(reasonLabel(t.reason))}</text></svg>`;
+  return `${svg}<div class="grid" style="margin-top:8px">
+  <div class="kpi"><b>${t.entry.toFixed(dp)}</b><span>entrée · ${stamp(B.t[t.i0])} UTC</span></div>
+  <div class="kpi"><b style="color:var(--bad)">${t.stop?t.stop.toFixed(dp):"—"}</b><span>stop (SL)${risk?` · risque ${risk.toFixed(dp)} (${pc(risk/t.entry,2)})`:""}</span></div>
+  <div class="kpi"><b style="color:var(--ok)">${t.tp?t.tp.toFixed(dp):"—"}</b><span>objectif (TP)${rew&&risk?` · gain visé ${(rew/risk).toFixed(2)} R`:""}</span></div>
+  <div class="kpi"><b>${t.exit.toFixed(dp)}</b><span>sortie · ${stamp(B.t[Math.max(0,t.i1)])} UTC · ${t.held} barres</span></div>
+  <div class="kpi ${win?"good":"badk"}"><b>${sg(t.r,2)} R</b><span>résultat (PnL ${sg(t.pnl,2)})</span></div></div>
+  <p class="muted">Zone verte = distance entrée→TP, zone rouge = entrée→SL, sur la durée du trade. Si la sortie n'est ni TP ni SL, le trade a été clôturé par le temps ou une règle de risque : le R est alors partiel.</p>`;}
+function ovx(i){const W=980,pl=40,pr=12;return pl+(i/(R.bars.t.length-1||1))*(W-pl-pr);}
+function overview(){const B=R.bars,n=B.t.length,W=980,H=210,pl=40,pr=12,pt=20,pb=24,step=Math.max(1,Math.floor(n/700));
+  let hi=-1e18,lo=1e18;for(let i=0;i<n;i++){hi=Math.max(hi,B.h[i]);lo=Math.min(lo,B.l[i]);}const y=v=>pt+(hi-v)/(hi-lo||1)*(H-pt-pb),x=i=>pl+i/(n-1||1)*(W-pl-pr);
+  let pts="";for(let i=0;i<n;i+=step)pts+=`${x(i).toFixed(1)},${y(B.c[i]).toFixed(1)} `;
+  let g="";for(let k=0;k<=3;k++){const v=lo+(hi-lo)*k/3;g+=`<line class="axis" x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}"/><text class="lbl" x="${pl-4}" y="${y(v)+4}" text-anchor="end">${v>1000?v.toFixed(0):v.toFixed(3)}</text>`;}
+  const tr=R.trades.map((t,i)=>`<g data-i="${i}" style="cursor:pointer"><line x1="${x(t.i0)}" x2="${x(t.i1)}" y1="${y(t.entry)}" y2="${y(t.exit)}" stroke="${t.r>0?"var(--ok)":"var(--bad)"}" stroke-width="3"/><circle cx="${x(t.i0)}" cy="${y(t.entry)}" r="3.4" fill="${t.side==="long"?"var(--acc)":"var(--warn)"}"><title>#${i+1} ${t.side==="long"?"achat":"vente"} · ${sg(t.r,2)} R · ${esc(reasonLabel(t.reason))}</title></circle></g>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Prix et trades">${g}<polyline fill="none" stroke="var(--mute)" stroke-width="1.1" points="${pts}"/><rect id="ovsel" x="${ovx(R.trades[E.sel]?R.trades[E.sel].i0:0)}" y="${pt}" width="3" height="${H-pt-pb}" fill="var(--acc)" opacity=".35"/>${tr}
+  <text class="lbl" x="${pl}" y="13">${stamp(B.t[0]).slice(0,10)} → ${stamp(B.t[n-1]).slice(0,10)} · trait vert/rouge = trade gagnant/perdant · point bleu = achat, orange = vente</text></svg>`;}
+function equity(){const pts=R.equity;if(!pts||pts.length<2)return"";const W=980,H=190,p=44;const ys=pts.map(a=>a[1]);const lo=Math.min(...ys),hi=Math.max(...ys),y=v=>14+(hi-v)/(hi-lo||1)*(H-40),x=i=>p+i/(pts.length-1)*(W-p-12);
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Capital simulé"><line class="axis" x1="${p}" x2="${W-12}" y1="${y(pts[0][1])}" y2="${y(pts[0][1])}"/><polyline fill="none" stroke="var(--acc)" stroke-width="2" points="${pts.map((a,i)=>x(i)+","+y(a[1])).join(" ")}"/>
+  <text class="lbl" x="${p-4}" y="${y(hi)+4}" text-anchor="end">${hi.toFixed(0)}</text><text class="lbl" x="${p-4}" y="${y(lo)+4}" text-anchor="end">${lo.toFixed(0)}</text><text class="lbl" x="${p}" y="${H-6}">${esc(pts[0][0].slice(0,10))}</text><text class="lbl" x="${W-12}" y="${H-6}" text-anchor="end">${esc(pts[pts.length-1][0].slice(0,10))}</text></svg>`;}
+function dailyChart(){const d=R.daily,s=d.series;if(!s||!s.length)return `<p class="muted">Aucun jour avec trade.</p>`;const W=520,H=210,p=34,t=d.target;
+  const vals=s.map(a=>a[1]),hi=Math.max(t,...vals,.1),lo=Math.min(0,...vals,-.1),y=v=>18+(hi-v)/(hi-lo)*(H-44),bw=(W-p-8)/s.length;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="R par jour"><line class="axis" x1="${p}" x2="${W-8}" y1="${y(0)}" y2="${y(0)}"/><line x1="${p}" x2="${W-8}" y1="${y(t)}" y2="${y(t)}" stroke="var(--warn)" stroke-dasharray="5 4"/>
+  <text class="lbl" x="${p+2}" y="${y(t)-4}" fill="var(--warn)">objectif ${f(t,2)} R</text>`+
+  s.map((a,i)=>`<rect x="${p+i*bw}" width="${Math.max(bw-1,1)}" y="${Math.min(y(0),y(a[1]))}" height="${Math.max(Math.abs(y(a[1])-y(0)),1)}" fill="${a[1]>=0?"var(--ok)":"var(--bad)"}"><title>${a[0]} : ${sg(a[1],2)} R</title></rect>`).join("")+
+  `<text class="lbl" x="${p}" y="12">R par jour de sortie (jours avec trade)</text></svg>`;}
+
+/* ---------- orchestration ---------- */
+function render(){tabs();pills();clearInterval(timer);
+  const v=({synthese,essai,res,wf,cal,data,live})[tab];$("#view").innerHTML=S?v():`<div class="card"><div class="skel"></div></div>`;
+  if(tab==="essai"){if(!ST)api("/api/strategies").then(x=>{ST=x;if(tab==="essai"){$("#view").innerHTML=essai();bindEssai();}}).catch(e=>toast("Erreur : "+e.message));else bindEssai();}
+  if(tab==="live"){loadLive();timer=setInterval(loadLive,5000);}window.scrollTo({top:0});}
+async function boot(){const h=location.hash.slice(1);tab=TABS.some(t=>t[0]===h)?h:(TABS.some(t=>t[0]===store.get("tab","synthese"))?store.get("tab","synthese"):"synthese");
+  tabs();try{S=await api("/api/state");banner();}catch(e){$("#view").innerHTML=`<div class="card"><h2>Interface non joignable</h2><p class="muted">${esc(e.message)}</p></div>`;return;}
+  try{L=await api("/api/live");}catch(e){}render();setInterval(async()=>{try{L=await api("/api/live");S.daemon=(await api("/api/state")).daemon;pills();}catch(e){}},15000);}
+boot();
 </script>
 </body>
 </html>

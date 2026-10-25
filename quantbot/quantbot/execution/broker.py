@@ -53,6 +53,8 @@ class Trade:
     bars_held: int = 0
     risk_amount: float = 0.0
     nominal_risk: float = 0.0
+    stop: float = 0.0          # niveaux posés à l'ouverture (pour visualiser l'entrée / SL / TP de chaque trade)
+    take_profit: float = 0.0
 
     @property
     def r_nominal(self) -> float:
@@ -116,7 +118,7 @@ class PaperBroker(Broker):
         self.cash += gross - exit_fee
         trade = Trade(pos.side, pos.entry_time, ts, pos.entry, fill, pos.size,
                       gross - exit_fee - pos.entry_fee, reason, pos.confidence, pos.patterns,
-                      idx - pos.entry_idx, pos.risk_amount, pos.nominal_risk)
+                      idx - pos.entry_idx, pos.risk_amount, pos.nominal_risk, pos.stop, pos.take_profit)
         self.trades.append(trade)
         self.position = None
         log.debug("CLOSE %s @ %.4f (%s) pnl=%.2f", pos.side, fill, reason, trade.pnl)

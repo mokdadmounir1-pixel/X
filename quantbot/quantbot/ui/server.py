@@ -65,7 +65,8 @@ def collect_state(root: Path = ROOT) -> dict:
                             "expectancy_R": m["expectancy_R"], "profit_factor": m["profit_factor"],
                             "worst_trade_R": m.get("worst_trade_R"), "years": m.get("years"),
                             "gates": ev["gates"], "reason": ev["reason"], "n_trials": ev["n_trials"],
-                            "diagnostics": r.get("diagnostics"), "costs": r.get("costs_used")})
+                            "diagnostics": r.get("diagnostics"), "costs": r.get("costs_used"),
+                            "r_per_day": (m["expectancy_R"] * m["n_trades"] / (m["years"] * 252.0)) if m.get("years") and m.get("n_trades") else None})
         specs.append({"name": name, "parent": spec.get("parent"), "hypothesis": spec.get("hypothesis"),
                       "change_reason": spec.get("change_reason"), "results": results})
     battery = _read_json(reports / "battery_v1" / "summary.json")
@@ -78,6 +79,19 @@ def collect_state(root: Path = ROOT) -> dict:
                     walkforward.append({"spec": wf_dir.name, **{k: r.get(k) for k in ("instrument", "strategy", "n_configs", "walk", "summary", "windows")}})
     prov = _read_json(root / "data" / "real" / "PROVENANCE.json") or {}
     verdicts = [r.get("verdict") for s in specs for r in s["results"]]
+    from .replay import objective as _objective
+    obj = _objective(root)
+    rows = [{"spec": sp["name"], "name": r["instrument"], "verdict": r["verdict"], "n_trades": r["n_trades"], "expectancy_R": r["expectancy_R"], "years": r["years"], "r_per_day": r["r_per_day"]}
+            for sp in specs for r in sp["results"] if r.get("r_per_day") is not None]
+    for x in rows:   # un R/jour élevé qui n'est que du bêta de marché n'est PAS un avantage : on le signale et on l'exclut de la référence
+        for prefix, why in obj["beta_flags"].items():
+            if f"{x['spec']}:{x['name']}".startswith(prefix):
+                x["beta"] = why
+    rows.sort(key=lambda x: -x["r_per_day"])
+    honest = [x for x in rows if not x.get("beta")]
+    obj["best"] = honest[0] if honest else None
+    obj["rows"] = rows[:14]
+    obj["multiple_of_best"] = (obj["target_r_per_day"] / honest[0]["r_per_day"]) if honest and honest[0]["r_per_day"] > 0 else None
     return {
         "status": {"live_trading": "AUCUN ordre n'est envoyé par cette interface (lecture seule)", "edge_validated": any(v == "PASS" for v in verdicts),
                    "mt5_broker": "quantbot/live écrit ; jamais exécuté d'ordre sur un terminal réel (seul un diagnostic en lecture seule, C1, a été fait)",
@@ -85,6 +99,7 @@ def collect_state(root: Path = ROOT) -> dict:
         "specs": specs,
         "battery": battery,
         "walkforward": walkforward,
+        "objective": obj,
         "daemon": _read_json(root / "data" / "live" / "DAEMON_STATUS.json"),
         "queue": _read_json(reports / "QUEUE_STATUS.json"),
         "data": [{k: i.get(k) for k in ("symbol", "rows", "start", "end", "span_years", "sha256")} for i in prov.get("instruments", [])],
@@ -228,6 +243,14 @@ class Handler(BaseHTTPRequestHandler):
                 self._json(collect_state(self.root))
             elif url.path == "/api/live":
                 self._json(collect_live(self.root))
+            elif url.path == "/api/strategies":
+                from .replay import list_strategies
+                self._json(list_strategies(self.root))
+            elif url.path == "/api/strategy_replay":
+                from .replay import run_strategy_replay
+                q = parse_qs(url.query)
+                self._json(run_strategy_replay(q.get("instrument", [""])[0], int(q.get("bars", ["6000"])[0]), q.get("strategy", ["orb"])[0],
+                                               q.get("segment", ["recherche"])[0], self.root))
             elif url.path == "/api/replay":
                 q = parse_qs(url.query)
                 self._json(replay_instrument(q.get("instrument", [""])[0], int(q.get("bars", ["6000"])[0]),
