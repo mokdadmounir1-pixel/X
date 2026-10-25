@@ -171,3 +171,10 @@ def test_run_forever_stops_cleanly_on_keyboard_interrupt(tmp_path):
     r.setup()
     r.run_forever(poll_s=0)
     assert any(e["kind"] == "arret" for e in r.state.recent_events(5))
+
+
+def test_feed_accepts_structured_numpy_array_like_the_real_terminal():
+    m = FakeMT5Live(n_bars=200)
+    assert m.copy_rates_from_pos("XAUUSD", m.TIMEFRAME_M15, 1, 5).dtype.names[:2] == ("time", "open")
+    df = BarFeed(m, "XAUUSD", "M15", 500).poll()
+    assert len(df) == 200 and {"open", "high", "low", "close", "volume", "spread_points"} <= set(df.columns)

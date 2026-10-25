@@ -62,7 +62,11 @@ class FakeMT5Live:
 
     def copy_rates_from_pos(self, sym, tf, start, n):
         end = len(self.bars) - start
-        return list(self.bars[max(0, end - n):end])
+        rows = self.bars[max(0, end - n):end]
+        # comme le VRAI module : ndarray structuré (champs nommés), pas une liste de dicts (constaté par C2)
+        dt = [("time", "<i8"), ("open", "<f8"), ("high", "<f8"), ("low", "<f8"), ("close", "<f8"),
+              ("tick_volume", "<u8"), ("spread", "<i4"), ("real_volume", "<u8")]
+        return np.array([tuple(r[k] for k, _ in dt) for r in rows], dtype=dt)
 
     # --- ordres
     def positions_get(self, symbol=None):

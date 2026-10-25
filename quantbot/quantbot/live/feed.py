@@ -39,7 +39,7 @@ class BarFeed:
         rates = self.mt5.copy_rates_from_pos(self.symbol, self.tf, 1, self.n_bars)
         if rates is None or len(rates) == 0:
             raise DataFetchError(f"Aucune barre {self.symbol} {self.tf_name} : {self.mt5.last_error()}")
-        raw = pd.DataFrame(list(rates))
+        raw = pd.DataFrame(rates)  # le vrai MT5 renvoie un ndarray structuré (champs nommés), pas une liste de dicts
         raw = raw.drop_duplicates("time").sort_values("time")
         clock = pd.DatetimeIndex(pd.to_datetime(raw["time"], unit="s"))
         df = pd.DataFrame({"open": raw["open"].to_numpy(float), "high": raw["high"].to_numpy(float), "low": raw["low"].to_numpy(float),
