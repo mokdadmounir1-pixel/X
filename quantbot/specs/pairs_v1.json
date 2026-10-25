@@ -1,0 +1,28 @@
+{
+ "name": "pairs_v1",
+ "preregistered": "2026-10-25 : commitée AVANT toute exécution sur des données réelles",
+ "hypothesis": "BTC-USD et ETH-USD (M15, UTC, Coinbase) forment un spread cointégré dont l'écart |z| >= 2 (bêta par filtre de Kalman) revient vers 0 plus vite qu'il ne diverge, net de coûts.",
+ "script": "scripts/run_pairs.py",
+ "legs": ["BTC-USD", "ETH-USD"],
+ "timeframe": "M15",
+ "data_dir": "data/crypto",
+ "lock_months": 12,
+ "params": {"z_entry": 2.0, "z_stop": 3.5, "z_exit": 0.0, "delta": 1e-5, "obs_var": 1e-3, "sigma_halflife": 250,
+            "warmup": 500, "coint_window": 2000, "coint_every": 96, "max_hold": 960, "require_coint": true},
+ "variants": {
+  "retail_fees": {"cost_per_leg": 0.0045, "basis": "HYPOTHÈSE : frais taker ~0,40 % + spread + glissement ~0,05 % par côté et par jambe (cf. crypto_paper_v1)"},
+  "low_fees": {"cost_per_leg": 0.0010, "basis": "HYPOTHÈSE optimiste (palier de volume / maker) : à confirmer sur le compte réel avant toute conclusion"}
+ },
+ "null": {"method": "décalage circulaire de la jambe B (préserve la dynamique de chaque série, détruit le lien entre elles)", "n_shifts": 200, "min_shift_bars": 2880},
+ "verdict_rules": {
+  "NON_CONCLUANT": "moins de 100 trades",
+  "FAIL": "R moyen <= 0 net de coûts, ou p du test nul > 0,05",
+  "CANDIDAT": "sinon : ne vaut PAS validation ; exige encore l'échantillon forward (>= 60 trades) et le DSR avec tous les essais"
+ },
+ "trials": 2,
+ "known_limits": [
+  "Simulateur à deux jambes propre à la recherche, non branché au moteur unique ni au runtime DEMO.",
+  "Coûts = hypothèses. Pas de financement/portage pour la jambe vendeuse (marge, emprunt) : omis, donc optimiste.",
+  "Sur marchés aléatoires indépendants le simulateur montre un léger biais positif (~+0,1 R sur données synthétiques) : c'est pourquoi le test nul par décalage circulaire est obligatoire."
+ ]
+}

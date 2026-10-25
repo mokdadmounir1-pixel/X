@@ -1,0 +1,22 @@
+{
+ "captured_at_utc": "2026-10-25T21:05:46.207946+00:00",
+ "source": "Coinbase Exchange API publique",
+ "synthetic": false,
+ "orders_sent": 0,
+ "clock": "UTC natif (pas de décalage de courtier)",
+ "volume": "volume réel (unités de base)",
+ "spread": "non fourni : déclaré dans la spec, jamais supposé nul",
+ "instruments": [],
+ "failures": [
+  {
+   "product": "BTC-USD",
+   "timeframe": "M15",
+   "reason": "DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+   "product": "ETH-USD",
+   "timeframe": "M15",
+   "reason": "DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>"
+  }
+ ]
+}
