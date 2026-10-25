@@ -35,7 +35,10 @@ avant toute tâche et rapporte le résultat. **Ne modifie pas le code de `quantb
 scénario, preuve) dans `RESULTAT.md`. Claude corrige. Tes scripts vont dans `scripts_local/`.
 
 ## File de tâches (une seule à la fois, sur « suivant » de l'utilisateur)
-Voir `docs/prompts/chatgpt_connect_live_bot.md` pour le détail de C1 à C5. C1 est faite. Ensuite, et seulement après « suivant » :
+**Cette liste remplace la numérotation de `chatgpt_connect_live_bot.md`** (qui reste valable pour le contexte et les règles).
+État : C1 faite (diagnostic lecture seule) ; `scripts/run_live.py` (+ `--resolve-intent`), `scripts/c3_quote_gate.py` et l'onglet
+« En direct » de l'interface (`/api/live`) existent déjà dans le dépôt, écrits et relus par Claude : **ne les réécris pas**.
+Récupère toujours le dernier commit de la branche avant de travailler. Ensuite, et seulement après « suivant » :
 - **C2** relecture statique du dépôt réel (avec `--project`), reproduction des défauts sur le vrai module.
 - **C3** mesures en **séance ouverte** (lancer d'abord `scripts/c3_quote_gate.py <sortie.json>` : `eligible_for_c3` doit être vrai) :
   fuseau (recoupé sur plusieurs ticks), barre courante, fraîcheur des ticks, spread réel, séances, ET **heure de la première barre de
