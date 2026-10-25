@@ -1,0 +1,129 @@
+{
+ "instrument": "XAUUSD",
+ "strategy": "vwap",
+ "grid": {
+  "k": [
+   2.0,
+   2.5,
+   3.0
+  ],
+  "stop_k": [
+   3.0,
+   3.5,
+   4.5
+  ],
+  "min_rr": [
+   1.0,
+   1.5,
+   2.0
+  ]
+ },
+ "n_configs": 27,
+ "trades_per_config": {
+  "k=2.0,min_rr=1.0,stop_k=3.0": 745,
+  "k=2.0,min_rr=1.0,stop_k=3.5": 811,
+  "k=2.0,min_rr=1.0,stop_k=4.5": 249,
+  "k=2.0,min_rr=1.5,stop_k=3.0": 745,
+  "k=2.0,min_rr=1.5,stop_k=3.5": 645,
+  "k=2.0,min_rr=1.5,stop_k=4.5": 174,
+  "k=2.0,min_rr=2.0,stop_k=3.0": 745,
+  "k=2.0,min_rr=2.0,stop_k=3.5": 372,
+  "k=2.0,min_rr=2.0,stop_k=4.5": 95,
+  "k=2.5,min_rr=1.0,stop_k=3.0": 446,
+  "k=2.5,min_rr=1.0,stop_k=3.5": 575,
+  "k=2.5,min_rr=1.0,stop_k=4.5": 568,
+  "k=2.5,min_rr=1.5,stop_k=3.0": 446,
+  "k=2.5,min_rr=1.5,stop_k=3.5": 575,
+  "k=2.5,min_rr=1.5,stop_k=4.5": 383,
+  "k=2.5,min_rr=2.0,stop_k=3.0": 446,
+  "k=2.5,min_rr=2.0,stop_k=3.5": 575,
+  "k=2.5,min_rr=2.0,stop_k=4.5": 187,
+  "k=3.0,min_rr=1.0,stop_k=3.0": 0,
+  "k=3.0,min_rr=1.0,stop_k=3.5": 251,
+  "k=3.0,min_rr=1.0,stop_k=4.5": 339,
+  "k=3.0,min_rr=1.5,stop_k=3.0": 0,
+  "k=3.0,min_rr=1.5,stop_k=3.5": 251,
+  "k=3.0,min_rr=1.5,stop_k=4.5": 339,
+  "k=3.0,min_rr=2.0,stop_k=3.0": 0,
+  "k=3.0,min_rr=2.0,stop_k=3.5": 251,
+  "k=3.0,min_rr=2.0,stop_k=4.5": 339
+ },
+ "walk": {
+  "train_days": 365,
+  "test_days": 90,
+  "min_train_trades": 30
+ },
+ "summary": {
+  "n_windows": 5,
+  "n_windows_traded": 5,
+  "n_oos_trades": 116,
+  "n_configs": 27,
+  "oos_expectancy_R": -0.03295567732426702,
+  "oos_profit_factor": 0.8792026277716726,
+  "oos_positive_window_share": 0.4,
+  "mean_train_expectancy_of_chosen": 0.09038844798776936,
+  "unselected_average_config_oos_R": -0.02392811396524913,
+  "distinct_choices": 2,
+  "oos_sign_flip_p": 0.727,
+  "optimism_gap_R": 0.12334412531203638
+ },
+ "counted_as_new_trial": true,
+ "n_trials_total": 47,
+ "windows": [
+  {
+   "train_start": "2023-05-29 05:45:00",
+   "test_start": "2024-05-28 05:45:00",
+   "test_end": "2024-08-26 05:45:00",
+   "chosen": "k=2.0,min_rr=2.0,stop_k=3.5",
+   "train_E": 0.0914399201760591,
+   "train_n": 162,
+   "oos_n": 45,
+   "oos_E": -0.05424442262317027,
+   "note": ""
+  },
+  {
+   "train_start": "2023-08-27 05:45:00",
+   "test_start": "2024-08-26 05:45:00",
+   "test_end": "2024-11-24 05:45:00",
+   "chosen": "k=2.0,min_rr=1.5,stop_k=4.5",
+   "train_E": 0.1330294197772648,
+   "train_n": 76,
+   "oos_n": 24,
+   "oos_E": -0.03790143505247762,
+   "note": ""
+  },
+  {
+   "train_start": "2023-11-25 05:45:00",
+   "test_start": "2024-11-24 05:45:00",
+   "test_end": "2025-02-22 05:45:00",
+   "chosen": "k=2.0,min_rr=1.5,stop_k=4.5",
+   "train_E": 0.11149816352995756,
+   "train_n": 85,
+   "oos_n": 20,
+   "oos_E": 0.010206023927492026,
+   "note": ""
+  },
+  {
+   "train_start": "2024-02-23 05:45:00",
+   "test_start": "2025-02-22 05:45:00",
+   "test_end": "2025-05-23 05:45:00",
+   "chosen": "k=2.0,min_rr=1.5,stop_k=4.5",
+   "train_E": 0.07382038420781169,
+   "train_n": 87,
+   "oos_n": 16,
+   "oos_E": -0.1396007674721275,
+   "note": ""
+  },
+  {
+   "train_start": "2024-05-23 05:45:00",
+   "test_start": "2025-05-23 05:45:00",
+   "test_end": "2025-08-21 05:45:00",
+   "chosen": "k=2.0,min_rr=1.5,stop_k=4.5",
+   "train_E": 0.04215435224775365,
+   "train_n": 84,
+   "oos_n": 11,
+   "oos_E": 0.14156969915375928,
+   "note": ""
+  }
+ ]
+}

@@ -178,3 +178,30 @@ def test_feed_accepts_structured_numpy_array_like_the_real_terminal():
     assert m.copy_rates_from_pos("XAUUSD", m.TIMEFRAME_M15, 1, 5).dtype.names[:2] == ("time", "open")
     df = BarFeed(m, "XAUUSD", "M15", 500).poll()
     assert len(df) == 200 and {"open", "high", "low", "close", "volume", "spread_points"} <= set(df.columns)
+
+
+def test_runner_publishes_bars_position_levels_for_the_live_page(tmp_path):
+    m = FakeMT5Live(n_bars=1500)
+    r = runner(tmp_path, m, strategy="fvg_h1", appr=approvals(tmp_path, strategy="fvg_h1"))
+    r.setup()
+    r.engine.signals = OneShotSignal()
+    seen = None
+    for _ in range(12):
+        m.advance(1); r.step()
+        seen = seen or r.state.get("position")
+    bars = r.state.get("bars")
+    assert bars and len(bars) <= 240 and len(bars[0]) == 5
+    assert seen and seen["side"] == "long" and seen["stop"] < seen["entry"] < seen["tp"]      # niveaux réellement posés
+
+
+def test_closed_trade_log_carries_entry_exit_stop_tp(tmp_path):
+    m = FakeMT5Live(n_bars=1500)
+    r = runner(tmp_path, m, strategy="fvg_h1")      # sans approbation : OBSERVATION (PaperBroker)
+    r.setup()
+    r.engine.signals = OneShotSignal()
+    for _ in range(80):
+        m.advance(1); r.step()
+    trades = [json.loads(e["detail"]) for e in r.state.recent_events(200) if e["kind"] == "trade"]
+    assert len(trades) == 1
+    t = trades[0]
+    assert t["paper"] is True and t["stop"] < t["entry"] < t["tp"] and t["exit"] and t["entry_time"] and t["exit_time"]

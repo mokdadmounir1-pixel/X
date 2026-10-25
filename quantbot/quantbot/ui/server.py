@@ -69,6 +69,13 @@ def collect_state(root: Path = ROOT) -> dict:
         specs.append({"name": name, "parent": spec.get("parent"), "hypothesis": spec.get("hypothesis"),
                       "change_reason": spec.get("change_reason"), "results": results})
     battery = _read_json(reports / "battery_v1" / "summary.json")
+    walkforward = []
+    for wf_dir in sorted(reports.glob("wf_*")):
+        if wf_dir.is_dir():
+            for f in sorted(wf_dir.glob("*.json")):
+                r = _read_json(f)
+                if r:
+                    walkforward.append({"spec": wf_dir.name, **{k: r.get(k) for k in ("instrument", "strategy", "n_configs", "walk", "summary", "windows")}})
     prov = _read_json(root / "data" / "real" / "PROVENANCE.json") or {}
     verdicts = [r.get("verdict") for s in specs for r in s["results"]]
     return {
@@ -77,6 +84,7 @@ def collect_state(root: Path = ROOT) -> dict:
                    "registry_chain_ok": reg_ok, "trials": n_trials, "trials_budget": budget, "locked_reads": locked},
         "specs": specs,
         "battery": battery,
+        "walkforward": walkforward,
         "data": [{k: i.get(k) for k in ("symbol", "rows", "start", "end", "span_years", "sha256")} for i in prov.get("instruments", [])],
         "data_notes": ["Horloge courtier : UTC+2 hiver / UTC+3 été, calendrier européen (reconstruite depuis time_broker_epoch).",
                        "Export plafonné à 80 000 barres par instrument : ce n'est pas tout l'historique.",
@@ -125,7 +133,8 @@ def collect_live(root: Path = ROOT) -> dict:
     hb = kv.get("heartbeat")
     age = time.time() - hb if isinstance(hb, (int, float)) else None
     running = bool(kv.get("launcher_running")) and age is not None and age < 60
-    out.update(available=True, mode=kv.get("mode", "NON_DEMARRE"), why=kv.get("why"), strategy=kv.get("strategy"),
+    out.update(available=True, bars=kv.get("bars") or [], position=kv.get("position"), pending=kv.get("pending"),
+               symbol=kv.get("symbol"), mode=kv.get("mode", "NON_DEMARRE"), why=kv.get("why"), strategy=kv.get("strategy"),
                last_bar=kv.get("last_bar"), heartbeat_age_s=age, running=running,
                launcher_running_flag=kv.get("launcher_running"), stop_reason=kv.get("launcher_stop_reason"),
                intents=intents, events=events, paper_trades=trades,
@@ -157,7 +166,11 @@ def run_replay(df: pd.DataFrame, settings, max_points: int = 500) -> dict:
             "equity": [[str(t), float(v)] for t, v in zip(eq.index, eq.to_numpy())],
             "reasons": {k: sum(1 for t in trades if t.reason == k) for k in sorted({t.reason for t in trades})},
             "trades": [{"t": str(t.entry_time), "side": t.side, "reason": t.reason, "r_nominal": round(t.r_nominal, 3)}
-                       for t in trades[-40:]]}
+                       for t in trades[-40:]],
+            # graphique des prix de la fenêtre rejouée + chaque trade (entrée -> sortie), pour LIRE ce que fait la stratégie
+            "price": [[str(t), float(v)] for t, v in zip(df.index[::max(1, len(df) // 600)], df["close"].to_numpy()[::max(1, len(df) // 600)])],
+            "markers": [{"t0": str(t.entry_time), "p0": float(t.entry), "t1": str(t.exit_time), "p1": float(t.exit),
+                         "side": t.side, "r": round(t.r_nominal, 3), "reason": t.reason} for t in trades[-300:]]}
 
 
 def replay_instrument(instrument: str, bars: int, spec_name: str = "baseline_v1", root: Path = ROOT) -> dict:

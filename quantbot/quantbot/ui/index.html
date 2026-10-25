@@ -42,7 +42,7 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--acc)}
   <section id="view"></section>
 </main>
 <script>
-const TABS=[["etat","État"],["res","Résultats"],["cal","Calibration v2"],["rejeu","Rejouer un backtest"],["data","Données"],["live","En direct"]];
+const TABS=[["etat","État"],["res","Résultats"],["cal","Calibration v2"],["rejeu","Rejouer un backtest"],["data","Données"],["wf","Optimisation"],["live","En direct"]];
 let S=null,L=null,tab="etat",timer=null;
 const $=s=>document.querySelector(s),esc=t=>String(t??"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const f=(x,d=3)=>x==null||!isFinite(x)?"—":Number(x).toFixed(d);
@@ -100,9 +100,16 @@ function rejeu(){return `<div class="card"><h2>Rejouer le moteur sur la période
 function curve(pts){const W=900,H=260,p=34;const ys=pts.map(a=>a[1]);const lo=Math.min(...ys),hi=Math.max(...ys),y=v=>p+(hi-v)/(hi-lo||1)*(H-2*p),x=i=>p+i/(pts.length-1||1)*(W-2*p);
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="courbe d'équité"><polyline fill="none" stroke="var(--acc)" stroke-width="2" points="${pts.map((a,i)=>x(i)+","+y(a[1])).join(" ")}"/><line class="axis" x1="${p}" x2="${W-p}" y1="${y(pts[0][1])}" y2="${y(pts[0][1])}"/>
   <text class="lbl" x="${p}" y="14">équité (capital initial ${f(pts[0][1],0)})</text><text class="lbl" x="${W-p}" y="${H-8}" text-anchor="end">${esc(pts[pts.length-1][0].slice(0,10))}</text><text class="lbl" x="${p}" y="${H-8}">${esc(pts[0][0].slice(0,10))}</text></svg>`;}
+function priceChart(price,marks){if(!price||price.length<2)return "";const W=900,H=300,p=34;const ts=price.map(a=>Date.parse(a[0].replace(" ","T")));const t0=ts[0],t1=ts[ts.length-1];
+  const ys=price.map(a=>a[1]);const lo=Math.min(...ys),hi=Math.max(...ys),y=v=>p+(hi-v)/(hi-lo||1)*(H-2*p),x=t=>p+(t-t0)/(t1-t0||1)*(W-2*p);
+  const tm=s=>Date.parse(s.replace(" ","T"));
+  const seg=(marks||[]).filter(m=>tm(m.t0)>=t0&&tm(m.t1)<=t1).map(m=>`<line x1="${x(tm(m.t0))}" y1="${y(m.p0)}" x2="${x(tm(m.t1))}" y2="${y(m.p1)}" stroke="${m.r>=0?"var(--ok)":"var(--bad)"}" stroke-width="2"><title>${esc(m.side)} · ${esc(m.reason)} · ${m.r} R</title></line>`+
+   `<circle cx="${x(tm(m.t0))}" cy="${y(m.p0)}" r="3" fill="${m.side==="long"?"var(--acc)":"var(--warn)"}"/>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="prix et trades"><polyline fill="none" stroke="var(--mute)" stroke-width="1.2" points="${price.map((a,i)=>x(ts[i])+","+y(a[1])).join(" ")}"/>${seg}
+  <text class="lbl" x="${p}" y="14">prix (clôture) · trait vert/rouge = trade gagnant/perdant · point bleu = achat, orange = vente</text><text class="lbl" x="${p}" y="${H-8}">${esc(price[0][0].slice(0,10))}</text><text class="lbl" x="${W-p}" y="${H-8}" text-anchor="end">${esc(price[price.length-1][0].slice(0,10))}</text></svg>`;}
 async function doReplay(){const b=$("#rgo"),o=$("#rout");b.disabled=true;o.textContent="Calcul en cours…";
   try{const r=await (await fetch(`/api/replay?instrument=${$("#ri").value}&bars=${$("#rb").value}`)).json();if(r.error)throw new Error(r.error);const m=r.metrics;
-   o.innerHTML=`${curve(r.equity)}<div class="grid" style="margin-top:10px"><div class="kpi"><b>${m.n_trades}</b><span>trades</span></div><div class="kpi"><b>${f(m.total_return*100,1)} %</b><span>rendement</span></div>
+   o.innerHTML=`${priceChart(r.price,r.markers)}${curve(r.equity)}<div class="grid" style="margin-top:10px"><div class="kpi"><b>${m.n_trades}</b><span>trades</span></div><div class="kpi"><b>${f(m.total_return*100,1)} %</b><span>rendement</span></div>
    <div class="kpi"><b>${f(m.max_drawdown*100,1)} %</b><span>drawdown max</span></div><div class="kpi"><b>${f(m.profit_factor,2)}</b><span>facteur de profit</span></div><div class="kpi"><b>${f(m.win_rate*100,1)} %</b><span>gagnants</span></div></div>
    <div class="banner" style="margin-top:12px">⚠ Une fenêtre courte ne prouve rien. Buy &amp; hold sur cette fenêtre : ${f(r.buy_hold_return*100,1)} %.
    ${r.reference?`Verdict de la MÊME spec sur toute la période de recherche (${f(r.reference.years,1)} an(s), ${r.reference.n_trades} trades) : ${tag(r.reference.verdict)} · espérance ${f(r.reference.expectancy_R)} R · PF ${f(r.reference.profit_factor,2)}. C'est ce chiffre qui compte, pas la courbe ci-dessus.`:""}</div>
@@ -111,8 +118,39 @@ async function doReplay(){const b=$("#rgo"),o=$("#rout");b.disabled=true;o.textC
 function data(){return `<div class="card"><h2>Données (exports MetaTrader 5, démo MetaQuotes)</h2><table><thead><tr><th>Symbole</th><th class="n">Barres</th><th>Début</th><th>Fin</th><th class="n">Années</th><th>SHA-256</th></tr></thead><tbody>`+
   S.data.map(d=>`<tr><td>${esc(d.symbol)}</td><td class="n">${d.rows}</td><td>${esc((d.start||"").slice(0,10))}</td><td>${esc((d.end||"").slice(0,10))}</td><td class="n">${f(d.span_years,2)}</td><td class="muted">${esc((d.sha256||"").slice(0,16))}…</td></tr>`).join("")+`</tbody></table>
   <ul class="muted">${S.data_notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></div>`;}
+function wf(){const W=S.walkforward||[];if(!W.length)return `<div class="card"><h2>Optimisation en marche avant</h2><p class="muted">Aucun résultat : lancez <code>python scripts\\optimize.py specs\\wf_v1.json</code>.</p></div>`;
+  return `<div class="card"><h2>Optimisation en marche avant (walk-forward)</h2>
+  <p class="muted">Les paramètres sont choisis sur une fenêtre d'entraînement puis jugés sur la fenêtre suivante, jamais vue. Seul le résultat HORS ÉCHANTILLON compte ;
+  « écart d'optimisme » = ce que l'entraînement promettait moins ce que le test a donné. Chaque balayage = 1 essai au registre. Période verrouillée non lue.</p></div>`+
+  W.map(r=>{const m=r.summary;return `<div class="card"><h2>${esc(r.instrument)} · ${esc(r.strategy)} <span class="muted">${esc(r.spec)} · ${r.n_configs} configurations</span></h2><div class="grid">
+   <div class="kpi"><b>${f(m.oos_expectancy_R)} R</b><span>Espérance hors échantillon (${m.n_oos_trades} trades)</span></div>
+   <div class="kpi"><b>${f(m.oos_profit_factor,2)}</b><span>Facteur de profit hors échantillon</span></div>
+   <div class="kpi"><b>${f(m.optimism_gap_R)} R</b><span>Écart d'optimisme</span></div>
+   <div class="kpi"><b>${f(m.unselected_average_config_oos_R)} R</b><span>Config moyenne non sélectionnée</span></div>
+   <div class="kpi"><b>${m.oos_sign_flip_p==null?"—":f(m.oos_sign_flip_p,3)}</b><span>p (test de signe)</span></div>
+   <div class="kpi"><b>${m.n_windows_traded}/${m.n_windows}</b><span>Fenêtres tradées</span></div></div>
+   <table style="margin-top:10px"><thead><tr><th>Test du</th><th>au</th><th>Choix (sur l'entraînement)</th><th class="n">E entraîn.</th><th class="n">trades test</th><th class="n">E test</th></tr></thead><tbody>`+
+   (r.windows||[]).map(w=>`<tr><td>${esc((w.test_start||"").slice(0,10))}</td><td>${esc((w.test_end||"").slice(0,10))}</td><td class="muted">${esc(w.chosen||w.note||"—")}</td><td class="n">${f(w.train_E)}</td><td class="n">${w.oos_n??"—"}</td><td class="n">${f(w.oos_E)}</td></tr>`).join("")+`</tbody></table></div>`;}).join("");}
 function ago(x){if(x==null)return "—";x=Math.round(x);return x<90?x+" s":x<5400?Math.round(x/60)+" min":(x/3600).toFixed(1)+" h";}
 function when(t){return t?new Date(t*1000).toISOString().replace("T"," ").slice(0,19)+" UTC":"—";}
+function liveChart(){const B=L.bars||[];if(B.length<2)return `<p class="muted">Aucune barre publiée par le lanceur pour l'instant.</p>`;
+  const W=960,H=360,pl=8,pr=118,pt=22,pb=22;const tm=s=>Date.parse(String(s).replace(" ","T"));
+  const lv=[];const pos=L.position,pen=L.pending;if(pos)lv.push(pos.entry,pos.stop,pos.tp);if(pen)lv.push(pen.entry,pen.stop,pen.tp);
+  const closed=(L.paper_trades||[]).filter(t=>t.entry_time&&tm(t.exit_time)>=tm(B[0][0]));closed.forEach(t=>{lv.push(t.entry,t.exit);if(t.stop)lv.push(t.stop);if(t.tp)lv.push(t.tp);});
+  const hi=Math.max(...B.map(b=>b[2]),...lv),lo=Math.min(...B.map(b=>b[3]),...lv),y=v=>pt+(hi-v)/(hi-lo||1)*(H-pt-pb),n=B.length,bw=(W-pl-pr)/n,x=i=>pl+(i+.5)*bw;
+  const idx=t=>{const T=tm(t);let k=0;for(let i=0;i<n;i++){if(tm(B[i][0])<=T)k=i;}return k;};
+  const candles=B.map((b,i)=>{const up=b[4]>=b[1],c=up?"var(--ok)":"var(--bad)";return `<line x1="${x(i)}" x2="${x(i)}" y1="${y(b[2])}" y2="${y(b[3])}" stroke="${c}"/><rect x="${x(i)-Math.max(bw*.35,.6)}" width="${Math.max(bw*.7,1.2)}" y="${y(Math.max(b[1],b[4]))}" height="${Math.max(Math.abs(y(b[1])-y(b[4])),1)}" fill="${c}"/>`;}).join("");
+  const line=(v,col,lbl,dash)=>`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="${col}" stroke-width="1.5" ${dash?'stroke-dasharray="6 4"':''}/><text class="lbl" x="${W-pr+4}" y="${y(v)+4}" fill="${col}">${lbl} ${v.toFixed(2)}</text>`;
+  let ov="";
+  if(pos){ov+=line(pos.entry,"var(--acc)","ENTRÉE")+line(pos.stop,"var(--bad)","STOP")+line(pos.tp,"var(--ok)","TP");}
+  if(pen){ov+=line(pen.entry,"var(--acc)","ordre (ouv. suiv.)",1)+line(pen.stop,"var(--bad)","stop prévu",1)+line(pen.tp,"var(--ok)","tp prévu",1);}
+  closed.forEach(t=>{const a=idx(t.entry_time),b=idx(t.exit_time),col=t.r>=0?"var(--ok)":"var(--bad)";
+    ov+=`<line x1="${x(a)}" y1="${y(t.entry)}" x2="${x(b)}" y2="${y(t.exit)}" stroke="${col}" stroke-width="2.5"><title>${esc(t.side)} · ${esc(t.reason)} · ${f(t.r,2)} R${t.stop?` · stop ${f(t.stop,2)} · tp ${f(t.tp,2)}`:""}</title></line><circle cx="${x(a)}" cy="${y(t.entry)}" r="4" fill="${t.side==="long"?"var(--acc)":"var(--warn)"}"/>`
+    +(t.stop?`<line x1="${x(a)}" x2="${x(b)}" y1="${y(t.stop)}" y2="${y(t.stop)}" stroke="var(--bad)" stroke-dasharray="3 3" opacity=".6"/>`:"")+(t.tp?`<line x1="${x(a)}" x2="${x(b)}" y1="${y(t.tp)}" y2="${y(t.tp)}" stroke="var(--ok)" stroke-dasharray="3 3" opacity=".6"/>`:"");});
+  const last=B[n-1];
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="graphique en direct"><text class="lbl" x="${pl}" y="14">${esc(L.symbol||"")} · barres clôturées (${n}) · dernière : ${esc(String(last[0]).slice(0,16))} · clôture ${last[4].toFixed(2)}</text>${candles}${ov}</svg>
+  <p class="muted">Bleu = entrée/achat, orange = vente, vert = objectif (TP), rouge = stop. Trait plein = position ouverte ; pointillé large = ordre décidé qui s'exécutera à l'ouverture de la prochaine barre ; traits fins pointillés = niveaux des trades clos.
+  Les données viennent des barres CLÔTURÉES (aucune décision sur la barre en formation). ${L.mode==="OBSERVATION"?"En OBSERVATION, entrées/sorties/PnL sont simulés (PAPER) sur les prix réels.":""}</p>`;}
 function live(){if(!L)return `<div class="card muted">Chargement…</div>`;
   if(!L.available)return `<div class="card"><h2>Runtime en direct</h2><p>${esc(L.note||"Indisponible")}</p>
    <p class="muted">Chemin lu : ${esc(L.state_path)} (variable QUANTBOT_STATE). Lancez le lanceur : <code>python scripts\\run_live.py --project . --state runtime\\live_state.db</code></p>
@@ -126,6 +164,7 @@ function live(){if(!L)return `<div class="card muted">Chargement…</div>`;
    <p class="muted">${esc(L.why||"")}</p>${L.statistics_nature?`<p class="banner">${esc(L.statistics_nature)}</p>`:""}
    ${kill?`<p><b>Raisons :</b> ${L.kill_reasons.map(esc).join(" · ")}</p><p class="muted">Seul un humain peut le lever, en ligne de commande (--clear-kill). Cette interface ne le peut pas.</p>`:""}
    ${L.stop_reason?`<p class="muted">Dernier arrêt du lanceur : ${esc(L.stop_reason)}</p>`:""}</div>
+  <div class="card"><h2>Graphique en direct <span class="muted">(rafraîchi toutes les 5 s)</span></h2>${liveChart()}${L.position?`<p><b>Position ouverte</b> : ${esc(L.position.side)} depuis ${esc(String(L.position.entry_time).slice(0,16))} · entrée ${f(L.position.entry,2)} · stop ${f(L.position.stop,2)} · TP ${f(L.position.tp,2)}</p>`:`<p class="muted">Aucune position ouverte.</p>`}${L.pending?`<p><b>Ordre en attente</b> : ${esc(L.pending.side)} · entrée prévue ${f(L.pending.entry,2)} · stop ${f(L.pending.stop,2)} · TP ${f(L.pending.tp,2)}</p>`:""}</div>
   ${approvals()}
   <div class="card"><h2>Trades PAPER enregistrés</h2>${L.paper_trades.length?`<table><thead><tr><th>Quand</th><th>Sens</th><th>Sortie</th><th class="n">PnL</th><th class="n">R</th></tr></thead><tbody>`+
    L.paper_trades.map(t=>`<tr><td>${esc(when(t.ts))}</td><td>${esc(t.side)}</td><td>${esc(t.reason)}</td><td class="n">${f(t.pnl,2)}</td><td class="n">${f(t.r,2)}</td></tr>`).join("")+`</tbody></table>`:`<p class="muted">Aucun trade enregistré.</p>`}</div>
@@ -137,7 +176,7 @@ function approvals(){const a=L.approvals;return `<div class="card"><h2>Approbati
    a.entries.map(e=>`<tr><td>${esc(e.id)}</td><td>${esc(e.instrument)}</td><td>${esc(e.spec)}</td><td>${esc(e.approved_by)}</td><td>${esc(e.date)}</td></tr>`).join("")+`</tbody></table>`:"")+`</div>`;}
 async function loadLive(){try{L=await (await fetch("/api/live")).json();}catch(e){L={available:false,note:"Erreur : "+e,approvals:{entries:[],note:""},kill_reasons:[],intents:[],events:[],paper_trades:[]};}
   if(tab==="live")$("#view").innerHTML=live();}
-function render(){tabs();banner();$("#view").innerHTML=({etat,res,cal,rejeu,data,live})[tab]();if(tab==="rejeu")$("#rgo").onclick=doReplay;
+function render(){tabs();banner();$("#view").innerHTML=({etat,res,cal,rejeu,data,wf,live})[tab]();if(tab==="rejeu")$("#rgo").onclick=doReplay;
   clearInterval(timer);if(tab==="live"){loadLive();timer=setInterval(loadLive,5000);}}
 fetch("/api/state").then(r=>r.json()).then(s=>{S=s;render()}).catch(e=>{$("#banner").textContent="Impossible de charger l'état : "+e});
 </script>

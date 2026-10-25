@@ -66,13 +66,32 @@ class LiveRunner:
                 self.state.log("CRITICAL", "restore_echec", str(exc))
                 self.engine.broker = PaperBroker(settings.backtest.initial_equity, settings.execution)
                 why = f"reprise impossible : {exc}"
-        self.state.set("mode", self.mode); self.state.set("why", why); self.state.set("strategy", self.strategy_id)
+        self.state.set("mode", self.mode); self.state.set("why", why); self.state.set("strategy", self.strategy_id); self.state.set("symbol", self.symbol)
         self.state.log("INFO", "demarrage", f"mode={self.mode} ; {why}")
         return self.mode
 
     def _on_close(self, trade, ts) -> None:
-        self.state.log("INFO", "trade", json.dumps({"side": trade.side, "reason": trade.reason, "pnl": round(trade.pnl, 2),
-                                                    "r": round(trade.r_nominal, 3), "t": str(ts)}))
+        snap = getattr(self, "_pos_snap", None)
+        snap = snap if snap and snap.get("side") == trade.side else {}
+        self.state.log("INFO", "trade", json.dumps({
+            "side": trade.side, "reason": trade.reason, "pnl": round(trade.pnl, 2), "r": round(trade.r_nominal, 3), "t": str(ts),
+            "entry": trade.entry, "exit": trade.exit, "entry_time": str(trade.entry_time), "exit_time": str(trade.exit_time),
+            "stop": snap.get("stop"), "tp": snap.get("tp"), "paper": self.mode == "OBSERVATION"}))
+
+    def _publish(self, df=None) -> None:
+        """Rend visible (page « En direct », lecture seule) ce que le bot voit et fait : barres clôturées, position, ordre en attente."""
+        eng = self.engine
+        if df is not None:
+            tail = df.tail(240)
+            self.state.set("bars", [[str(t), float(o), float(h), float(l), float(c)] for t, o, h, l, c in
+                                    zip(tail.index, tail["open"], tail["high"], tail["low"], tail["close"])])
+        pos = eng.broker.position
+        self._pos_snap = None if pos is None else {"side": pos.side, "entry": float(pos.entry), "stop": float(pos.stop),
+                                                    "tp": float(pos.take_profit), "entry_time": str(pos.entry_time), "size": float(pos.size)}
+        self.state.set("position", self._pos_snap)
+        pend = eng.pending
+        self.state.set("pending", None if pend is None else {"side": pend.side, "entry": float(pend.entry), "stop": float(pend.stop),
+                                                              "tp": float(pend.take_profit)})
 
     # --- une itération ------------------------------------------------------------------------
     def step(self) -> str:
@@ -89,6 +108,8 @@ class LiveRunner:
                 return "idle"
             for ts in self.feed.new_bars(df):
                 self.engine.on_bar(df.loc[:ts])
+                self._publish()
+            self._publish(df)
             self.state.set("last_bar", str(df.index[-1]))
             return "bar"
         except PatternBotError as exc:
