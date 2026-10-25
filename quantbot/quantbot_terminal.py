@@ -8,7 +8,7 @@ from quantbot.gui.server import start_background
 
 
 def main() -> int:
-    port, server = start_background(8790, app_root())
+    port, server = start_background(None, app_root())
     url = f"http://127.0.0.1:{port}/"
     try:
         import webview  # type: ignore

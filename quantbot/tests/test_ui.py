@@ -49,7 +49,7 @@ def test_terminal_serves_local_only_read_only_and_ships_its_assets():
 
 def test_gui_server_binds_to_loopback_only():
     from quantbot.gui import server
-    assert server.HOST == "127.0.0.1" and server.free_port(8790) >= 8790
+    assert server.HOST == "127.0.0.1" and server.DEFAULT_PORT == 8877 and server.free_port() >= 8877
 
 
 # --- onglet « En direct » : lecture seule de l'état du runtime ---------------------------------------------------------
@@ -135,3 +135,15 @@ def test_strategy_endpoints_reject_unknown_values():
         run_strategy_replay("NOPE", 1000, "orb", "recherche", _Path(__file__).resolve().parents[1])
     with pytest.raises(ValueError):
         run_strategy_replay("USTEC", 1000, "orb", "verrouille", _Path(__file__).resolve().parents[1])
+
+
+def test_port_is_dedicated_configurable_and_never_shared(monkeypatch):
+    import socket
+    from quantbot.gui import server
+    monkeypatch.delenv("QUANTBOT_PORT", raising=False)
+    assert server.configured_port() == 8877 and server.configured_port(9100) == 9100
+    monkeypatch.setenv("QUANTBOT_PORT", "9123"); assert server.configured_port() == 9123
+    monkeypatch.setenv("QUANTBOT_PORT", "abc"); assert server.configured_port() == 8877
+    with socket.socket() as s:                                   # un autre programme occupe déjà le port voulu : on ne s'y superpose pas
+        s.bind(("127.0.0.1", 0)); busy = s.getsockname()[1]; s.listen()
+        assert server.free_port(busy) != busy
