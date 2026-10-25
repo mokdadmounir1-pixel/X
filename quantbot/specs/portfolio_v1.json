@@ -1,0 +1,23 @@
+{
+ "name": "portfolio_v1",
+ "preregistered": "2026-10-25 : commitée AVANT toute exécution",
+ "hypothesis": "Combiner TOUTES les stratégies à règles figées (inst_strategies_v1, smc_v1b, gold_quant_v1 ; toutes les combinaisons stratégie x instrument, sans en écarter aucune) avec des poids causaux produit un portefeuille dont l'espérance journalière nette est positive et significative, ce qu'aucune stratégie seule n'a montré.",
+ "script": "scripts/run_portfolio.py",
+ "sources": ["specs/inst_strategies_v1.json", "specs/smc_v1b.json", "specs/gold_quant_v1.json"],
+ "inclusion_rule": "TOUTES les combinaisons (stratégie, instrument) de ces specs, quels que soient leurs résultats passés ; période de RECHERCHE seulement (tranche verrouillée non lue) ; flux = R nominal par jour de sortie, coûts du moteur unique.",
+ "schemes": {
+  "invvol": "parité de risque : poids ∝ 1/écart-type des 120 derniers jours (aucune information sur la moyenne)",
+  "tilt": "parité de risque x max(0, t-stat des 120 derniers jours rétréci de 50 %) ; repli sur la parité si tout est négatif"
+ },
+ "weights_causal": "poids du jour t calculés sur les jours < t ; 30 jours minimum sinon poids égaux",
+ "vol_target": {"target_r_day": 1.0, "window": 60, "max_scale": 3.0, "note": "ciblage causal de la volatilité du portefeuille"},
+ "gates": {"min_days": 250, "sign_flip_alpha": 0.025, "alpha_note": "5 % / 2 schémas", "dsr_min": 0.95, "block": 5},
+ "trials": 2,
+ "max_trials_budget": 120,
+ "verdict_rules": {"NON_CONCLUANT": "moins de 250 jours", "FAIL": "moyenne <= 0, ou test nul > alpha, ou DSR < 0,95", "CANDIDAT": "sinon ; ne vaut PAS validation (forward >= 60 trades, décision humaine)"},
+ "known_limits": [
+  "Les stratégies ont toutes été évaluées individuellement sur CES mêmes données de recherche : le portefeuille n'est pas indépendant de ces essais (c'est pourquoi le DSR compte tous les essais du registre).",
+  "Le ciblage de volatilité multiplie l'exposition (jusqu'à x3) : il augmente le R/jour mais pas le Sharpe. Seul le Sharpe et sa significativité comptent.",
+  "Pas de modèle de corrélation d'exécution ni de plafond d'exposition simultanée entre instruments dans ce test (flux indépendants additionnés)."
+ ]
+}
