@@ -101,3 +101,13 @@ def test_reality_check_over_a_battery_with_one_planted_effect():
     rng = np.random.default_rng(2)
     d = rng.normal(0, 0.01, (600, 14)); d[:, 5] += 0.0012
     assert reality_check(d, B=500)["p"] < 0.1 and reality_check(rng.normal(0, 0.01, (600, 14)), B=500)["p"] > 0.1
+
+
+def test_session_prices_supports_hourly_bars_and_a_slot_subset():
+    import pandas as pd
+    from quantbot.lab import battery as bt
+    idx = pd.date_range("2024-01-02 00:00", periods=24 * 10, freq="1h")           # UTC naïf ; 16:00 New York = 21:00 UTC en hiver
+    df = pd.DataFrame({"open": range(len(idx)), "high": 1.0, "low": 1.0, "close": range(1, len(idx) + 1), "volume": 1.0}, index=idx)
+    p = bt.session_prices(df, bar_minutes=60, slots=("1600",))
+    assert list(p.columns) == ["1600"] and p["1600"].notna().sum() >= 9
+    assert (p["1600"].dropna() == df.loc[df.index.hour == 21, "open"].to_numpy()[: p["1600"].notna().sum()]).all()

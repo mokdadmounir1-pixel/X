@@ -17,10 +17,11 @@ FIELDS = ["name", "description", "currency_base", "currency_profit", "currency_m
 def main(argv=None, mt5=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--symbols", nargs="+", default=["XAUUSD"]); ap.add_argument("--out", default="data/deep/SYMBOL-SPECS.json")
+    ap.add_argument("--terminal", default=None, help="chemin de terminal64.exe (indispensable si deux terminaux MT5 sont installés)")
     args = ap.parse_args(argv)
     if mt5 is None:
         import MetaTrader5 as mt5  # type: ignore
-    if not mt5.initialize():
+    if not (mt5.initialize(args.terminal) if args.terminal else mt5.initialize()):
         raise SystemExit(f"initialize() a échoué : {mt5.last_error()}")
     try:
         out = {"captured_at_utc": datetime.now(timezone.utc).isoformat(), "orders_sent": 0, "symbols": {}}

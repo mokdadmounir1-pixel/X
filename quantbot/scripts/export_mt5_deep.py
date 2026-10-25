@@ -49,13 +49,14 @@ def main(argv=None, mt5=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--symbol", default="XAUUSD"); ap.add_argument("--timeframes", nargs="+", default=["M15", "H1", "H4", "D1"])
     ap.add_argument("--out", default="data/deep"); ap.add_argument("--max-empty", type=int, default=3)
+    ap.add_argument("--terminal", default=None, help="chemin de terminal64.exe (indispensable si deux terminaux MT5 sont installés)")
     args = ap.parse_args(argv)
     bad = [t for t in args.timeframes if t not in em.TF_NAMES]
     if bad:
         raise SystemExit(f"Timeframes inconnus : {bad}")
     if mt5 is None:
         import MetaTrader5 as mt5  # type: ignore
-    if not mt5.initialize():
+    if not (mt5.initialize(args.terminal) if args.terminal else mt5.initialize()):
         raise SystemExit(f"initialize() a échoué : {mt5.last_error()}")
     entries, failures = [], []
     try:

@@ -20,8 +20,8 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 STATIC = Path(__file__).parent / "index.html"
-SPEC_ORDER = ["baseline_v0", "baseline_v1", "v2_calibrated", "mtf_v3", "inst_strategies_v1"]
-GLOB_SPECS = {"mtf_v3", "inst_strategies_v1"}  # un fichier de résultat par essai : {instrument}_{timeframe|stratégie}.json
+SPEC_ORDER = ["baseline_v0", "baseline_v1", "v2_calibrated", "mtf_v3", "inst_strategies_v1", "backward_v1"]
+GLOB_SPECS = {"mtf_v3", "inst_strategies_v1", "backward_v1"}  # un fichier de résultat par essai : {instrument}_{timeframe|stratégie}.json
 _cache: dict = {}
 _lock = threading.Lock()
 

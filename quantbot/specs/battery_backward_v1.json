@@ -1,0 +1,19 @@
+{
+ "name": "battery_backward_v1",
+ "preregistered": "2026-10-25, AVANT d'avoir regardé le moindre rendement des données H1 profondes (seule leur couverture a été rapportée)",
+ "base_spec": "specs/battery_v1.json",
+ "deep_dir": "data/deep",
+ "instruments": {"XAUUSD": "XAUUSD_H1.csv", "EURUSD": "EURUSD_H1.csv"},
+ "hypotheses": ["tsmom_20", "tsmom_60", "reversal_1d"],
+ "min_days": 1500,
+ "hypothesis": "battery_v1 n'avait aucun survivant avec ~2,2 ans de recherche et prévoyait de « demander 10 ans de données journalières ». Les trois hypothèses qui n'utilisent que le prix de 16:00 New York (momentum 20 j, momentum 60 j, retour à la moyenne à 1 j) tiennent-elles sur les ~13 ans d'H1 qui PRÉCÈDENT la période de recherche, paramètres inchangés ?",
+ "excluded": "overnight_drift et intraday_momentum (créneaux 09:30 / 15:30 absents des barres H1) ; USTEC (historique H1 profond seulement depuis juillet 2022, soit moins que min_days avant la période de recherche).",
+ "trials": "6 essais attendus (2 instruments x 3 hypothèses). Budget d'essais 80 (voir specs/backward_v1.json).",
+ "max_trials_budget": 80,
+ "rules": [
+  "Paramètres, coûts et règles de verdict (SURVIVANT / WATCH / REJETÉ) hérités tels quels de specs/battery_v1.json ; aucun changement après avoir vu un résultat.",
+  "Seul le segment H1 strictement antérieur au début de data/real/<instrument>_M15.csv est lu ; la période verrouillée n'est jamais touchée.",
+  "Le Reality Check porte sur les 6 séries réunies ; l'alpha est mesuré contre le buy & hold du même segment (l'or a connu une longue hausse puis une longue baisse sur ces années : le bêta est exposé, pas supposé nul).",
+  "Un SURVIVANT ne vaut pas approbation : il faudrait l'échantillon futur (specs/forward_freeze.json) et la décision humaine."
+ ]
+}

@@ -22,7 +22,7 @@ TZ = "America/New_York"
 SLOTS = {"0930": (9, 30), "1000": (10, 0), "1530": (15, 30), "1600": (16, 0)}
 
 
-def session_prices(df: pd.DataFrame, tz: str = TZ) -> pd.DataFrame:
+def session_prices(df: pd.DataFrame, tz: str = TZ, bar_minutes: int = 15, slots: tuple = tuple(SLOTS)) -> pd.DataFrame:
     """Prix à l'heure locale T, un jour par ligne (index = date locale).
 
     prix(T) = ouverture de la barre qui COMMENCE à T ; à défaut, clôture de la barre qui commence 15 min avant T
@@ -33,10 +33,11 @@ def session_prices(df: pd.DataFrame, tz: str = TZ) -> pd.DataFrame:
     dates = pd.DatetimeIndex(idx.date)
     o, c = df["open"].to_numpy(), df["close"].to_numpy()
     cols = {}
-    for name, (h, m) in SLOTS.items():
+    for name in slots:
+        h, m = SLOTS[name]
         t = h * 60 + m
         s_open = pd.Series(o[hm == t], index=dates[hm == t])
-        s_close = pd.Series(c[hm == t - 15], index=dates[hm == t - 15])
+        s_close = pd.Series(c[hm == t - bar_minutes], index=dates[hm == t - bar_minutes])
         s_open = s_open[~s_open.index.duplicated(keep="last")]
         s_close = s_close[~s_close.index.duplicated(keep="last")]
         cols[name] = s_open.combine_first(s_close)
