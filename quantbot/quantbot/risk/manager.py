@@ -74,7 +74,7 @@ class RiskManager:
         return None
 
     def build_plan(self, signal: Signal, equity: float, entry: Optional[float] = None,
-                   max_risk: Optional[float] = None) -> Optional[TradePlan]:
+                   max_risk: Optional[float] = None, cost_frac: float = 0.0) -> Optional[TradePlan]:
         self.last_rejection = None
         c = self.cfg
         if not np.isfinite(signal.atr) or signal.atr <= 0:
@@ -89,6 +89,8 @@ class RiskManager:
         stop = entry - dist if long else entry + dist
         if stop <= 0:
             return self._reject("stop_negatif")
+        if c.max_cost_r > 0 and cost_frac * entry / dist > c.max_cost_r:
+            return self._reject("cout_trop_eleve")  # le spread/commission mangerait trop du risque : pas de trade
         target = entry + c.reward_risk * dist if long else entry - c.reward_risk * dist
         size = min(equity * c.risk_per_trade / dist, equity * c.max_leverage / entry)
         if max_risk is not None:  # plafond externe (ex. marge restante avant les limites FTMO)

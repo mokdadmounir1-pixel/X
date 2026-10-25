@@ -1,0 +1,231 @@
+{
+ "name": "gold_scalp_v1",
+ "preregistered": "Écrit et commité AVANT tout calcul. M1/M3 exigent un export dédié (scripts/export_mt5.py) : tant que les fichiers sont absents, ces timeframes ne sont PAS évalués.",
+ "hypothesis": "H0 : sur l'or, aucune cellule (côté x état de tendance HTF) des détecteurs flous n'a d'espérance NETTE tradable hors échantillon aux timeframes de scalping M1, M3, M15, H1, une fois le filtre de coût et la fenêtre de liquidité appliqués. H1 : au moins une cellule se confirme.",
+ "timeframe": "M15",
+ "instruments": {
+  "XAUUSD": "XAUUSD_M15.csv"
+ },
+ "data_sha256": {
+  "EURUSD_M15.csv": "e5584ad82650f1640e41f9597e237821e47189b4b9022e7562d1df0e0f3abece",
+  "XAUUSD_M15.csv": "d1a156e2894a868686457c8d71a6ff874a49511a5dae059c24c795ff5aeb08b9",
+  "USTEC_M15.csv": "63279b4e0082b35f8312e8b5a5c90107127538c44690b78b13cec4d8a228dc65"
+ },
+ "clock": "UTC reconstruit depuis time_broker_epoch avec le calendrier DST EUROPÉEN (eu_dst, défaut). NB : v0/v1/v2 utilisaient us_dst (~6,8 % des barres décalées d'1 h) ; conclusions inchangées (tous FAIL).",
+ "lock_months": 12,
+ "lock_min_frac": 0.2,
+ "costs": {
+  "_note": "spread_frac = spread médian mesuré (fraction du prix) si fiable ; sinon HYPOTHÈSE déclarée. Commission/slippage = HYPOTHÈSES (non fournis par l'export). Démo MetaQuotes != FTMO : à re-mesurer sur le compte cible.",
+  "XAUUSD": {
+   "spread_frac": null,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "spread médian MESURÉ dans le fichier du timeframe concerné ; commission 0 et slippage 0,1 pb = HYPOTHÈSES (à re-mesurer sur le compte cible)"
+  }
+ },
+ "settings": {
+  "tolerance": {
+   "tolerance_percentage": 0.15,
+   "deviation_threshold": 0.35,
+   "min_score": 0.3
+  },
+  "detection": {
+   "pivot_order": 3,
+   "atr_period": 14,
+   "max_pivot_age": 12,
+   "context_bars": 5,
+   "context_weight": 0.25,
+   "context_move_atr": 2.0,
+   "min_height_atr": 1.5,
+   "min_bars_between": 4,
+   "enabled": null
+  },
+  "signals": {
+   "min_confidence": 0.55,
+   "category_weights": {
+    "candle": 0.8,
+    "chart": 1.0,
+    "harmonic": 0.9
+   },
+   "unconfirmed_penalty": 0.8,
+   "require_confirmation": false,
+   "min_edge": 0.1,
+   "confluence_bonus": 0.05,
+   "trend_filter": "none",
+   "ema_fast": 20,
+   "ema_slow": 50,
+   "counter_trend_penalty": 0.6,
+   "htf_rule": "4h",
+   "atr_floor_frac": 0.5
+  },
+  "risk": {
+   "risk_per_trade": 0.005,
+   "atr_stop_mult": 1.5,
+   "reward_risk": 2.0,
+   "min_reward_risk": 1.3,
+   "max_leverage": 3.0,
+   "max_daily_loss": 0.03,
+   "max_trades_per_day": 5,
+   "flat_before_weekend": true,
+   "weekend_cutoff_hour": 20,
+   "session_tz": "Europe/Prague",
+   "session_utc_start": 7,
+   "session_utc_end": 17,
+   "max_cost_r": 0.15
+  },
+  "backtest": {
+   "initial_equity": 100000.0,
+   "warmup_bars": 100,
+   "window_bars": 300,
+   "max_hold_bars": 100,
+   "max_gap_hours": 120.0
+  },
+  "execution": {
+   "mode": "paper",
+   "allow_live": false,
+   "fee_rate": 0.0005,
+   "slippage": 0.0002,
+   "spread": 0.0,
+   "exchange": "binance",
+   "symbol": "BTC/USDT",
+   "timeframe": "1h",
+   "live_auto_adopt": false,
+   "mt5_symbol": "EURUSD",
+   "mt5_timeframe": "H1",
+   "mt5_server_utc_offset_hours": 0,
+   "mt5_magic": 20260101,
+   "mt5_deviation_points": 20
+  },
+  "ftmo": {
+   "enabled": false,
+   "phase": "challenge",
+   "initial_balance": 100000.0,
+   "profit_target_challenge": 0.1,
+   "profit_target_verification": 0.05,
+   "max_daily_loss": 0.05,
+   "max_total_loss": 0.1,
+   "daily_loss_buffer": 0.01,
+   "total_loss_buffer": 0.02,
+   "min_trading_days": 4,
+   "timezone": "Europe/Prague",
+   "flat_before_weekend": true,
+   "weekend_cutoff_hour": 20,
+   "news_blackouts": [],
+   "stop_after_target": true,
+   "max_risk_per_trade": 0.005,
+   "expected_login": null
+  }
+ },
+ "gates": {
+  "min_trades": 60,
+  "min_expectancy": 0.15,
+  "min_profit_factor": 1.2,
+  "null_alpha": 0.1,
+  "top3_max": 0.5,
+  "min_positive_folds": 0.5,
+  "mc_paths": 2000,
+  "dd_frac": 0.6,
+  "dsr_min": 0.5,
+  "min_years": 2.0,
+  "base_B": 999,
+  "worst_trade_r": 5.0
+ },
+ "gate_calibration": {
+  "script": "scripts/calibrate_gates.py",
+  "series": "120 marchés sans edge x 5000 barres, signal oracle",
+  "false_pass": 1,
+  "false_pass_upper95": 0.039,
+  "power": "24/24 PASS sur edge planté fort",
+  "caveat": "calibré sur un signal oracle et des marchés synthétiques : n'établit pas la puissance sur marché réel"
+ },
+ "max_trials_budget": 60,
+ "parent": "mtf_v3",
+ "change_reason": "Demande utilisateur : scalping sur l'or en M1, M3, M15, H1 (pas au-delà). Ajout d'un filtre de coût (refus si coût aller-retour > 0,15 R) et d'une fenêtre de liquidité (7h-17h UTC).",
+ "changes": [
+  "contexte HTF : états de tendance H4 et D1 (EMA 20/50, bande neutre 0,25 ATR HTF, barres TERMINÉES uniquement) combinés : +1 si les deux haussiers, -1 si les deux baissiers, sinon 0",
+  "une courbe isotone par (côté, état) = 6 courbes ; support minimal 300 par courbe, sinon abstention",
+  "timeframes de signal : M15, H1, H4 (H1/H4 construits depuis le M15 sur la journée de marché NY, roll 17:00)",
+  "max_hold_bars par timeframe : M15 100, H1 30, H4 10 (durée maximale ~ 1 jour, 1,25 jour, 1,7 jour)"
+ ],
+ "leverage_rule": {
+  "loss_budget": 0.01,
+  "quantile": 0.9999,
+  "min": 0.25,
+  "max": 5.0,
+  "doc": "levier max tel qu'un gap au quantile 99,99 % (gaps de reprise, hors trous de données) coûte <= 1 % du capital"
+ },
+ "procedure": {
+  "split": "train = 60 % premiers de la période de RECHERCHE ; validation = 40 % suivants ; la période verrouillée n'est PAS lue",
+  "train_frac": 0.6,
+  "purge_bars": "max_hold_bars + 2 de chaque côté de la coupure (les labels regardent jusqu'à max_hold_bars dans le futur)",
+  "labels": "résultat net du trade standard (stop 1,5 ATR plancher, cible 2R, max_hold, week-end, coûts, levier) en R nominal ; identique au moteur (testé)",
+  "score": "quantbot.signals.scoring.direction_scores (même fonction à l'entraînement et à l'exécution)",
+  "model": "régression isotone croissante par côté (long sur score haussier, short sur score baissier), un seul paramètre libre : la monotonie",
+  "zone_min_score": 0.35,
+  "min_support": 300,
+  "margin_R": 0.1,
+  "evaluation": "CalibratedSignalEngine sur la partie validation (avec 100 barres de ré-échauffement avant), portes identiques, un essai par instrument",
+  "diagnostics": "table score->espérance train vs validation ; placebo = mêmes courbes sur labels permutés par blocs (part de barres au-dessus de la marge par pur hasard)"
+ },
+ "decision_rule": {
+  "si_aucune_cellule_PASS_ni_WATCH": "conclure « pas d'edge dans ces détecteurs, quel que soit le timeframe » ; ne PAS ajuster",
+  "si_PASS_ou_WATCH": "confirmer sur la période verrouillée UNE fois, puis comparer à un buy & hold et à une version long-seulement avant toute conclusion (risque de bêta)"
+ },
+ "timeframes": {
+  "M1": {
+   "rule": null,
+   "file": "XAUUSD_M1.csv",
+   "max_hold_bars": 30,
+   "context_rules": [
+    "1h",
+    "4h"
+   ],
+   "lock_months": 0
+  },
+  "M3": {
+   "rule": null,
+   "file": "XAUUSD_M3.csv",
+   "max_hold_bars": 20,
+   "context_rules": [
+    "1h",
+    "4h"
+   ],
+   "lock_months": 0
+  },
+  "M15": {
+   "rule": null,
+   "max_hold_bars": 16,
+   "context_rules": [
+    "4h",
+    "1D"
+   ],
+   "lock_months": 12
+  },
+  "H1": {
+   "rule": "1h",
+   "max_hold_bars": 8,
+   "context_rules": [
+    "4h",
+    "1D"
+   ],
+   "lock_months": 12
+  }
+ },
+ "context": {
+  "rules": [
+   "4h",
+   "1D"
+  ],
+  "fast": 20,
+  "slow": 50,
+  "band": 0.25
+ },
+ "budget_note": "Budget relevé de 30 à 60 AVANT ces essais, par décision explicite d'élargir la recherche multi-timeframe ; le DSR compte de toute façon TOUS les essais, donc relever le budget ne rend aucun résultat plus facile à obtenir.",
+ "scalp_rules": {
+  "fenetre_utc": "7h-17h (Londres + New York), hors Asie où le spread est large",
+  "filtre_cout": "refus si (spread + 2 x (commission + slippage)) x prix / distance de stop > 0,15 R",
+  "pas_de_timeframe_superieur": "H1 est le plus lent ; H4/D1 ne servent que de CONTEXTE (jamais de signal)",
+  "week_end": "position clôturée avant le week-end",
+  "sorties": "stop 1,5 ATR plancher, cible 2 R, durée max courte par timeframe"
+ }
+}

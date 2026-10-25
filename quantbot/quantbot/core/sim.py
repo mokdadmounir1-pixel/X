@@ -157,7 +157,8 @@ class TradingEngine:
             if status.halt_new:
                 self.pending = None
 
-        halted = weekend or (status is not None and status.halt_new)
+        in_session = s.risk.session_utc_start <= ts.hour < s.risk.session_utc_end
+        halted = weekend or not in_session or (status is not None and status.halt_new)
         in_warmup = (len(df) - self._seg_start) <= bt.warmup_bars
         if self.broker.position is None and self.pending is None and not halted and not in_warmup:
             ok, why = self.risk.can_trade(ts, self.broker.equity(c))
@@ -170,7 +171,9 @@ class TradingEngine:
                 if signal is not None:
                     self.n_signals += 1
                     cap = self.guard.allowed_risk(self.broker.equity(c), status) if self.guard else None
-                    self.pending = self.risk.build_plan(signal, self.broker.equity(c), max_risk=cap)
+                    ex = s.execution
+                    cost_frac = ex.spread + 2.0 * (ex.fee_rate + ex.slippage)
+                    self.pending = self.risk.build_plan(signal, self.broker.equity(c), max_risk=cap, cost_frac=cost_frac)
                     if self.pending is None:
                         self._reject(self.risk.last_rejection or "plan")
 

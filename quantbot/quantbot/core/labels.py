@@ -58,11 +58,15 @@ def compute_labels(df: pd.DataFrame, settings: Settings) -> Labels:
     weekend = np.zeros(n, dtype=bool)
     if r.flat_before_weekend:
         weekend = np.array([in_weekend_blackout(t, r.session_tz, r.weekend_cutoff_hour) for t in df.index])
+    hours = df.index.hour.to_numpy()
+    cost_frac = ex.spread + 2.0 * (ex.fee_rate + ex.slippage)
     sl = ex.slippage + ex.spread / 2.0   # même formule que PaperBroker
     fee = ex.fee_rate
     out = {1: np.full(n, np.nan), -1: np.full(n, np.nan)}
     for t in range(n - 1):
         if (t + 1) - seg[t] <= bt.warmup_bars or weekend[t] or weekend[t + 1] or gap_h[t + 1] > bt.max_gap_hours:
+            continue
+        if not (r.session_utc_start <= hours[t] < r.session_utc_end):
             continue
         a = atr[t]
         if not np.isfinite(a) or a <= 0:
@@ -72,6 +76,8 @@ def compute_labels(df: pd.DataFrame, settings: Settings) -> Labels:
         for side in (1, -1):
             stop = ref - side * dist
             if stop <= 0:
+                continue
+            if r.max_cost_r > 0 and cost_frac * ref / dist > r.max_cost_r:
                 continue
             tp = ref + side * r.reward_risk * dist
             fill = o[t + 1] * (1 + side * sl)

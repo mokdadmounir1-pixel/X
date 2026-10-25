@@ -50,3 +50,14 @@ def test_v1_declares_its_motivation_and_keeps_costs_and_hypothesis_identical():
     assert v1["settings"]["signals"]["atr_floor_frac"] == 0.5 and v1["settings"]["risk"]["flat_before_weekend"] is True
     assert Settings.from_dict(v1["settings"]).risk.flat_before_weekend
     assert GateCfg(**v1["gates"]) == GateCfg()
+
+
+def test_gold_scalp_spec_respects_the_user_rule_no_timeframe_above_h1_for_signals():
+    spec = json.loads((ROOT / "specs" / "gold_scalp_v1.json").read_text(encoding="utf-8"))
+    assert set(spec["timeframes"]) == {"M1", "M3", "M15", "H1"}          # jamais H4/D1 comme timeframe de SIGNAL
+    assert set(spec["instruments"]) == {"XAUUSD"}
+    s = Settings.from_dict(spec["settings"])
+    assert s.risk.max_cost_r == 0.15 and (s.risk.session_utc_start, s.risk.session_utc_end) == (7, 17) and s.risk.flat_before_weekend
+    assert spec["costs"]["XAUUSD"]["slippage"] > 0 and spec["costs"]["XAUUSD"]["basis"]
+    for tf, c in spec["timeframes"].items():
+        assert c["max_hold_bars"] <= 30 and ("file" in c or c.get("rule") in (None, "1h"))

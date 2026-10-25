@@ -56,18 +56,27 @@ def main():
     out_dir = ROOT / "reports" / spec["name"]; (out_dir / "cache").mkdir(parents=True, exist_ok=True)
     for name, fname in spec["instruments"].items():
         if args.only and name != args.only: continue
-        df = load_mt5_csv(ROOT / "data" / "real" / fname)            # horloge eu_dst (défaut)
-        research, _locked = split_locked(df, spec["lock_months"], spec["lock_min_frac"])
-        measured = costs_from_frame(df)
+        df15 = load_mt5_csv(ROOT / "data" / "real" / fname)          # horloge eu_dst (défaut)
         for tf, tfc in spec["timeframes"].items():
             if args.tf and tf != args.tf: continue
-            base = research if tfc["rule"] is None else resample_base(research, tfc["rule"])
+            if tfc.get("file"):                                          # timeframe fin : export dédié requis
+                path = ROOT / "data" / "real" / tfc["file"]
+                if not path.exists():
+                    print(f"[{name}_{tf}] fichier absent ({tfc['file']}) : export MT5 requis (scripts/export_mt5.py) — ignoré", flush=True)
+                    continue
+                df_tf = load_mt5_csv(path)
+                research, _locked = split_locked(df_tf, tfc.get("lock_months", spec["lock_months"]), spec["lock_min_frac"])
+                measured = costs_from_frame(df_tf)
+            else:
+                research, _locked = split_locked(df15, tfc.get("lock_months", spec["lock_months"]), spec["lock_min_frac"])
+                measured = costs_from_frame(df15)
+            base = research if tfc.get("rule") is None else resample_base(research, tfc["rule"])
             s = build_settings(spec, name, measured, base).with_overrides({"backtest.max_hold_bars": tfc["max_hold_bars"]})
             tag = f"{name}_{tf}"
             print(f"[{tag}] {len(base)} barres · scores…", flush=True)
             bull, bear = cached_scores(base, s, out_dir / "cache")
             lab = compute_labels(base, s)
-            st = mtf_bias(base, tuple(C["rules"]), fast=C["fast"], slow=C["slow"], band=C["band"])
+            st = mtf_bias(base, tuple(tfc.get("context_rules", C["rules"])), fast=C["fast"], slow=C["slow"], band=C["band"])
             state = st.to_numpy().astype(int)
             n = len(base); k = int(P["train_frac"] * n); purge = lab.purge_bars(s)
             t = np.arange(n); tr = t < k - purge; va = t >= k + purge

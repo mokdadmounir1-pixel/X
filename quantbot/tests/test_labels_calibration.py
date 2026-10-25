@@ -141,3 +141,42 @@ def test_spec_extra_changes_identity_only_when_given():
     from quantbot.lab.pipeline import spec_hash
     s = Settings()
     assert spec_hash(s) == spec_hash(s, extra=None) != spec_hash(s, extra="modele-A") != spec_hash(s, extra="modele-B")
+
+
+def _scalp_cfg(**risk):
+    return Settings.from_dict({"risk": {"flat_before_weekend": False, "max_leverage": 1.0, **risk},
+                               "signals": {"atr_floor_frac": 0.5},
+                               "execution": {"fee_rate": 2e-5, "slippage": 1e-5, "spread": 4e-5}})
+
+
+@pytest.mark.parametrize("risk", [dict(session_utc_start=7, session_utc_end=17), dict(max_cost_r=0.4),
+                                  dict(session_utc_start=7, session_utc_end=17, max_cost_r=0.3)])
+def test_session_window_and_cost_filter_identical_in_engine_and_labels(risk):
+    s = _scalp_cfg(**risk)
+    df = generate_synthetic(2200, seed=33, freq="15min")
+    labels = compute_labels(df, s)
+    at_idx = list(range(150, 1900, 5))  # beaucoup de candidats, l'engine n'en prend que d'espacés
+    eng = TradingEngine(s, signal_engine=FixedSignals(s, [df.index[i] for i in at_idx], "bullish"))
+    eng.run_replay(df)
+    eng.finish(df)
+    taken = {t.entry_time: t for t in eng.broker.trades}
+    assert taken
+    for i in at_idx:
+        t = taken.get(df.index[i + 1])
+        if t is not None:                      # tout trade pris par le moteur a un label identique
+            assert labels.long_r[i] == pytest.approx(t.r_nominal, rel=1e-9, abs=1e-9)
+            assert s.risk.session_utc_start <= df.index[i].hour < s.risk.session_utc_end
+    # et là où le label est NaN à cause de la fenêtre/coût, le moteur ne trade jamais
+    blocked = [i for i in at_idx if not np.isfinite(labels.long_r[i]) and df.index[i + 1] in taken]
+    assert not blocked
+
+
+def test_cost_filter_rejects_when_cost_exceeds_risk_budget_and_is_off_by_default():
+    from quantbot.risk.manager import RiskManager
+    sig = Signal("bullish", 0.9, 4000.0, 0.8, pd.Timestamp("2025-06-02 10:00"), [PatternMatch("x", "candle", "bullish", 0.9, 0, 1)])
+    on = RiskManager(Settings.from_dict({"risk": {"max_cost_r": 0.10}}).risk)
+    assert on.build_plan(sig, 100_000, cost_frac=5e-4) is None and on.last_rejection == "cout_trop_eleve"  # 0,5 pb = 2 $ / 1,2 $ de stop
+    assert on.build_plan(sig, 100_000, cost_frac=1e-5) is not None
+    assert RiskManager(Settings().risk).build_plan(sig, 100_000, cost_frac=5e-4) is not None  # désactivé par défaut
+    with pytest.raises(Exception):
+        Settings.from_dict({"risk": {"session_utc_start": 17, "session_utc_end": 7}})
