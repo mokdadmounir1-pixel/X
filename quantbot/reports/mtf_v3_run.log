@@ -23,3 +23,14 @@
         alignés (score>=0.65): [('long|état+1', 310, 0.1787, 312, 0.1776), ('short|état-1', 32, -0.2582, 0, None)]
         contre-tendance      : [('long|état-1', 49, 0.1325, 0, None), ('short|état+1', 328, -0.0527, 251, -0.1766)]
 [USTEC_M15] 56597 barres · scores…
+[USTEC_M15] verdict=FAIL | 0 trades | E=0.000R | PF=0.00 | essais=16
+        alignés (score>=0.65): [('long|état+1', 5391, -0.0025, 3893, -0.0038), ('short|état-1', 604, -0.0588, 763, 0.019)]
+        contre-tendance      : [('long|état-1', 690, 0.0194, 839, 0.0498), ('short|état+1', 4856, -0.0157, 3576, -0.024)]
+[USTEC_H1] 14188 barres · scores…
+[USTEC_H1] verdict=FAIL | 48 trades | E=0.066R | PF=1.16 | essais=17
+        alignés (score>=0.65): [('long|état+1', 1143, 0.0243, 911, 0.0244), ('short|état-1', 143, -0.1812, 173, 0.0602)]
+        contre-tendance      : [('long|état-1', 154, 0.0929, 171, -0.0008), ('short|état+1', 1057, -0.0233, 827, -0.0083)]
+[USTEC_H4] 3720 barres · scores…
+[USTEC_H4] verdict=FAIL | 47 trades | E=0.038R | PF=1.20 | essais=18
+        alignés (score>=0.65): [('long|état+1', 351, 0.1112, 272, 0.0015), ('short|état-1', 29, -0.104, 42, -0.2733)]
+        contre-tendance      : [('long|état-1', 47, 0.3479, 45, 0.1056), ('short|état+1', 335, 0.0019, 238, -0.0418)]
