@@ -57,6 +57,7 @@ def collect_state(root: Path = ROOT) -> dict:
                             "diagnostics": r.get("diagnostics"), "costs": r.get("costs_used")})
         specs.append({"name": name, "parent": spec.get("parent"), "hypothesis": spec.get("hypothesis"),
                       "change_reason": spec.get("change_reason"), "results": results})
+    battery = _read_json(reports / "battery_v1" / "summary.json")
     prov = _read_json(root / "data" / "real" / "PROVENANCE.json") or {}
     verdicts = [r.get("verdict") for s in specs for r in s["results"]]
     return {
@@ -64,6 +65,7 @@ def collect_state(root: Path = ROOT) -> dict:
                    "mt5_broker": "écrit, testé uniquement contre un faux terminal", "registry_chain_ok": reg_ok,
                    "trials": n_trials, "trials_budget": 30, "locked_reads": locked, "tests": "voir README"},
         "specs": specs,
+        "battery": battery,
         "data": [{k: i.get(k) for k in ("symbol", "rows", "start", "end", "span_years", "sha256")} for i in prov.get("instruments", [])],
         "data_notes": ["Horloge courtier : UTC+2 hiver / UTC+3 été, calendrier européen (reconstruite depuis time_broker_epoch).",
                        "Export plafonné à 80 000 barres par instrument : ce n'est pas tout l'historique.",

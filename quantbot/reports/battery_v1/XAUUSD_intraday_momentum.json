@@ -1,0 +1,20 @@
+{
+ "instrument": "XAUUSD",
+ "hypothesis": "intraday_momentum",
+ "n_days": 582,
+ "mean_bps": -0.08497122688235534,
+ "sharpe_annual": -0.13449558288485078,
+ "t_nw": -0.19441124549387354,
+ "hit_rate": 0.4793814432989691,
+ "mean_first_half_bps": 0.3589897193306763,
+ "mean_second_half_bps": -0.5289321730953869,
+ "max_drawdown_unit": 0.02602423627950612,
+ "bh_alpha": -2.480385350204289e-05,
+ "bh_beta": 0.01364565612008281,
+ "bh_t_alpha": -0.5606567186013953,
+ "mean_bps_costs_x2": -0.5406310017496884,
+ "cost_rt_bps": 0.45565977486733283,
+ "n_trades": 582,
+ "dsr": 7.634552476876166e-07,
+ "verdict": "REJET\u00c9"
+}

@@ -1,0 +1,20 @@
+{
+ "instrument": "EURUSD",
+ "hypothesis": "reversal_1d",
+ "n_days": 575,
+ "mean_bps": 0.5167671844224292,
+ "sharpe_annual": 0.18268352718056816,
+ "t_nw": 0.2792416072308568,
+ "hit_rate": 0.4991304347826087,
+ "mean_first_half_bps": 0.08591366930515588,
+ "mean_second_half_bps": 0.9461246803899904,
+ "max_drawdown_unit": 0.0920704234993609,
+ "bh_alpha": 5.357409601801532e-05,
+ "bh_beta": -0.01669046527837217,
+ "bh_t_alpha": 0.28972046150261616,
+ "mean_bps_costs_x2": -0.2971458590558312,
+ "cost_rt_bps": 1.6,
+ "n_trades": 292,
+ "dsr": 8.843361680832551e-06,
+ "verdict": "REJET\u00c9"
+}

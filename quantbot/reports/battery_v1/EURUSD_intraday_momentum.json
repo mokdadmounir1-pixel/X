@@ -1,0 +1,20 @@
+{
+ "instrument": "EURUSD",
+ "hypothesis": "intraday_momentum",
+ "n_days": 574,
+ "mean_bps": -1.6674644744220348,
+ "sharpe_annual": -5.456624977575292,
+ "t_nw": -9.473927498444045,
+ "hit_rate": 0.30313588850174217,
+ "mean_first_half_bps": -1.5992927419374703,
+ "mean_second_half_bps": -1.7356362069065996,
+ "max_drawdown_unit": 0.09144943724332377,
+ "bh_alpha": -0.00016708190223738682,
+ "bh_beta": 0.0030348012608107378,
+ "bh_t_alpha": -9.616240640005586,
+ "mean_bps_costs_x2": -3.2674644744220345,
+ "cost_rt_bps": 1.6,
+ "n_trades": 574,
+ "dsr": 0.0,
+ "verdict": "REJET\u00c9"
+}

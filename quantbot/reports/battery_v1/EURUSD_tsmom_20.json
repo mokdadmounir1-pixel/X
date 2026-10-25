@@ -1,0 +1,20 @@
+{
+ "instrument": "EURUSD",
+ "hypothesis": "tsmom_20",
+ "n_days": 575,
+ "mean_bps": 1.8040112756952402,
+ "sharpe_annual": 0.6437989100253377,
+ "t_nw": 1.018706326609278,
+ "hit_rate": 0.4782608695652174,
+ "mean_first_half_bps": -0.004683880020177305,
+ "mean_second_half_bps": 3.606426239897757,
+ "max_drawdown_unit": 0.04935478445955044,
+ "bh_alpha": 0.0001703001914848998,
+ "bh_beta": 0.08885386079829898,
+ "bh_t_alpha": 0.9982797496562515,
+ "mean_bps_costs_x2": 1.6634895365648055,
+ "cost_rt_bps": 1.6,
+ "n_trades": 50,
+ "dsr": 0.00013823034472842943,
+ "verdict": "REJET\u00c9"
+}

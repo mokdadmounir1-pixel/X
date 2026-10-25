@@ -1,0 +1,20 @@
+{
+ "instrument": "USTEC",
+ "hypothesis": "intraday_momentum",
+ "n_days": 578,
+ "mean_bps": -1.7736431554894148,
+ "sharpe_annual": -0.9987850525889397,
+ "t_nw": -1.5391730556771954,
+ "hit_rate": 0.444636678200692,
+ "mean_first_half_bps": -1.8381541508285508,
+ "mean_second_half_bps": -1.709132160150278,
+ "max_drawdown_unit": 0.11510476805299708,
+ "bh_alpha": -0.00017702343940888344,
+ "bh_beta": -0.000268589866326395,
+ "bh_t_alpha": -1.4161750369419615,
+ "mean_bps_costs_x2": -2.401266926151775,
+ "cost_rt_bps": 0.6308983294658169,
+ "n_trades": 575,
+ "dsr": 1.1711444591888664e-09,
+ "verdict": "REJET\u00c9"
+}

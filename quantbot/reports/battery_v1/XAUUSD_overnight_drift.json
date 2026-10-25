@@ -1,0 +1,20 @@
+{
+ "instrument": "XAUUSD",
+ "hypothesis": "overnight_drift",
+ "n_days": 601,
+ "mean_bps": 10.536474333919212,
+ "sharpe_annual": 2.2440125650977722,
+ "t_nw": 3.451638091018856,
+ "hit_rate": 0.5906821963394343,
+ "mean_first_half_bps": 7.049540986763162,
+ "mean_second_half_bps": 14.01182318490531,
+ "max_drawdown_unit": 0.07691363262738649,
+ "bh_alpha": 0.00028437200411262096,
+ "bh_beta": 0.6174819325009884,
+ "bh_t_alpha": 1.623144185422049,
+ "mean_bps_costs_x2": 10.080814559051884,
+ "cost_rt_bps": 0.45565977486733283,
+ "n_trades": 601,
+ "dsr": 0.12623701481778205,
+ "verdict": "WATCH"
+}

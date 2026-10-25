@@ -66,13 +66,20 @@ function etat(){const s=S.status;
    registre d'essais chaîné par hachage, période verrouillée à lecture unique, garde-fou FTMO. Il n'y a <b>pas de robot qui trade</b> tant qu'une stratégie n'a pas passé les portes.</p>
    <p class="muted">Les ordres réels exigent quatre verrous (mode, autorisation, variable d'environnement, garde-fou FTMO) et ne sont branchés sur aucune commande.</p></div>`;}
 function gatesHtml(gs){return `<div class="gates">`+gs.map(g=>`<span class="g ${g.ok?"":"x"}" title="valeur: ${esc(JSON.stringify(g.value))} · seuil: ${esc(JSON.stringify(g.threshold))}">${esc(g.name)}${g.eliminatory&&!g.ok?" ⛔":""}</span>`).join("")+`</div>`;}
-function res(){return S.specs.map(sp=>`<div class="card"><h2>${esc(sp.name)} ${sp.parent?`<span class="muted">← ${esc(sp.parent)}</span>`:""}</h2>
+function res(){return battery()+S.specs.map(sp=>`<div class="card"><h2>${esc(sp.name)} ${sp.parent?`<span class="muted">← ${esc(sp.parent)}</span>`:""}</h2>
   <p class="muted">${esc(sp.change_reason||sp.hypothesis||"")}</p>
   <table><thead><tr><th>Instrument</th><th>Verdict</th><th class="n">Trades</th><th class="n">Espérance (R)</th><th class="n">PF</th><th class="n">Pire trade (R)</th></tr></thead><tbody>`+
   sp.results.map(r=>r.verdict?`<tr><td>${esc(r.instrument)}</td><td>${tag(r.verdict)}</td><td class="n">${r.n_trades}</td><td class="n">${f(r.expectancy_R)}</td><td class="n">${f(r.profit_factor,2)}</td><td class="n">${f(r.worst_trade_R,2)}</td></tr>
   <tr><td colspan="6">${gatesHtml(r.gates)}<details><summary>pourquoi</summary><div class="muted">${esc(r.reason)}</div></details></td></tr>`:
   `<tr><td>${esc(r.instrument)}</td><td>${tag(null)}</td><td colspan="4" class="muted">${esc(r.status||"en cours")}</td></tr>`).join("")+`</tbody></table></div>`).join("")+
   `<p class="muted">⛔ = porte éliminatoire en échec. Les espérances de v1/v2 sont en R <i>nominal</i> (capital × risque visé) ; elles ne sont pas directement comparables à celles de v0.</p>`;}
+function battery(){const b=S.battery;if(!b)return"";
+  const rows=Object.entries(b.results).sort((a,c)=>c[1].t_nw-a[1].t_nw);
+  return `<div class="card"><h2>Batterie d'hypothèses documentées <span class="muted">(rendements journaliers, période de recherche)</span></h2>
+  <p class="muted">Reality Check de White sur ${b.n_hypotheses} hypothèses (${b.days} jours) : <b>p = ${f(b.reality_check.p,3)}</b>. Seule la MEILLEURE est couverte par cette p-value ; les autres « WATCH » ne prouvent rien.</p>
+  <table><thead><tr><th>Instrument | hypothèse</th><th class="n">Jours</th><th class="n">bps/jour</th><th class="n">coûts ×2</th><th class="n">Sharpe</th><th class="n">t NW</th><th class="n">alpha t</th><th>Verdict</th></tr></thead><tbody>`+
+  rows.map(([k,s])=>`<tr><td>${esc(k.replace("|"," · "))}</td><td class="n">${s.n_days}</td><td class="n">${f(s.mean_bps,2)}</td><td class="n">${f(s.mean_bps_costs_x2,2)}</td><td class="n">${f(s.sharpe_annual,2)}</td><td class="n">${f(s.t_nw,2)}</td><td class="n">${f(s.bh_t_alpha,2)}</td><td>${tag(s.verdict==="SURVIVANT"?"PASS":s.verdict==="WATCH"?"WATCH":"FAIL")}</td></tr>`).join("")+
+  `</tbody></table><p class="muted">Piste la plus intéressante : <b>or, dérive nocturne</b> (+66 % du gain cumulé vient des nuits, +10 % des jours) — mais un seul régime haussier, swap non modélisé, alpha non significatif. Voir reports/battery_v1/NOTES.md.</p></div>`;}
 function bars(rows,key1,key2,title){const W=520,H=190,pad=34;const vals=rows.flatMap(r=>[r[key1],r[key2]]).filter(v=>v!=null);if(!vals.length)return"";
   const lo=Math.min(-.05,...vals),hi=Math.max(.05,...vals),y=v=>pad+(hi-v)/(hi-lo)*(H-2*pad),bw=(W-2*pad)/rows.length;
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}"><line class="axis" x1="${pad}" x2="${W-pad}" y1="${y(0)}" y2="${y(0)}"/>`;
