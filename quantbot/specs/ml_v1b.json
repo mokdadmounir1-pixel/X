@@ -1,0 +1,68 @@
+{
+ "name": "ml_v1b",
+ "preregistered": "2026-10-25 : amendement de ml_v1, commité AVANT l'exécution de ml_v1b",
+ "hypothesis": "Un LightGBM alimenté par des features causales (différenciation fractionnaire d=0,4, Garman-Klass, entropie, Amihud, volume, heure) prédit la direction à 8 barres M15 avec une probabilité >= 0,65 assez fiable pour une espérance nette positive, en walk-forward hors-échantillon.",
+ "script": "scripts/run_ml.py",
+ "instruments": {
+  "EURUSD": "data/real/EURUSD_M15.csv",
+  "XAUUSD": "data/real/XAUUSD_M15.csv",
+  "USTEC": "data/real/USTEC_M15.csv"
+ },
+ "lock_months": 12,
+ "features": {
+  "frac_diff_d": 0.4,
+  "frac_diff_thresh": 0.0001
+ },
+ "ml": {
+  "horizon": 8,
+  "min_train": 6000,
+  "refit_every": 1000,
+  "embargo_frac": 0.01,
+  "threshold": 0.65,
+  "stop_atr": 1.5,
+  "atr_period": 14,
+  "n_rounds": 200,
+  "min_atr_frac": 0.3,
+  "max_spread_risk": 0.2
+ },
+ "costs": {
+  "half_spread": "spread mesuré de la barre d'entrée/sortie (moitié par côté)",
+  "cost_frac": {
+   "EURUSD": 1e-05,
+   "XAUUSD": 2e-05,
+   "USTEC": 2e-05
+  },
+  "basis": "HYPOTHÈSE de glissement/commission par côté en fraction du prix, à re-mesurer sur le compte cible"
+ },
+ "gates": {
+  "min_trades": 100,
+  "sign_flip_alpha": 0.0167,
+  "dsr_min": 0.95,
+  "alpha_note": "5 % / 3 instruments (Šidák approché)"
+ },
+ "trials": 3,
+ "max_trials_budget": 120,
+ "verdict_rules": {
+  "NON_CONCLUANT": "moins de 100 trades",
+  "FAIL": "R moyen <= 0, ou test nul (sign-flip) > alpha, ou DSR < 0,95",
+  "CANDIDAT": "sinon ; ne vaut PAS validation : échantillon forward (>= 60 trades) et décision humaine restent exigés"
+ },
+ "known_limits": [
+  "Un AUC hors-échantillon proche de 0,5 est le résultat attendu sur du bruit : il est rapporté tel quel.",
+  "Les exports MT5 n'ont ni carnet ni delta de volume : seul le volume en ticks est utilisé.",
+  "Plusieurs trades se chevauchent dans la fenêtre d'étiquette : le test nul par barre est approximatif (blocs de 3)."
+ ],
+ "amendment": "ml_v1 (3 essais, comptés) : FAIL partout ; USTEC -2,29 R/trade expliqué par un défaut de MON simulateur : des phases de prix figés donnent un ATR ~0,13 pt (médiane 25) donc un risque quasi nul face à un spread d'1 pt. Correctif générique (plancher de risque) déclaré AVANT de relancer, mêmes hyperparamètres ML. Les résultats de ml_v1 restent au registre ; ml_v1b ajoute 3 essais.",
+ "ml_v1_results": {
+  "EURUSD": {
+   "mean_r": -0.003
+  },
+  "XAUUSD": {
+   "mean_r": -0.041
+  },
+  "USTEC": {
+   "mean_r": -2.288,
+   "cause": "risque quasi nul sur marché figé"
+  }
+ }
+}

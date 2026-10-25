@@ -1,6 +1,8 @@
 """Application web locale (FastAPI) : API en LECTURE SEULE + interface terminal. Écoute uniquement sur 127.0.0.1 ; aucune route n'envoie d'ordre ni n'écrit d'approbation."""
 from __future__ import annotations
 
+import json
+
 import os
 from pathlib import Path
 from typing import Optional
@@ -43,6 +45,14 @@ def create_app(root: Path = ROOT) -> FastAPI:
     @app.get("/api/health")
     def health():
         return {"ok": True, "read_only": True}
+
+    @app.get("/api/sync")
+    def sync():
+        f = root / "data" / "sync_status.json"
+        try:
+            return {"available": True, **json.loads(f.read_text(encoding="utf-8"))}
+        except (OSError, ValueError):
+            return {"available": False, "note": "synchronisation jamais exécutée (lancez le terminal avec `python -m quantbot ui`, sans --no-sync)"}
 
     @app.get("/api/state")
     def state():
