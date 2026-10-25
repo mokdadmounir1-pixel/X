@@ -25,6 +25,8 @@ class Signal:
     timestamp: Any
     matches: list[PatternMatch]
     notes: list[str] = field(default_factory=list)
+    stop_price: Optional[float] = None  # stratégies à niveaux propres ; None = stop ATR par défaut
+    take_profit_price: Optional[float] = None
 
     @property
     def pattern_names(self) -> list[str]:

@@ -120,12 +120,13 @@ class RiskConfig(_Section):
     flat_before_weekend: bool = False  # clôture + pas d'entrée du vendredi soir au dimanche (gaps de réouverture)
     weekend_cutoff_hour: int = 20  # heure locale (session_tz) du vendredi
     session_tz: str = "Europe/Prague"
+    min_stop_atr: float = 0.0  # 0 = désactivé ; sinon distance de stop >= min_stop_atr x ATR (jamais de stop à 0,001 % du prix)
     max_cost_r: float = 0.0  # 0 = désactivé ; sinon refuse l'entrée si coût aller-retour / distance de stop > ce seuil (en R)
     session_utc_start: int = 0  # fenêtre d'entrée [start, end[ en heures UTC (scalping : heures liquides)
     session_utc_end: int = 24
 
     def validate(self) -> None:
-        _require(self.max_cost_r >= 0, "max_cost_r >= 0")
+        _require(self.max_cost_r >= 0 and self.min_stop_atr >= 0, "max_cost_r, min_stop_atr >= 0")
         _require(0 <= self.session_utc_start < self.session_utc_end <= 24, "fenêtre UTC : 0 <= start < end <= 24")
         _require(0 <= self.weekend_cutoff_hour <= 23, "weekend_cutoff_hour dans [0,23]")
         _require(0 < self.risk_per_trade <= 0.1, "risk_per_trade dans ]0,0.1]")

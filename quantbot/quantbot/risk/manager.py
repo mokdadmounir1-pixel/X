@@ -84,14 +84,27 @@ class RiskManager:
         if c.reward_risk < c.min_reward_risk:
             return self._reject("reward_risk_insuffisant")
         entry = float(entry if entry is not None else signal.price)
-        dist = c.atr_stop_mult * signal.atr
         long = signal.direction == "bullish"
+        custom_stop = signal.stop_price is not None
+        if custom_stop:
+            dist = (entry - signal.stop_price) if long else (signal.stop_price - entry)
+            if dist <= 0:
+                return self._reject("stop_du_mauvais_cote")
+            dist = max(dist, c.min_stop_atr * signal.atr)  # plancher : un stop trop proche est élargi, jamais accepté tel quel
+        else:
+            dist = c.atr_stop_mult * signal.atr
         stop = entry - dist if long else entry + dist
         if stop <= 0:
             return self._reject("stop_negatif")
         if c.max_cost_r > 0 and cost_frac * entry / dist > c.max_cost_r:
             return self._reject("cout_trop_eleve")  # le spread/commission mangerait trop du risque : pas de trade
-        target = entry + c.reward_risk * dist if long else entry - c.reward_risk * dist
+        rr = c.reward_risk
+        if signal.take_profit_price is not None:
+            gain = (signal.take_profit_price - entry) if long else (entry - signal.take_profit_price)
+            rr = gain / dist if dist > 0 else 0.0
+            if rr < c.min_reward_risk:
+                return self._reject("rr_insuffisant")
+        target = entry + rr * dist if long else entry - rr * dist
         size = min(equity * c.risk_per_trade / dist, equity * c.max_leverage / entry)
         if max_risk is not None:  # plafond externe (ex. marge restante avant les limites FTMO)
             if max_risk <= 0:
@@ -100,4 +113,4 @@ class RiskManager:
         if size <= 0:
             return self._reject("taille_nulle")
         return TradePlan("long" if long else "short", entry, stop, target, size, size * dist,
-                         c.reward_risk, signal.confidence, signal.pattern_names, equity * c.risk_per_trade)
+                         rr, signal.confidence, signal.pattern_names, equity * c.risk_per_trade)
