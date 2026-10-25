@@ -155,11 +155,16 @@ def test_terminal_publishes_its_actual_port_for_the_desktop_shortcut(tmp_path):
     assert (tmp_path / "runtime" / "terminal.port").read_text(encoding="utf-8") == "3215"
 
 
-def test_shortcut_scripts_exist_and_are_launch_only():
+def test_launcher_scripts_exist_start_only_the_read_only_terminal_and_show_errors():
     from pathlib import Path
     root = Path(__file__).resolve().parents[1]
-    launch = (root / "scripts" / "launch_terminal.ps1").read_text(encoding="utf-8")
-    inst = (root / "scripts" / "install_shortcut.ps1").read_text(encoding="utf-8")
-    assert "quantbot\", \"ui\"" in launch and "order" not in launch.lower() and "paper_all" not in launch
-    assert "Quantbot - Terminal.lnk" in inst and "fennec_diamond.ico" in inst and "GetFolderPath(\"Desktop\")" in inst
-    assert (root / "creer_raccourci.bat").exists()
+    run = (root / "lancer_terminal.bat").read_text(encoding="utf-8")
+    inst = (root / "creer_raccourci.bat").read_text(encoding="utf-8")
+    assert "quantbot ui --open" in run and "pause" in run and "paper_all" not in run and "order" not in run.lower()   # visible + erreurs lisibles + lecture seule
+    assert "Quantbot - Terminal" in inst and "lancer_terminal.bat" in inst and "fennec_diamond.ico" in inst
+
+
+def test_cli_ui_accepts_open_flag():
+    from quantbot import cli
+    import argparse, inspect
+    assert "--open" in inspect.getsource(cli)

@@ -5,6 +5,7 @@ import os
 import socket
 import threading
 import time
+import webbrowser
 from pathlib import Path
 
 import uvicorn
@@ -42,14 +43,24 @@ def write_port_file(root: Path, port: int) -> None:
         pass
 
 
-def serve(port: int | None = None, root: Path = ROOT) -> None:
+def serve(port: int | None = None, root: Path = ROOT, open_browser: bool = False) -> None:
     wanted = configured_port(port)
     port = free_port(wanted)
     if port != wanted:
         print(f"Port {wanted} déjà utilisé par un autre programme : quantbot prend {port}.")
     write_port_file(root, port)
-    print(f"quantbot terminal : http://{HOST}:{port}/  (Ctrl+C pour arrêter)")
-    uvicorn.run(create_app(root), host=HOST, port=port, log_level="warning")
+    url = f"http://{HOST}:{port}/"
+    print(f"quantbot terminal : {url}  (Ctrl+C pour arrêter)")
+    server = uvicorn.Server(uvicorn.Config(create_app(root), host=HOST, port=port, log_level="warning"))
+    if open_browser:
+        def _open() -> None:
+            for _ in range(100):
+                if server.started:
+                    webbrowser.open(url)
+                    return
+                time.sleep(0.1)
+        threading.Thread(target=_open, daemon=True).start()
+    server.run()
 
 
 def start_background(port: int | None = None, root: Path = ROOT) -> tuple[int, uvicorn.Server]:
