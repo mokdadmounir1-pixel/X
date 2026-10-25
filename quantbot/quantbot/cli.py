@@ -65,7 +65,11 @@ def main(argv=None) -> int:
                 print(json.dumps(row, ensure_ascii=False))
             return 0
         if args.cmd == "ui":
-            from .gui.server import serve
+            try:
+                from .gui.server import serve
+            except ImportError as exc:     # dépendances du terminal absentes : message clair au lieu d'une trace
+                print(f"Dépendance manquante ({exc.name}). Installez-la avec : pip install -r requirements.txt", file=sys.stderr)
+                return 2
             serve(args.port)
             return 0
         if args.cmd == "approve":
