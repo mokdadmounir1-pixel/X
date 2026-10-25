@@ -1,0 +1,209 @@
+{
+ "name": "mtf_v3",
+ "preregistered": "Procédure écrite et commitée AVANT tout calcul v3 sur données réelles. 9 essais (3 instruments x 3 timeframes) comptés dans le registre.",
+ "hypothesis": "H0 : l'espérance nette associée aux scores flous ne dépend pas de la tendance multi-timeframe et aucune cellule (côté x état HTF) n'est tradable hors échantillon. H1 : au moins une cellule (en particulier alignée avec la tendance H4+D1) a une espérance calibrée en apprentissage qui se confirme en validation et franchit les portes. Question sous-jacente (constat v2 : achats d'or +0,07 R en train ET validation, sous la marge) : cet effet est-il du bêta haussier ou un effet d'alignement ?",
+ "timeframe": "M15",
+ "instruments": {
+  "EURUSD": "EURUSD_M15.csv",
+  "XAUUSD": "XAUUSD_M15.csv",
+  "USTEC": "USTEC_M15.csv"
+ },
+ "data_sha256": {
+  "EURUSD_M15.csv": "e5584ad82650f1640e41f9597e237821e47189b4b9022e7562d1df0e0f3abece",
+  "XAUUSD_M15.csv": "d1a156e2894a868686457c8d71a6ff874a49511a5dae059c24c795ff5aeb08b9",
+  "USTEC_M15.csv": "63279b4e0082b35f8312e8b5a5c90107127538c44690b78b13cec4d8a228dc65"
+ },
+ "clock": "UTC reconstruit depuis time_broker_epoch avec le calendrier DST EUROPÉEN (eu_dst, défaut). NB : v0/v1/v2 utilisaient us_dst (~6,8 % des barres décalées d'1 h) ; conclusions inchangées (tous FAIL).",
+ "lock_months": 12,
+ "lock_min_frac": 0.2,
+ "costs": {
+  "_note": "spread_frac = spread médian mesuré (fraction du prix) si fiable ; sinon HYPOTHÈSE déclarée. Commission/slippage = HYPOTHÈSES (non fournis par l'export). Démo MetaQuotes != FTMO : à re-mesurer sur le compte cible.",
+  "EURUSD": {
+   "spread_frac": 9e-05,
+   "fee_rate": 2.5e-05,
+   "slippage": 1e-05,
+   "basis": "HYPOTHÈSE : spread ~1 pip (colonne spread inutilisable : 44-83 % de zéros), commission ~2,5 $/lot/côté"
+  },
+  "XAUUSD": {
+   "spread_frac": null,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "spread mesuré (médiane du fichier) ; commission 0 = HYPOTHÈSE"
+  },
+  "USTEC": {
+   "spread_frac": null,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "spread mesuré (médiane du fichier) ; commission 0 = HYPOTHÈSE"
+  }
+ },
+ "settings": {
+  "tolerance": {
+   "tolerance_percentage": 0.15,
+   "deviation_threshold": 0.35,
+   "min_score": 0.3
+  },
+  "detection": {
+   "pivot_order": 3,
+   "atr_period": 14,
+   "max_pivot_age": 12,
+   "context_bars": 5,
+   "context_weight": 0.25,
+   "context_move_atr": 2.0,
+   "min_height_atr": 1.5,
+   "min_bars_between": 4,
+   "enabled": null
+  },
+  "signals": {
+   "min_confidence": 0.55,
+   "category_weights": {
+    "candle": 0.8,
+    "chart": 1.0,
+    "harmonic": 0.9
+   },
+   "unconfirmed_penalty": 0.8,
+   "require_confirmation": false,
+   "min_edge": 0.1,
+   "confluence_bonus": 0.05,
+   "trend_filter": "none",
+   "ema_fast": 20,
+   "ema_slow": 50,
+   "counter_trend_penalty": 0.6,
+   "htf_rule": "4h",
+   "atr_floor_frac": 0.5
+  },
+  "risk": {
+   "risk_per_trade": 0.005,
+   "atr_stop_mult": 1.5,
+   "reward_risk": 2.0,
+   "min_reward_risk": 1.3,
+   "max_leverage": 3.0,
+   "max_daily_loss": 0.03,
+   "max_trades_per_day": 5,
+   "flat_before_weekend": true,
+   "weekend_cutoff_hour": 20,
+   "session_tz": "Europe/Prague"
+  },
+  "backtest": {
+   "initial_equity": 100000.0,
+   "warmup_bars": 100,
+   "window_bars": 300,
+   "max_hold_bars": 100,
+   "max_gap_hours": 120.0
+  },
+  "execution": {
+   "mode": "paper",
+   "allow_live": false,
+   "fee_rate": 0.0005,
+   "slippage": 0.0002,
+   "spread": 0.0,
+   "exchange": "binance",
+   "symbol": "BTC/USDT",
+   "timeframe": "1h",
+   "live_auto_adopt": false,
+   "mt5_symbol": "EURUSD",
+   "mt5_timeframe": "H1",
+   "mt5_server_utc_offset_hours": 0,
+   "mt5_magic": 20260101,
+   "mt5_deviation_points": 20
+  },
+  "ftmo": {
+   "enabled": false,
+   "phase": "challenge",
+   "initial_balance": 100000.0,
+   "profit_target_challenge": 0.1,
+   "profit_target_verification": 0.05,
+   "max_daily_loss": 0.05,
+   "max_total_loss": 0.1,
+   "daily_loss_buffer": 0.01,
+   "total_loss_buffer": 0.02,
+   "min_trading_days": 4,
+   "timezone": "Europe/Prague",
+   "flat_before_weekend": true,
+   "weekend_cutoff_hour": 20,
+   "news_blackouts": [],
+   "stop_after_target": true,
+   "max_risk_per_trade": 0.005,
+   "expected_login": null
+  }
+ },
+ "gates": {
+  "min_trades": 60,
+  "min_expectancy": 0.15,
+  "min_profit_factor": 1.2,
+  "null_alpha": 0.1,
+  "top3_max": 0.5,
+  "min_positive_folds": 0.5,
+  "mc_paths": 2000,
+  "dd_frac": 0.6,
+  "dsr_min": 0.5,
+  "min_years": 2.0,
+  "base_B": 999,
+  "worst_trade_r": 5.0
+ },
+ "gate_calibration": {
+  "script": "scripts/calibrate_gates.py",
+  "series": "120 marchés sans edge x 5000 barres, signal oracle",
+  "false_pass": 1,
+  "false_pass_upper95": 0.039,
+  "power": "24/24 PASS sur edge planté fort",
+  "caveat": "calibré sur un signal oracle et des marchés synthétiques : n'établit pas la puissance sur marché réel"
+ },
+ "max_trials_budget": 60,
+ "parent": "v2_calibrated",
+ "change_reason": "Demande utilisateur : analyser tous les timeframes. Ajout du contexte HTF (H4 + D1, causal) et de timeframes de signal H1 et H4 (moins de trades, coûts relatifs plus faibles).",
+ "changes": [
+  "contexte HTF : états de tendance H4 et D1 (EMA 20/50, bande neutre 0,25 ATR HTF, barres TERMINÉES uniquement) combinés : +1 si les deux haussiers, -1 si les deux baissiers, sinon 0",
+  "une courbe isotone par (côté, état) = 6 courbes ; support minimal 300 par courbe, sinon abstention",
+  "timeframes de signal : M15, H1, H4 (H1/H4 construits depuis le M15 sur la journée de marché NY, roll 17:00)",
+  "max_hold_bars par timeframe : M15 100, H1 30, H4 10 (durée maximale ~ 1 jour, 1,25 jour, 1,7 jour)"
+ ],
+ "leverage_rule": {
+  "loss_budget": 0.01,
+  "quantile": 0.9999,
+  "min": 0.25,
+  "max": 5.0,
+  "doc": "levier max tel qu'un gap au quantile 99,99 % (gaps de reprise, hors trous de données) coûte <= 1 % du capital"
+ },
+ "procedure": {
+  "split": "train = 60 % premiers de la période de RECHERCHE ; validation = 40 % suivants ; la période verrouillée n'est PAS lue",
+  "train_frac": 0.6,
+  "purge_bars": "max_hold_bars + 2 de chaque côté de la coupure (les labels regardent jusqu'à max_hold_bars dans le futur)",
+  "labels": "résultat net du trade standard (stop 1,5 ATR plancher, cible 2R, max_hold, week-end, coûts, levier) en R nominal ; identique au moteur (testé)",
+  "score": "quantbot.signals.scoring.direction_scores (même fonction à l'entraînement et à l'exécution)",
+  "model": "régression isotone croissante par côté (long sur score haussier, short sur score baissier), un seul paramètre libre : la monotonie",
+  "zone_min_score": 0.35,
+  "min_support": 300,
+  "margin_R": 0.1,
+  "evaluation": "CalibratedSignalEngine sur la partie validation (avec 100 barres de ré-échauffement avant), portes identiques, un essai par instrument",
+  "diagnostics": "table score->espérance train vs validation ; placebo = mêmes courbes sur labels permutés par blocs (part de barres au-dessus de la marge par pur hasard)"
+ },
+ "decision_rule": {
+  "si_aucune_cellule_PASS_ni_WATCH": "conclure « pas d'edge dans ces détecteurs, quel que soit le timeframe » ; ne PAS ajuster",
+  "si_PASS_ou_WATCH": "confirmer sur la période verrouillée UNE fois, puis comparer à un buy & hold et à une version long-seulement avant toute conclusion (risque de bêta)"
+ },
+ "timeframes": {
+  "M15": {
+   "rule": null,
+   "max_hold_bars": 100
+  },
+  "H1": {
+   "rule": "1h",
+   "max_hold_bars": 30
+  },
+  "H4": {
+   "rule": "4h",
+   "max_hold_bars": 10
+  }
+ },
+ "context": {
+  "rules": [
+   "4h",
+   "1D"
+  ],
+  "fast": 20,
+  "slow": 50,
+  "band": 0.25
+ },
+ "budget_note": "Budget relevé de 30 à 60 AVANT ces essais, par décision explicite d'élargir la recherche multi-timeframe ; le DSR compte de toute façon TOUS les essais, donc relever le budget ne rend aucun résultat plus facile à obtenir."
+}

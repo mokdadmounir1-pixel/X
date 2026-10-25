@@ -98,3 +98,47 @@ class CalibrationModel:
     def load(cls, path) -> "CalibrationModel":
         with open(path, encoding="utf-8") as fh:
             return cls.from_dict(json.load(fh))
+
+
+@dataclass
+class StratifiedModel:
+    """Une courbe isotone par (côté, état du contexte multi-timeframe) : 6 courbes pour 3 états."""
+
+    curves: dict = field(default_factory=dict)  # "long|1" -> Curve
+    margin: float = 0.10
+    meta: dict = field(default_factory=dict)
+
+    def decide(self, bull: float, bear: float, state: int):
+        ev_l = self.curves.get(f"long|{state}", Curve()).predict(bull)
+        ev_s = self.curves.get(f"short|{state}", Curve()).predict(bear)
+        cands = [(d, ev) for d, ev in (("bullish", ev_l), ("bearish", ev_s)) if ev is not None and ev > self.margin]
+        return max(cands, key=lambda c: c[1]) if cands else None
+
+    def to_dict(self) -> dict:
+        return {"curves": {k: c.__dict__ for k, c in sorted(self.curves.items())}, "margin": self.margin, "meta": self.meta}
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "StratifiedModel":
+        return cls({k: Curve(**v) for k, v in d["curves"].items()}, d["margin"], d.get("meta", {}))
+
+    def hash(self) -> str:
+        return canonical_hash({k: v for k, v in self.to_dict().items() if k != "meta"})
+
+    def save(self, path) -> None:
+        with open(path, "w", encoding="utf-8") as fh:
+            json.dump(self.to_dict(), fh, indent=1)
+
+    @classmethod
+    def load(cls, path) -> "StratifiedModel":
+        with open(path, encoding="utf-8") as fh:
+            return cls.from_dict(json.load(fh))
+
+
+def fit_stratified(bull, bear, long_r, short_r, state, train_mask, zone: float, support: int, margin: float,
+                   meta: dict | None = None) -> StratifiedModel:
+    model = StratifiedModel(margin=margin, meta=meta or {})
+    for st in (-1, 0, 1):
+        m = train_mask & (np.asarray(state) == st)
+        model.curves[f"long|{st}"] = fit_curve(np.asarray(bull)[m], np.asarray(long_r)[m], zone, support)
+        model.curves[f"short|{st}"] = fit_curve(np.asarray(bear)[m], np.asarray(short_r)[m], zone, support)
+    return model
