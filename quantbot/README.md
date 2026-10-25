@@ -28,7 +28,7 @@ le produit ne génère aucune donnée de remplacement (le CLI exige une source e
 - `inst_strategies_v1` (13 essais) : tous FAIL. Meilleur : USTEC orb +0,075 R, PF 1,31, échoue à l'espérance, au test nul et au DSR.
 - `battery_backward_v1` (6 essais, 13 ans d'H1) : tous REJETÉS (p = 0,93). `backward_v1` (13 stratégies figées sur 10 mois antérieurs) : 13 FAIL ; USTEC orb le plus proche (+0,166 R, p = 0,026, même signe qu'en recherche) : à surveiller, non confirmé.
 - `smc_v1b` (SMC OB+FVG H1, cible structurelle >= 3 R, 3 essais ; la 1re exécution smc_v1 est invalide : bug du FVG baissier) : 3 FAIL (EURUSD -0,114 R, USTEC -0,075 R, or +0,098 R dont les achats +0,22 R = bêta de l'or). Les réglages stricts donnent 4 à 8 trades en 2,5 ans : non testables.
-- Budget d'essais déclaré : 80 ; consommés : 73.
+- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 73.
 Les rapports sont dans `reports/` (JSON + logs) et l'interface locale les affiche.
 
 ## Arborescence
