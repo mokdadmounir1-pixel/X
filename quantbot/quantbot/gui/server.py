@@ -34,11 +34,20 @@ def free_port(preferred: int = DEFAULT_PORT) -> int:
     raise OSError("aucun port local libre")
 
 
+def write_port_file(root: Path, port: int) -> None:
+    """Le raccourci du Bureau lit ce fichier pour ouvrir le BON port (si 3214 était pris, quantbot en choisit un autre)."""
+    try:
+        d = Path(root) / "runtime"; d.mkdir(parents=True, exist_ok=True); (d / "terminal.port").write_text(str(port), encoding="utf-8")
+    except OSError:
+        pass
+
+
 def serve(port: int | None = None, root: Path = ROOT) -> None:
     wanted = configured_port(port)
     port = free_port(wanted)
     if port != wanted:
         print(f"Port {wanted} déjà utilisé par un autre programme : quantbot prend {port}.")
+    write_port_file(root, port)
     print(f"quantbot terminal : http://{HOST}:{port}/  (Ctrl+C pour arrêter)")
     uvicorn.run(create_app(root), host=HOST, port=port, log_level="warning")
 
@@ -46,6 +55,7 @@ def serve(port: int | None = None, root: Path = ROOT) -> None:
 def start_background(port: int | None = None, root: Path = ROOT) -> tuple[int, uvicorn.Server]:
     """Démarre le serveur dans un thread (fenêtre de bureau) et attend qu'il réponde."""
     port = free_port(configured_port(port))
+    write_port_file(root, port)
     server = uvicorn.Server(uvicorn.Config(create_app(root), host=HOST, port=port, log_level="warning"))
     threading.Thread(target=server.run, daemon=True).start()
     for _ in range(100):

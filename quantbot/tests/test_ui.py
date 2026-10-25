@@ -147,3 +147,19 @@ def test_port_is_dedicated_configurable_and_never_shared(monkeypatch):
     with socket.socket() as s:                                   # un autre programme occupe déjà le port voulu : on ne s'y superpose pas
         s.bind(("127.0.0.1", 0)); busy = s.getsockname()[1]; s.listen()
         assert server.free_port(busy) != busy
+
+
+def test_terminal_publishes_its_actual_port_for_the_desktop_shortcut(tmp_path):
+    from quantbot.gui import server
+    server.write_port_file(tmp_path, 3215)
+    assert (tmp_path / "runtime" / "terminal.port").read_text(encoding="utf-8") == "3215"
+
+
+def test_shortcut_scripts_exist_and_are_launch_only():
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    launch = (root / "scripts" / "launch_terminal.ps1").read_text(encoding="utf-8")
+    inst = (root / "scripts" / "install_shortcut.ps1").read_text(encoding="utf-8")
+    assert "quantbot\", \"ui\"" in launch and "order" not in launch.lower() and "paper_all" not in launch
+    assert "Quantbot - Terminal.lnk" in inst and "fennec_diamond.ico" in inst and "GetFolderPath(\"Desktop\")" in inst
+    assert (root / "creer_raccourci.bat").exists()
