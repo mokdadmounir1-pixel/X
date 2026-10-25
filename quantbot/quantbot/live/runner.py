@@ -98,6 +98,8 @@ class LiveRunner:
         self._pos_snap = None if pos is None else {"side": pos.side, "entry": float(pos.entry), "stop": float(pos.stop),
                                                     "tp": float(pos.take_profit), "entry_time": str(pos.entry_time), "size": float(pos.size)}
         self.state.set("position", self._pos_snap)
+        dec = eng.last_decision
+        self.state.set("risk", None if dec is None else {"halt": dec.halt_new, "multiplier": dec.risk_multiplier, "reasons": dec.reasons, "daily_pnl_pct": dec.daily_pnl_pct, "drawdown_pct": dec.drawdown_pct, "vol_ratio": dec.vol_ratio, "kelly_f": dec.kelly_f})
         pend = eng.pending
         self.state.set("pending", None if pend is None else {"side": pend.side, "entry": float(pend.entry), "stop": float(pend.stop),
                                                               "tp": float(pend.take_profit)})

@@ -20,6 +20,7 @@ from ..execution.broker import Broker, Trade, make_broker
 from ..logging_utils import get_logger
 from ..risk.ftmo import FtmoGuard, GuardStatus
 from ..risk.calendar import in_weekend_blackout
+from ..risk.active import ActiveRiskGuard
 from ..risk.manager import RiskManager, TradePlan
 from ..signals.engine import SignalEngine
 
@@ -62,6 +63,8 @@ class TradingEngine:
         self.signals = signal_engine or SignalEngine(s)
         self.risk = RiskManager(s.risk)
         self.guard = FtmoGuard(s.ftmo) if s.ftmo.enabled else None
+        self.active = ActiveRiskGuard(s.active_risk, s.risk.risk_per_trade) if s.active_risk.enabled else None
+        self.last_decision = None
         self.on_close = on_close
         self.pending: Optional[TradePlan] = None
         self.last_status: Optional[GuardStatus] = None
@@ -80,6 +83,8 @@ class TradingEngine:
 
     def _closed(self, trade: Trade, ts: Any) -> None:
         self.risk.register_close(ts, trade.pnl, self.broker.equity())
+        if self.active is not None:
+            self.active.on_trade_close(trade.r_nominal, ts)
         if self.on_close is not None:
             self.on_close(trade, ts)
 
@@ -157,8 +162,19 @@ class TradingEngine:
             if status.halt_new:
                 self.pending = None
 
+        decision = None
+        if self.active is not None:   # contrôle actif : perte journalière (latent inclus), drawdown, dérive, volatilité
+            decision = self.active.evaluate(ts, self.broker.equity(c), (h, l, c), self.broker.position is not None)
+            if decision.flatten and self.broker.position is not None:
+                closed = self._safe_close(c, ts, "active_risk_flatten")
+                if closed is not None:
+                    self._closed(closed, ts)
+            self.last_decision = decision
+            if decision.halt_new:
+                self.pending = None
+                self._reject("active_risk_halt")
         in_session = s.risk.session_utc_start <= ts.hour < s.risk.session_utc_end
-        halted = weekend or not in_session or (status is not None and status.halt_new)
+        halted = weekend or not in_session or (status is not None and status.halt_new) or (decision is not None and decision.halt_new)
         in_warmup = (len(df) - self._seg_start) <= bt.warmup_bars
         if self.broker.position is None and self.pending is None and not halted and not in_warmup:
             ok, why = self.risk.can_trade(ts, self.broker.equity(c))
@@ -171,6 +187,9 @@ class TradingEngine:
                 if signal is not None:
                     self.n_signals += 1
                     cap = self.guard.allowed_risk(self.broker.equity(c), status) if self.guard else None
+                    if decision is not None and decision.risk_multiplier < 1.0:
+                        mcap = self.broker.equity(c) * s.risk.risk_per_trade * decision.risk_multiplier
+                        cap = mcap if cap is None else min(cap, mcap)
                     ex = s.execution
                     cost_frac = ex.spread + 2.0 * (ex.fee_rate + ex.slippage)
                     self.pending = self.risk.build_plan(signal, self.broker.equity(c), max_risk=cap, cost_frac=cost_frac)

@@ -24,6 +24,8 @@ def spec_hash(settings: Settings, gate_cfg: GateCfg = GateCfg(), extra: Any = No
     `extra` (ex. hachage d'un modèle calibré) entre dans l'identité ; absent, le hachage reste celui des specs v0/v1.
     """
     d = {k: v for k, v in settings.to_dict().items() if k not in _SPEC_EXCLUDE}
+    if not d.get("active_risk", {}).get("enabled", False):
+        d.pop("active_risk", None)      # désactivé (défaut) : l'identité des essais passés reste inchangée
     body = {"spec": d, "gates": gate_cfg.to_dict()}
     if extra is not None:
         body["extra"] = extra

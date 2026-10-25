@@ -109,6 +109,30 @@ class SignalConfig(_Section):
 
 
 @dataclass
+class ActiveRiskConfig(_Section):
+    """Contrôle ACTIF du risque (désactivé par défaut : les essais passés n'en dépendent pas). Voir risk/active.py."""
+    enabled: bool = False
+    daily_loss_halt: float = 0.015       # perte du jour (réalisée + latente) en fraction de l'equity de début de jour => plus aucune entrée aujourd'hui
+    daily_loss_flatten: bool = True      # ... et clôture de la position ouverte
+    dd_throttle_start: float = 0.02      # drawdown depuis le plus haut : au-delà, le risque par trade diminue linéairement
+    max_drawdown_halt: float = 0.06      # drawdown à partir duquel le bot s'ARRÊTE (plus aucune entrée) pendant halt_cooldown_days
+    halt_cooldown_days: int = 3
+    drift_window: int = 20               # nombre de derniers trades pour juger la dérive
+    drift_min_mean_r: float = -0.30      # espérance glissante < seuil => arrêt (dérive de performance)
+    max_consecutive_losses: int = 6
+    vol_ratio_halt: float = 3.0          # ATR% courant / médiane des 500 dernières barres >= seuil => arrêt tant que la volatilité reste anormale
+    kelly_fraction: float = 0.25         # fraction de Kelly (borne inférieure de Wilson) ; ne dépasse JAMAIS le risque de base
+    kelly_min_trades: int = 30
+    min_risk_multiplier: float = 0.25
+
+    def validate(self) -> None:
+        _require(0 < self.daily_loss_halt <= 0.2 and 0 < self.max_drawdown_halt <= 0.5, "daily_loss_halt/max_drawdown_halt hors bornes")
+        _require(0 <= self.dd_throttle_start < self.max_drawdown_halt, "dd_throttle_start < max_drawdown_halt")
+        _require(self.halt_cooldown_days >= 0 and self.drift_window >= 5 and self.max_consecutive_losses >= 2, "paramètres de dérive invalides")
+        _require(0 < self.kelly_fraction <= 1 and 0 < self.min_risk_multiplier <= 1 and self.vol_ratio_halt > 1, "kelly_fraction/min_risk_multiplier/vol_ratio_halt invalides")
+
+
+@dataclass
 class RiskConfig(_Section):
     risk_per_trade: float = 0.01
     atr_stop_mult: float = 1.5
@@ -264,6 +288,7 @@ _SECTIONS = {
     "detection": DetectionConfig,
     "signals": SignalConfig,
     "risk": RiskConfig,
+    "active_risk": ActiveRiskConfig,
     "backtest": BacktestConfig,
     "execution": ExecutionConfig,
     "ftmo": FtmoConfig,
@@ -279,6 +304,7 @@ class Settings:
     detection: DetectionConfig = field(default_factory=DetectionConfig)
     signals: SignalConfig = field(default_factory=SignalConfig)
     risk: RiskConfig = field(default_factory=RiskConfig)
+    active_risk: ActiveRiskConfig = field(default_factory=ActiveRiskConfig)
     backtest: BacktestConfig = field(default_factory=BacktestConfig)
     execution: ExecutionConfig = field(default_factory=ExecutionConfig)
     ftmo: FtmoConfig = field(default_factory=FtmoConfig)
