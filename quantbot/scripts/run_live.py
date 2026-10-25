@@ -62,6 +62,9 @@ def arguments(argv=None):
     action.add_argument("--status",action="store_true")
     action.add_argument("--kill",action="store_true")
     action.add_argument("--clear-kill",action="store_true")
+    action.add_argument("--resolve-intent",metavar="ID",help="Résolution HUMAINE d'une intention PENDING/SENT/UNKNOWN après vérification dans le terminal")
+    p.add_argument("--outcome",choices=["NOT_EXECUTED","EXECUTED"],help="Avec --resolve-intent : ce que le terminal montre réellement")
+    p.add_argument("--ticket",type=int,help="Avec --outcome EXECUTED : ticket de la position constatée dans le terminal")
     args = p.parse_args(argv)
     if not math.isfinite(args.poll) or not .1<=args.poll<=3600:
         p.error("--poll doit être fini, entre 0,1 et 3600 secondes")
@@ -77,6 +80,14 @@ def arguments(argv=None):
         p.error("État, KILL, spec et approbations doivent être des fichiers distincts")
     if args.state_path.with_name(args.state_path.name+".runner.lock") in (args.kill_path,args.spec_path,args.approvals_path):
         p.error("Le fichier de verrou ne peut pas être utilisé comme KILL, spec ou approbations")
+    if args.resolve_intent and not args.outcome:
+        p.error("--resolve-intent exige --outcome NOT_EXECUTED|EXECUTED")
+    if args.outcome and not args.resolve_intent:
+        p.error("--outcome n'a de sens qu'avec --resolve-intent")
+    if args.outcome == "EXECUTED" and not args.ticket:
+        p.error("--outcome EXECUTED exige --ticket (position constatée dans le terminal)")
+    if args.ticket and args.outcome != "EXECUTED":
+        p.error("--ticket n'est valable qu'avec --outcome EXECUTED")
     return args
 
 
@@ -182,6 +193,36 @@ def clear_kill(args):
         # Suppression du fichier par action humaine explicite, pas par le bot.
         args.kill_path.unlink(missing_ok=True)
     emit(dict(action="CLEAR_KILL",reason="Levée humaine explicite ; approbations inchangées",status=read_status(args.state_path,args.kill_path)))
+    return 0
+
+
+def resolve_intent(args):
+    """Clôt à la main une intention non rapprochée. Ne touche NI au drapeau d'arrêt NI au fichier KILL NI aux approbations."""
+    if not args.state_path.is_file():
+        raise ValueError("Aucune base d'état : rien à résoudre")
+    if not sys.stdin.isatty():
+        raise PermissionError("Saisie humaine interactive requise ; aucune confirmation par argument ou tube")
+    with state_lock(args.state_path):
+        StateStore,_KillSwitch=load_project(args.root)
+        store=StateStore(args.state_path)
+        try:
+            intent=store.intent(args.resolve_intent)
+            if intent is None:
+                raise ValueError("Intention introuvable")
+            if intent["status"] not in ("PENDING","SENT","UNKNOWN"):
+                raise PermissionError("Intention déjà résolue ou jamais envoyée : statut "+str(intent["status"]))
+            emit(dict(action="RESOLVE_INTENT_APERCU",intent={k:intent[k] for k in ("id","kind","side","status","detail","ticket","strategy")},
+                      outcome=args.outcome,ticket=args.ticket))
+            print("Vérifiez DANS le terminal (positions ET historique des ordres/deals) que cette intention "
+                  +("n'a produit AUCUNE position ni deal" if args.outcome=="NOT_EXECUTED" else "correspond à la position "+str(args.ticket))
+                  +". Cette commande ne lève pas le coupe-circuit. Taper exactement JE_VERIFIE_LE_TERMINAL :",flush=True)
+            if input().strip()!="JE_VERIFIE_LE_TERMINAL":
+                raise PermissionError("Confirmation incorrecte : intention conservée")
+            store.mark(intent["id"],"RESOLVED_"+args.outcome,"résolu par un humain après vérification dans le terminal",args.ticket)
+            store.log("WARNING","intent_resolved_by_human",intent["id"]+" -> "+args.outcome)
+        finally:
+            store.close()
+    emit(dict(action="RESOLVE_INTENT",intent=args.resolve_intent,outcome=args.outcome,status=read_status(args.state_path,args.kill_path)))
     return 0
 
 
@@ -314,6 +355,8 @@ def main(argv=None):
             emit(dict(action="KILL",path=str(args.kill_path),reason="Fichier d'arrêt présent ; aucune clôture forcée"));return 0
         if args.clear_kill:
             return clear_kill(args)
+        if args.resolve_intent:
+            return resolve_intent(args)
         return run(args)
     except KeyboardInterrupt:
         emit(dict(event="ARRET",reason="Ctrl+C"));return 130

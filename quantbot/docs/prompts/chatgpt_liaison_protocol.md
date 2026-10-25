@@ -37,9 +37,12 @@ scénario, preuve) dans `RESULTAT.md`. Claude corrige. Tes scripts vont dans `sc
 ## File de tâches (une seule à la fois, sur « suivant » de l'utilisateur)
 Voir `docs/prompts/chatgpt_connect_live_bot.md` pour le détail de C1 à C5. C1 est faite. Ensuite, et seulement après « suivant » :
 - **C2** relecture statique du dépôt réel (avec `--project`), reproduction des défauts sur le vrai module.
-- **C3** mesures en **séance ouverte** : fuseau, barre courante, fraîcheur des ticks, spread réel, séances.
+- **C3** mesures en **séance ouverte** (lancer d'abord `scripts/c3_quote_gate.py <sortie.json>` : `eligible_for_c3` doit être vrai) :
+  fuseau (recoupé sur plusieurs ticks), barre courante, fraîcheur des ticks, spread réel, séances, ET **heure de la première barre de
+  la semaine et de la dernière barre du vendredi pour XAUUSD en horloge du courtier**, à comparer à `data/real/PROVENANCE.json`
+  (les exports de recherche viennent-ils du même serveur que MetaQuotes-Demo ?). Une observation figée reste « non concluante ».
 - **C4** boucle OBSERVATION sur le vrai flux de barres (`PaperBroker`, aucun ordre), journal et coupe-circuit.
-- **C5** préparation DEMO_ACTIF : **seulement** si l'utilisateur donne l'autorisation écrite de la règle 1.
+- **C5** (prérequis : `--resolve-intent` relu, voir `scripts/run_live.py`) préparation DEMO_ACTIF : **seulement** si l'utilisateur donne l'autorisation écrite de la règle 1.
 - **C6** (plus tard) exports MT5 des instruments demandés (or M1/M3, historique long H1/H4/D1, crypto, swaps réels) avec empreintes.
 Si une tâche te semble contredire une règle ci-dessus, **la règle gagne** et tu le dis.
 

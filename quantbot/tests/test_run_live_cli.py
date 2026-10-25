@@ -203,3 +203,54 @@ def test_unexpected_crash_sets_persistent_kill(tmp_path,monkeypatch):
     monkeypatch.setattr(LiveRunner,'step',step)
     assert cli.main(args(tmp_path,'--max-steps','4'))==1
     s=StateStore(tmp_path/'state.db');assert s.get('kill');s.close()
+
+
+# --- résolution humaine d'une intention non rapprochée (prérequis C5) ---------------------------------------------------
+class _TTY(io.StringIO):
+    def isatty(self):return True
+
+
+def _unknown(tmp):
+    s=StateStore(tmp/'state.db');iid=s.new_intent('OPEN','long',{},'vwap');s.mark(iid,'UNKNOWN','timeout');s.set('kill','ambigu');s.close()
+    return iid
+
+
+def test_resolve_requires_outcome_and_ticket_when_executed(tmp_path):
+    with pytest.raises(SystemExit):cli.arguments(args(tmp_path,'--resolve-intent','x'))
+    with pytest.raises(SystemExit):cli.arguments(args(tmp_path,'--resolve-intent','x','--outcome','EXECUTED'))
+    with pytest.raises(SystemExit):cli.arguments(args(tmp_path,'--resolve-intent','x','--outcome','NOT_EXECUTED','--ticket','5'))
+
+
+def test_resolve_needs_interactive_exact_confirmation(tmp_path,monkeypatch):
+    iid=_unknown(tmp_path)
+    monkeypatch.setattr(cli.sys,'stdin',io.StringIO('JE_VERIFIE_LE_TERMINAL\n'))      # pas un TTY
+    assert cli.main(args(tmp_path,'--resolve-intent',iid,'--outcome','NOT_EXECUTED'))==1
+    monkeypatch.setattr(cli.sys,'stdin',_TTY('oui\n'))
+    assert cli.main(args(tmp_path,'--resolve-intent',iid,'--outcome','NOT_EXECUTED'))==1
+    s=StateStore(tmp_path/'state.db');assert s.intent(iid)['status']=='UNKNOWN';s.close()
+
+
+def test_resolve_not_executed_closes_intent_but_keeps_kill_flag(tmp_path,monkeypatch):
+    iid=_unknown(tmp_path);(tmp_path/'KILL').touch()
+    monkeypatch.setattr(cli.sys,'stdin',_TTY('JE_VERIFIE_LE_TERMINAL\n'))
+    assert cli.main(args(tmp_path,'--resolve-intent',iid,'--outcome','NOT_EXECUTED'))==0
+    s=StateStore(tmp_path/'state.db')
+    assert s.intent(iid)['status']=='RESOLVED_NOT_EXECUTED' and not s.open_intents()
+    assert s.get('kill')=='ambigu' and (tmp_path/'KILL').exists()                    # levée du coupe-circuit = autre action humaine
+    s.close()
+
+
+def test_resolve_executed_records_ticket_and_refuses_double_resolution(tmp_path,monkeypatch):
+    iid=_unknown(tmp_path)
+    monkeypatch.setattr(cli.sys,'stdin',_TTY('JE_VERIFIE_LE_TERMINAL\n'))
+    assert cli.main(args(tmp_path,'--resolve-intent',iid,'--outcome','EXECUTED','--ticket','4242'))==0
+    s=StateStore(tmp_path/'state.db');assert 4242 in s.known_tickets();s.close()
+    monkeypatch.setattr(cli.sys,'stdin',_TTY('JE_VERIFIE_LE_TERMINAL\n'))
+    assert cli.main(args(tmp_path,'--resolve-intent',iid,'--outcome','NOT_EXECUTED'))==1
+
+
+def test_resolve_unknown_id_or_missing_db_fails(tmp_path,monkeypatch):
+    monkeypatch.setattr(cli.sys,'stdin',_TTY('JE_VERIFIE_LE_TERMINAL\n'))
+    assert cli.main(args(tmp_path,'--resolve-intent','nope','--outcome','NOT_EXECUTED'))==1
+    _unknown(tmp_path)
+    assert cli.main(args(tmp_path,'--resolve-intent','nope','--outcome','NOT_EXECUTED'))==1
