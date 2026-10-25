@@ -12,9 +12,9 @@ from pathlib import Path
 
 from .backtest.engine import Backtester
 from .config import Settings, load_settings, save_settings
-from .data.loaders import fetch_ccxt, generate_synthetic, load_csv
+from .data.loaders import fetch_ccxt, load_csv
 from .data.mt5 import find_holes, load_mt5_csv, weekly_open_check
-from .exceptions import PatternBotError
+from .exceptions import ConfigError, PatternBotError
 from .logging_utils import setup_logging
 from .memory.store import ExperimentStore
 from .signals.engine import SignalEngine
@@ -27,7 +27,7 @@ def _load_data(args):
         return load_csv(args.csv, repair=True)
     if args.exchange:
         return fetch_ccxt(args.exchange, args.symbol or "BTC/USDT")
-    return generate_synthetic(n=args.bars, seed=args.seed)
+    raise ConfigError("Aucune source de données : --mt5-csv, --csv ou --exchange est obligatoire (aucune donnée de remplacement n'est générée)")
 
 
 def _add_data_args(p: argparse.ArgumentParser) -> None:
@@ -36,8 +36,6 @@ def _add_data_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--csv")
     p.add_argument("--exchange", help="id ccxt, ex: binance")
     p.add_argument("--symbol")
-    p.add_argument("--bars", type=int, default=1500, help="taille des données synthétiques")
-    p.add_argument("--seed", type=int, default=7)
 
 
 def main(argv=None) -> int:

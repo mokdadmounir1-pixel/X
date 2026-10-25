@@ -6,7 +6,7 @@ import pytest
 from quantbot.ai.adapters import LLMAdapter, extract_json
 from quantbot.ai.orchestrator import AIOrchestrator
 from quantbot.config import Settings
-from quantbot.data.loaders import generate_synthetic
+from tests.synthetic import generate_synthetic
 from quantbot.exceptions import AIAdapterError, MemoryStoreError
 from quantbot.execution.broker import Trade
 from quantbot.improvement.diagnosis import (Failure, Hypothesis, analyze_failures, propose_changes,

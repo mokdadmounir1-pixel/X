@@ -4,9 +4,9 @@ import pandas as pd
 import pytest
 
 from quantbot.config import Settings
-from quantbot.data.loaders import generate_synthetic
+from tests.synthetic import generate_synthetic
 from quantbot.exceptions import ConfigError, ExecutionError, LiveTradingDisabledError
-from quantbot.execution.broker import MT5Broker, make_broker
+from quantbot.execution.broker import make_broker
 from quantbot.memory.store import ExperimentStore
 from quantbot.core.sim import TradingEngine
 from quantbot.risk.ftmo import FtmoGuard
@@ -100,103 +100,6 @@ def test_ftmo_config_validation():
 
 
 # --- MT5 (faux terminal) ------------------------------------------------------------
-class FakeMT5:
-    TRADE_ACTION_DEAL, ORDER_TYPE_BUY, ORDER_TYPE_SELL = 1, 0, 1
-    ORDER_TIME_GTC, ORDER_FILLING_IOC, TRADE_RETCODE_DONE = 0, 1, 10009
-
-    def __init__(self, login=1234, currency="USD", profit_ccy="USD", retcode=10009, volume_min=0.01):
-        self.acct = NS(login=login, currency=currency, server="FTMO-Demo", balance=100_000.0, equity=100_000.0)
-        self.info = NS(currency_profit=profit_ccy, trade_contract_size=100_000, volume_step=0.01,
-                       volume_min=volume_min, volume_max=50.0)
-        self.retcode, self.sent, self.open_positions, self.deals = retcode, [], [], []
-
-    def initialize(self): return True
-    def last_error(self): return (1, "x")
-    def account_info(self): return self.acct
-    def symbol_info(self, s): return self.info
-    def symbol_select(self, s, e): return True
-    def symbol_info_tick(self, s): return NS(ask=1.1002, bid=1.1000)
-    def positions_get(self, symbol=None): return list(self.open_positions)
-    def history_deals_get(self, position=None): return self.deals
-
-    def order_send(self, req):
-        self.sent.append(req)
-        if self.retcode == self.TRADE_RETCODE_DONE and "position" not in req:
-            self.open_positions = [NS(ticket=77, magic=req["magic"])]
-        elif "position" in req:
-            self.open_positions = []
-            self.deals = [NS(profit=25.0, commission=-3.5, swap=0.0, fee=0.0, price=1.101)]
-        return NS(retcode=self.retcode, comment="ok", price=req["price"])
-
-
-def live_cfg(**kw):
-    s = Settings.from_dict({"execution": {"mode": "live", "allow_live": True},
-                            "ftmo": {"enabled": True, **kw}})
-    return s
-
-
-PLAN = TradePlan("long", 1.1, 1.095, 1.11, 150_000, 750, 2, 0.8, ["gartley"])
-
-
-@pytest.fixture
-def unlocked(monkeypatch):
-    monkeypatch.setenv("QUANTBOT_ALLOW_LIVE", "1")
-
-
-def test_mt5_broker_open_sync_close(unlocked):
-    s, mt5 = live_cfg(), FakeMT5()
-    b = make_broker(100_000, s.execution, ftmo=s.ftmo, mt5=mt5)
-    assert isinstance(b, MT5Broker) and b.manages_exits
-    pos = b.open_position(PLAN, 1.1, pd.Timestamp("2024-03-05"))
-    req = mt5.sent[0]
-    assert req["volume"] == 1.5 and req["sl"] == 1.095 and req["tp"] == 1.11 and req["type"] == mt5.ORDER_TYPE_BUY
-    assert pos.size == pytest.approx(150_000)
-    assert b.sync(pd.Timestamp("2024-03-05 01:00")) is None  # toujours ouverte
-    trade = b.close_position(1.1, pd.Timestamp("2024-03-05 02:00"), "ftmo_weekend")
-    assert trade.pnl == pytest.approx(21.5) and b.position is None  # profit + commission
-    assert b.balance() == 100_000
-
-
-def test_mt5_server_side_exit_detected(unlocked):
-    s, mt5 = live_cfg(), FakeMT5()
-    b = make_broker(100_000, s.execution, ftmo=s.ftmo, mt5=mt5)
-    b.open_position(PLAN, 1.1, pd.Timestamp("2024-03-05"))
-    mt5.open_positions = []  # SL/TP déclenché par le serveur
-    mt5.deals = [NS(profit=-750.0, commission=-3.5, swap=-0.1, fee=0.0, price=1.095)]
-    t = b.sync(pd.Timestamp("2024-03-05 03:00"))
-    assert t.reason == "server_exit" and t.pnl == pytest.approx(-753.6) and b.position is None
-
-
-@pytest.mark.parametrize("kw,err", [
-    (dict(login=999), "différent"), (dict(profit_ccy="JPY"), "conversion"),
-])
-def test_mt5_account_safety_checks(unlocked, kw, err):
-    s = live_cfg(expected_login=1234)
-    with pytest.raises(ExecutionError, match=err):
-        make_broker(1, s.execution, ftmo=s.ftmo, mt5=FakeMT5(**kw))
-
-
-def test_mt5_rejections_are_errors_not_silent(unlocked):
-    s = live_cfg()
-    b = make_broker(1, s.execution, ftmo=s.ftmo, mt5=FakeMT5(retcode=10006))
-    with pytest.raises(ExecutionError, match="refusé"):
-        b.open_position(PLAN, 1.1, pd.Timestamp("2024-03-05"))
-    tiny = TradePlan("long", 1.1, 1.095, 1.11, 100, 1, 2, 0.8, [])
-    with pytest.raises(ExecutionError, match="minimum"):
-        make_broker(1, s.execution, ftmo=s.ftmo, mt5=FakeMT5()).open_position(tiny, 1.1, pd.Timestamp("2024-03-05"))
-
-
-def test_live_refused_without_env_or_ftmo(monkeypatch):
-    monkeypatch.delenv("QUANTBOT_ALLOW_LIVE", raising=False)
-    s = live_cfg()
-    with pytest.raises(LiveTradingDisabledError):
-        make_broker(1, s.execution, ftmo=s.ftmo, mt5=FakeMT5())
-    monkeypatch.setenv("QUANTBOT_ALLOW_LIVE", "1")
-    no_ftmo = Settings.from_dict({"execution": {"mode": "live", "allow_live": True}})
-    with pytest.raises(LiveTradingDisabledError):
-        make_broker(1, no_ftmo.execution, ftmo=no_ftmo.ftmo, mt5=FakeMT5())
-
-
 # --- moteur + garde-fou ---------------------------------------------------------------
 def ftmo_settings(**kw):
     return Settings.from_dict({"ftmo": {"enabled": True, "flat_before_weekend": False, **kw}})
@@ -248,10 +151,11 @@ def test_engine_flat_before_weekend():
         assert not (crossed and t.reason == "max_hold")
 
 
-def test_live_engine_needs_all_locks_and_uses_server_exits(unlocked):
-    s = live_cfg(flat_before_weekend=False)
-    eng = TradingEngine(s, mt5=FakeMT5())
-    assert eng.broker.manages_exits
+def test_make_broker_live_is_refused_and_points_to_the_live_runtime(monkeypatch):
+    monkeypatch.setenv("QUANTBOT_ALLOW_LIVE", "1")
+    s = Settings.from_dict({"execution": {"mode": "live", "allow_live": True}, "ftmo": {"enabled": True}})
+    with pytest.raises(LiveTradingDisabledError, match="quantbot.live"):
+        make_broker(1, s.execution, ftmo=s.ftmo)
 
 
 def test_store_promote_only_validated():

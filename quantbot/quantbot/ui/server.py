@@ -16,7 +16,8 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 STATIC = Path(__file__).parent / "index.html"
-SPEC_ORDER = ["baseline_v0", "baseline_v1", "v2_calibrated"]
+SPEC_ORDER = ["baseline_v0", "baseline_v1", "v2_calibrated", "mtf_v3", "inst_strategies_v1"]
+GLOB_SPECS = {"mtf_v3", "inst_strategies_v1"}  # un fichier de résultat par essai : {instrument}_{timeframe|stratégie}.json
 _cache: dict = {}
 _lock = threading.Lock()
 
@@ -38,13 +39,19 @@ def collect_state(root: Path = ROOT) -> dict:
     except Exception:  # registre altéré
         reg_ok, n_trials, locked = False, 0, 0
     specs = []
+    budget = None
     for name in SPEC_ORDER:
         spec = _read_json(root / "specs" / f"{name}.json")
         if spec is None:
             continue
+        budget = spec.get("max_trials_budget", budget)
         results = []
-        for inst in spec.get("instruments", {}):
-            r = _read_json(reports / name / f"{inst}.json")
+        if name in GLOB_SPECS:
+            keys = [(f.stem, f) for f in sorted((reports / name).glob("*.json")) if not f.stem.endswith("_model")]
+        else:
+            keys = [(inst, reports / name / f"{inst}.json") for inst in spec.get("instruments", {})]
+        for inst, path in keys:
+            r = _read_json(path)
             if r is None:
                 results.append({"instrument": inst, "status": "non exécuté"})
                 continue
@@ -61,9 +68,9 @@ def collect_state(root: Path = ROOT) -> dict:
     prov = _read_json(root / "data" / "real" / "PROVENANCE.json") or {}
     verdicts = [r.get("verdict") for s in specs for r in s["results"]]
     return {
-        "status": {"live_trading": "VERROUILLÉ (aucun ordre ne peut partir)", "edge_validated": any(v == "PASS" for v in verdicts),
-                   "mt5_broker": "écrit, testé uniquement contre un faux terminal", "registry_chain_ok": reg_ok,
-                   "trials": n_trials, "trials_budget": 30, "locked_reads": locked, "tests": "voir README"},
+        "status": {"live_trading": "AUCUN ordre n'est envoyé par cette interface (lecture seule)", "edge_validated": any(v == "PASS" for v in verdicts),
+                   "mt5_broker": "quantbot/live écrit ; jamais exécuté d'ordre sur un terminal réel (seul un diagnostic en lecture seule, C1, a été fait)",
+                   "registry_chain_ok": reg_ok, "trials": n_trials, "trials_budget": budget, "locked_reads": locked},
         "specs": specs,
         "battery": battery,
         "data": [{k: i.get(k) for k in ("symbol", "rows", "start", "end", "span_years", "sha256")} for i in prov.get("instruments", [])],

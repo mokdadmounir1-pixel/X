@@ -1,71 +1,63 @@
 # quantbot
 
 Bot de trading quantitatif **isolé** (aucun import de Nexus, de `ftmo_algo`, de `micro_scalping` ni de `fx_liquidity_bot`).
-Principe directeur : **un seul cœur de vérité**, des setups à **logique floue** (scores continus, tolérances réglables),
-une validation qui punit le nombre d'essais, et **aucun ordre réel** tant que les portes de décision humaines ne sont pas franchies.
+Principe : **un seul moteur** pour le backtest, le paper et la démo ; des setups à **logique floue** (scores continus, tolérances réglables) ;
+une validation qui punit le nombre d'essais ; **aucune donnée ni aucun résultat inventé**.
 
-## État réel (phases 0-1 du plan terminées, phase 3-4 en cours)
+## État réel (à jour)
 
-| Phase | Contenu | État |
-|---|---|---|
-| 0 | Hygiène : projet isolé, ancienne validation/boucle supprimées | fait |
-| 1 | Moteur unique, statistiques, registre d'essais, période verrouillée, portes calibrées | fait, testé |
-| 2 | Couche floue v2 : specs déclaratives, calibration score → proba, agrégation par familles | **à faire** |
-| 3 | Données réelles MT5 : horloge, trous, coûts | fait pour 3 instruments (voir `reports/`) |
-| 4 | Première recherche réelle préenregistrée (`specs/baseline_v0.json`) | en cours / voir `reports/baseline_v0/` |
-| 5 | Boucle d'amélioration : IA propose des specs, suivi en ombre, probation, retour arrière | à faire |
-| 6 | Exécution MT5 démo durcie (`order_check`, filling, rapprochement) | à faire |
-| 7 | Réel / FTMO | **décision humaine** ; jamais automatique |
+| Élément | État |
+|---|---|
+| Moteur unique, risque, garde-fou FTMO 2-Step 100k | écrit et testé (216 tests) |
+| Laboratoire de validation (DSR, test nul, Monte-Carlo, registre chaîné, tranche verrouillée) | écrit et testé |
+| Données réelles MT5 (EURUSD, XAUUSD, USTEC en M15) | exportées par l'utilisateur ; empreintes dans `data/real/PROVENANCE.json` |
+| **Edge de trading prouvé** | **AUCUN** : 45 essais préenregistrés, 0 PASS (voir `reports/`) |
+| Tranche verrouillée de 12 mois | **jamais lue** |
+| `quantbot/live/` (runtime MT5 : journal préalable, coupe-circuit, broker durci, approbations) | écrit ; **jamais exécuté d'ordre sur un terminal réel**. Seul un diagnostic en lecture seule (C1) a tourné sur un vrai terminal démo ; il a révélé des défauts, corrigés ensuite et testés uniquement sur un faux terminal de test |
+| Orchestrateur IA (`ai/`), boucle d'amélioration (`improvement/`) | écrits, testés avec de faux adaptateurs, **non branchés** au runtime, jamais appelés avec de vraies clés |
+| Crypto | **non adapté** (week-end, séances, coûts, levier à traiter avant) |
 
-`execution/broker.py::MT5Broker` existe mais **n'a été testé que contre un faux module MT5** et n'est branché sur aucune commande.
+Le faux terminal MT5 (`tests/fake_mt5_live.py`) et le générateur synthétique (`tests/synthetic.py`) n'existent **que dans `tests/`** :
+le produit ne génère aucune donnée de remplacement (le CLI exige une source explicite).
 
-## Arborescence (réelle)
+## Résultats de recherche (tous négatifs jusqu'ici)
+- `baseline_v0/v1`, `v2_calibrated`, `mtf_v3` : aucun PASS ; le positif de l'or est le bêta haussier du marché.
+- `battery_v1` : aucun survivant (Reality Check p = 0,076).
+- `inst_strategies_v1` (13 essais) : tous FAIL. Meilleur : USTEC orb +0,075 R, PF 1,31, échoue à l'espérance, au test nul et au DSR.
+- Budget d'essais déclaré : 60 ; consommés : 45.
+Les rapports sont dans `reports/` (JSON + logs) et l'interface locale les affiche.
+
+## Arborescence
 ```
 quantbot/
-  core/sim.py            MOTEUR UNIQUE (backtest = paper = démo) : on_bar, trous de données, garde-fou
-  backtest/              rejeu du moteur + métriques
-  data/                  validation OHLCV, CSV/ccxt, mt5.py (horloge courtier -> UTC, trous, coûts)
-  indicators/            EMA/RSI/ATR/pivots confirmés
-  patterns/              détecteurs flous (chandeliers, figures, harmoniques) + tolérance
-  signals/               agrégation en un signal (confiance, confluence, filtre de tendance)
-  risk/                  sizing ATR, limites journalières, garde-fou FTMO (limites internes avant les limites dures)
-  execution/             PaperBroker ; MT5Broker (triple verrou, non éprouvé en réel)
-  lab/                   stats (DSR, MinTRL, Monte-Carlo par blocs, test nul, Reality Check), registre d'essais
-                         chaîné par hachage, période verrouillée, portes, pipeline d'évaluation
-  ai/                    adaptateurs Claude / ChatGPT / Gemini (opt-in), orchestrateur à sorties JSON bornées
-  improvement/           diagnostic + liste blanche de paramètres + journal des leçons
-  memory/                SQLite (expériences, trades, leçons)
-specs/                   spécifications PRÉENREGISTRÉES (hypothèse, coûts, seuils, hachages des données)
-scripts/                 calibrate_gates.py, baseline_real.py
-data/real/               exports MT5 (CSV ignorés par git ; empreintes dans PROVENANCE.json)
+  core/        MOTEUR UNIQUE (on_bar), labels, calibration
+  data/        validation OHLCV, CSV, mt5.py (horloge courtier, trous, coûts), mtf.py
+  indicators/  patterns/  signals/  strategies/     détection floue et stratégies à événements causaux
+  risk/        sizing, limites, garde-fou FTMO, calendrier
+  execution/   interface Broker + PaperBroker (aucun envoi d'ordre)
+  live/        runtime MT5 : état (SQLite), coupe-circuit, flux de barres, HardenedMT5Broker, approbations, runner
+  lab/         statistiques, registre d'essais, tranche verrouillée, portes, pipeline
+  ai/ improvement/ memory/                          non branchés (voir ci-dessus)
+  ui/          interface locale 127.0.0.1 (lecture seule)
+specs/         spécifications PRÉENREGISTRÉES, commitées AVANT chaque exécution
+scripts/       exécution des specs, diagnostics, export MT5 en lecture seule
+docs/prompts/  prompts pour ChatGPT (export MT5, connexion au terminal réel, protocole de liaison)
 ```
 
-## Garanties et leurs limites
-- **Un moteur.** `Backtester` rejoue `TradingEngine.on_bar` ; un test vérifie qu'alimenter le moteur barre après barre
-  (avec barres répétées) donne exactement les mêmes trades. Signal à la clôture de t, exécution à l'ouverture de t+1,
-  stop prioritaire si stop et cible dans la même barre, gap au-delà du stop exécuté à l'ouverture.
-- **Pas de look-ahead** : testé en altérant le futur. Pivots confirmés par `order` barres.
-- **Trous de données** (> `backtest.max_gap_hours`) : position clôturée, ordre annulé, contexte et ré-échauffement réinitialisés.
-- **Horloge MT5** : la colonne `time` du CSV fourni (courtier − 3 h fixe) est **fausse d'1 h en hiver**. `load_mt5_csv` reconstruit
-  l'UTC depuis `time_broker_epoch` (UTC+3 en heure d'été US, UTC+2 sinon) ; contrôle : ouverture hebdo 21:00 UTC l'été / 22:00 l'hiver.
-  Les 1-2 heures autour de chaque changement d'heure restent ambiguës.
-- **Coûts** : un spread nul n'est jamais pris pour un coût nul. Le spread EURUSD de l'export est inutilisable (44-83 % de zéros) :
-  une hypothèse déclarée est utilisée. Commission et slippage ne sont pas fournis : hypothèses déclarées, à re-mesurer sur le compte cible.
-- **Statistiques** : le DSR compte tous les essais du registre (chaîné par hachage : toute altération est détectée) ;
-  lire la période verrouillée est un essai de plus, une seule fois par spec, enregistré avant exécution (même en cas de crash).
-- **Calibration des portes** (`scripts/calibrate_gates.py`) : marchés synthétiques sans edge + signal oracle, 120 séries x 5000 barres :
-  **1 faux PASS (borne haute 95 % = 3,9 %)** ; 24/24 PASS sur edge planté fort. Avec ~3000 barres (moins de trades) le taux mesuré
-  montait à 4/60 : la puissance dépend du nombre de trades. **Ce n'est pas une preuve de puissance sur marché réel.**
-
-## Logique floue (phase 2 à venir)
-Aujourd'hui : chaque détecteur renvoie un score 0..1 (rampe avec plateau : plein score sous `tolerance_percentage`, zéro au-delà de
-`deviation_threshold`), seuil `min_score`. Les contrôles de sécurité restent des rejets stricts. Ces scores ne sont **pas** des probabilités.
+## Garanties et limites
+- **Un moteur.** Signal à la clôture de t, exécution à l'ouverture de t+1, stop prioritaire, gap exécuté à l'ouverture, trous de données gérés.
+- **Pas de look-ahead** : testé en altérant le futur.
+- **Horloge MT5** : reconstruite depuis `time_broker_epoch` (UTC+2 hiver / UTC+3 été, calendrier européen). Les 1-2 h autour des changements d'heure restent ambiguës.
+- **Coûts** : un spread nul n'est jamais pris pour un coût nul ; hypothèses déclarées dans les specs, à re-mesurer sur le compte cible.
+- **Statistiques** : le DSR compte tous les essais (registre chaîné par hachage) ; lire la tranche verrouillée est un essai de plus, une fois par spec.
+- **Live** : OBSERVATION (paper sur barres réelles, aucun ordre) par défaut ; DEMO_ACTIF exige une approbation humaine liée au hachage de la spec et un coupe-circuit inactif ; le réel / FTMO est une décision humaine, jamais automatique.
+- Limites connues non mesurées : fuseau et fraîcheur des ticks en séance ouverte, remplissages réels, glissement, swaps.
 
 ## Utilisation
 ```bash
-pip install -r requirements.txt && python -m pytest -q          # tests rapides ; python -m pytest -m slow pour la calibration
+pip install -r requirements.txt && python -m pytest -q
+python -m quantbot ui                                    # interface locale (lecture seule)
 python -m quantbot audit-data --mt5-csv data/real/EURUSD_M15.csv
-python scripts/baseline_real.py specs/baseline_v0.json           # recherche (jamais la période verrouillée)
-python scripts/baseline_real.py specs/baseline_v0.json --locked  # lecture UNIQUE de la période verrouillée, une fois par spec
+python scripts/run_strategies.py specs/inst_strategies_v1.json
 ```
-IA (optionnelle) : `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`. Gemini n'est utilisé que si sa clé est présente.
+IA (optionnelle, non branchée) : `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`.

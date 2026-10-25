@@ -5,7 +5,8 @@ import pandas as pd
 import pytest
 
 from quantbot.config import Settings, load_settings, save_settings
-from quantbot.data.loaders import generate_synthetic, load_csv, resample_ohlcv
+from tests.synthetic import generate_synthetic
+from quantbot.data.loaders import load_csv, resample_ohlcv
 from quantbot.data.validation import validate_ohlcv
 from quantbot.exceptions import ConfigError, DataFetchError, DataValidationError
 from tests.helpers import make_index

@@ -4,7 +4,7 @@ import pytest
 
 from quantbot.backtest.engine import Backtester
 from quantbot.config import Settings
-from quantbot.data.loaders import generate_synthetic
+from tests.synthetic import generate_synthetic
 from quantbot.exceptions import ExecutionError, LiveTradingDisabledError
 from quantbot.execution.broker import PaperBroker, make_broker
 from quantbot.patterns.base import PatternMatch

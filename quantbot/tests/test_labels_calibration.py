@@ -7,7 +7,7 @@ from quantbot.config import Settings
 from quantbot.core.calibration import CalibrationModel, Curve, fit_curve, isotonic_fit
 from quantbot.core.labels import compute_labels
 from quantbot.core.sim import TradingEngine
-from quantbot.data.loaders import generate_synthetic
+from tests.synthetic import generate_synthetic
 from quantbot.signals.engine import Signal
 from quantbot.signals.scoring import direction_scores, floored_atr
 from quantbot.patterns.base import PatternMatch

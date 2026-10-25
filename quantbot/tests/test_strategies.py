@@ -4,7 +4,7 @@ import pytest
 
 from quantbot.config import Settings
 from quantbot.core.sim import TradingEngine
-from quantbot.data.loaders import generate_synthetic
+from tests.synthetic import generate_synthetic
 from quantbot.risk.manager import RiskManager
 from quantbot.signals.engine import Signal
 from quantbot.patterns.base import PatternMatch

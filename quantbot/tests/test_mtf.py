@@ -4,7 +4,7 @@ import pytest
 
 from quantbot.config import Settings
 from quantbot.core.calibration import Curve, StratifiedModel, fit_stratified
-from quantbot.data.loaders import generate_synthetic
+from tests.synthetic import generate_synthetic
 from quantbot.data.mtf import bias, group_keys, htf_state, resample_base
 from quantbot.signals.mtf_calibrated import MTFCalibratedSignalEngine
 

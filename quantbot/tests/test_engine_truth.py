@@ -6,7 +6,7 @@ import pytest
 from quantbot.backtest.engine import Backtester
 from quantbot.config import Settings
 from quantbot.core.sim import TradingEngine
-from quantbot.data.loaders import generate_synthetic
+from tests.synthetic import generate_synthetic
 from quantbot.lab.gates import GateCfg
 from quantbot.lab.locked import split_locked
 from quantbot.lab.pipeline import evaluate_locked, evaluate_research, spec_hash

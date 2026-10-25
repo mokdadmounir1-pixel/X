@@ -7,13 +7,13 @@ import pandas as pd
 import pytest
 
 from quantbot.config import Settings
-from quantbot.data.loaders import generate_synthetic
+from tests.synthetic import generate_synthetic
 from quantbot.ui import server
 
 
 def test_state_reflects_reports_and_never_claims_an_edge_without_pass():
     s = server.collect_state()
-    assert s["status"]["live_trading"].startswith("VERROUILLÉ")
+    assert s["status"]["live_trading"].startswith("AUCUN ordre")
     names = [sp["name"] for sp in s["specs"]]
     assert "baseline_v0" in names and "baseline_v1" in names
     verdicts = [r.get("verdict") for sp in s["specs"] for r in sp["results"]]
@@ -41,7 +41,7 @@ def test_http_server_binds_locally_and_serves_state():
         html = urllib.request.urlopen(f"http://127.0.0.1:{port}/").read().decode()
         assert "quantbot" in html and "Aucun edge" in html
         state = json.loads(urllib.request.urlopen(f"http://127.0.0.1:{port}/api/state").read())
-        assert state["status"]["live_trading"].startswith("VERROUILLÉ")
+        assert state["status"]["live_trading"].startswith("AUCUN ordre")
         err = urllib.request.urlopen(f"http://127.0.0.1:{port}/api/replay?instrument=NOPE") if False else None
         try:
             urllib.request.urlopen(f"http://127.0.0.1:{port}/api/replay?instrument=NOPE")
