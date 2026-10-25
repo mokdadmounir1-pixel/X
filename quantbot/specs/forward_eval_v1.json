@@ -1,0 +1,16 @@
+{
+ "name": "forward_eval_v1",
+ "preregistered": "2026-10-25, AVANT l'arrivée de toute donnée postérieure au gel",
+ "base_spec": "specs/inst_strategies_v1.json",
+ "freeze": "specs/forward_freeze.json",
+ "min_forward_trades": 60,
+ "hypothesis": "Les 13 stratégies FIGÉES de inst_strategies_v1 ont-elles une espérance positive sur des barres que personne n'a jamais vues (postérieures au 2026-10-24 UTC) ?",
+ "rules": [
+  "Tant qu'une combinaison a moins de 60 trades futurs, aucune performance n'est divulguée : seul le nombre de trades est affiché (le script le garantit).",
+  "À 60 trades futurs, UNE lecture par combinaison ; elle est écrite dans reports/forward_eval_v1/ et comptée comme un essai au registre. Pas de seconde lecture.",
+  "Verdict CONFIRMÉ = espérance > 0 ET facteur de profit > 1 ET p(test de signe) < 0,05 sur les trades futurs ; sinon NON CONFIRMÉ. Aucune combinaison n'est retouchée.",
+  "13 lectures possibles : lire les p-values avec cette multiplicité en tête ; un CONFIRMÉ isolé ne vaut pas approbation, la décision reste humaine.",
+  "Coûts et paramètres hérités tels quels de la spec de base ; les coûts réels (swap, commission) restent à remesurer sur le compte cible."
+ ],
+ "max_trials_budget": 80
+}
