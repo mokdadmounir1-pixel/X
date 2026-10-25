@@ -17,6 +17,7 @@ une validation qui punit le nombre d'essais ; **aucune donnée ni aucun résulta
 | Contrôle de risque actif (`risk/active.py`) | perte journalière latente, freinage par drawdown, arrêt sur dérive / volatilité, Kelly plafonné ; câblé au moteur, **désactivé par défaut** |
 | Orchestrateur IA (`ai/`), boucle d'amélioration (`improvement/`) | écrits, testés avec de faux adaptateurs, **non branchés** au runtime, jamais appelés avec de vraies clés |
 | Crypto (Coinbase) | connecteur de **données et de simulation** en lecture seule (API publique, sans clé) ; spec `crypto_paper_v1` en PAPER ; aucun ordre vers Coinbase ; **aucune validation, coûts = hypothèses** |
+| Synchronisation auto des données | `python -m quantbot ui` lance un thread (lecture seule) : Coinbase public -> `data/crypto/`, MT5 -> `data/live/` si un terminal démo est joignable ; état dans l'onglet Système (`data/sync_status.json`) ; `--no-sync` pour couper |
 | Simulation PAPER (13 stratégies sur MT5) | `scripts/paper_all.py`, trades simulés sur prix réels, jamais d'approbation lue |
 
 Le faux terminal MT5 (`tests/fake_mt5_live.py`) et le générateur synthétique (`tests/synthetic.py`) n'existent **que dans `tests/`** :
@@ -28,7 +29,9 @@ le produit ne génère aucune donnée de remplacement (le CLI exige une source e
 - `inst_strategies_v1` (13 essais) : tous FAIL. Meilleur : USTEC orb +0,075 R, PF 1,31, échoue à l'espérance, au test nul et au DSR.
 - `battery_backward_v1` (6 essais, 13 ans d'H1) : tous REJETÉS (p = 0,93). `backward_v1` (13 stratégies figées sur 10 mois antérieurs) : 13 FAIL ; USTEC orb le plus proche (+0,166 R, p = 0,026, même signe qu'en recherche) : à surveiller, non confirmé.
 - `smc_v1b` (SMC OB+FVG H1, cible structurelle >= 3 R, 3 essais ; la 1re exécution smc_v1 est invalide : bug du FVG baissier) : 3 FAIL (EURUSD -0,114 R, USTEC -0,075 R, or +0,098 R dont les achats +0,22 R = bêta de l'or). Les réglages stricts donnent 4 à 8 trades en 2,5 ans : non testables.
-- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 73.
+- `ml_v1` / `ml_v1b` (LightGBM walk-forward purgé, features fracdiff/GK/entropie/Amihud, seuil P >= 0,65, M15 à 8 barres) : 6 FAIL. AUC hors-échantillon 0,51-0,53 (signal minuscule), espérance nette ~0 : EURUSD -0,001 R, XAUUSD -0,041 R, USTEC +0,035 R (p = 0,23). `ml_v1` USTEC (-2,29 R) venait d'un défaut du simulateur (marché figé, risque quasi nul), amendé avant relance.
+- `pairs_v1` (stat-arb BTC/ETH) : écrit et préenregistré, **pas encore exécuté** (données Coinbase à récupérer ; le terminal les synchronise désormais seul).
+- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 79.
 Les rapports sont dans `reports/` (JSON + logs) et l'interface locale les affiche.
 
 ## Arborescence

@@ -43,7 +43,7 @@ def write_port_file(root: Path, port: int) -> None:
         pass
 
 
-def serve(port: int | None = None, root: Path = ROOT, open_browser: bool = False) -> None:
+def serve(port: int | None = None, root: Path = ROOT, open_browser: bool = False, autosync: bool = False) -> None:
     wanted = configured_port(port)
     port = free_port(wanted)
     if port != wanted:
@@ -52,6 +52,8 @@ def serve(port: int | None = None, root: Path = ROOT, open_browser: bool = False
     url = f"http://{HOST}:{port}/"
     print(f"quantbot terminal : {url}  (Ctrl+C pour arrêter)")
     server = uvicorn.Server(uvicorn.Config(create_app(root), host=HOST, port=port, log_level="warning"))
+    if autosync:
+        _start_autosync(root)
     if open_browser:
         def _open() -> None:
             for _ in range(100):
@@ -63,11 +65,19 @@ def serve(port: int | None = None, root: Path = ROOT, open_browser: bool = False
     server.run()
 
 
-def start_background(port: int | None = None, root: Path = ROOT) -> tuple[int, uvicorn.Server]:
+def _start_autosync(root: Path) -> None:
+    from ..data.autosync import AutoSync
+    AutoSync(root).start()
+    print("Synchronisation automatique des données : active (Coinbase public + MT5 si disponible), état dans data/sync_status.json")
+
+
+def start_background(port: int | None = None, root: Path = ROOT, autosync: bool = False) -> tuple[int, uvicorn.Server]:
     """Démarre le serveur dans un thread (fenêtre de bureau) et attend qu'il réponde."""
     port = free_port(configured_port(port))
     write_port_file(root, port)
     server = uvicorn.Server(uvicorn.Config(create_app(root), host=HOST, port=port, log_level="warning"))
+    if autosync:
+        _start_autosync(root)
     threading.Thread(target=server.run, daemon=True).start()
     for _ in range(100):
         if server.started:

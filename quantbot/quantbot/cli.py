@@ -49,6 +49,7 @@ def main(argv=None) -> int:
     p.add_argument("--db", default="quantbot.db")
     ui = sub.add_parser("ui", help="terminal local (127.0.0.1, lecture seule) : trades, attribution, marché, backtests, risque")
     ui.add_argument("--open", action="store_true", help="ouvre le navigateur sur le bon port une fois le serveur prêt")
+    ui.add_argument("--no-sync", action="store_true", help="désactive la synchronisation automatique des données (Coinbase / MT5)")
     ui.add_argument("--port", type=int, default=None, help="port local (défaut 3214, ou variable QUANTBOT_PORT)")
     appr = sub.add_parser("approve", help="approuver une version validée")
     appr.add_argument("version")
@@ -71,7 +72,7 @@ def main(argv=None) -> int:
             except ImportError as exc:     # dépendances du terminal absentes : message clair au lieu d'une trace
                 print(f"Dépendance manquante ({exc.name}). Installez-la avec : pip install -r requirements.txt", file=sys.stderr)
                 return 2
-            serve(args.port, open_browser=args.open)
+            serve(args.port, open_browser=args.open, autosync=not args.no_sync)
             return 0
         if args.cmd == "approve":
             ExperimentStore(args.db).promote(args.version)
