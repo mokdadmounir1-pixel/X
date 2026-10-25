@@ -46,7 +46,7 @@ Récupère toujours le dernier commit de la branche avant de travailler. Ensuite
   (les exports de recherche viennent-ils du même serveur que MetaQuotes-Demo ?). Une observation figée reste « non concluante ».
 - **C4** boucle OBSERVATION sur le vrai flux de barres (`PaperBroker`, aucun ordre), journal et coupe-circuit.
 - **C5** (prérequis : `--resolve-intent` relu, voir `scripts/run_live.py`) préparation DEMO_ACTIF : **seulement** si l'utilisateur donne l'autorisation écrite de la règle 1.
-- **C7** installation de l'automatisation 24 h/24 (après C3, sur « suivant ») : vérifier `scripts/setup_data.py` / `check_data.py`, lancer
+- **C7** installation de l'automatisation 24 h/24 (autorisée sans attendre C3, sur « suivant ») : vérifier `scripts/setup_data.py` / `check_data.py`, lancer
   `scripts/data_daemon.py` (extraction MT5 en LECTURE SEULE vers `data/live/`) et `scripts/research_queue.py`, puis proposer à l'utilisateur
   une tâche planifiée Windows (démarrage de session) pour `scripts/start_all.bat` : **uniquement avec son accord écrit**. Rapporter
   `data/live/DAEMON_STATUS.json`, `reports/QUEUE_STATUS.json`, `MANIFEST.jsonl` (chaîne intègre ?) et les anomalies éventuelles.
