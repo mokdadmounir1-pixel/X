@@ -85,6 +85,8 @@ def collect_state(root: Path = ROOT) -> dict:
         "specs": specs,
         "battery": battery,
         "walkforward": walkforward,
+        "daemon": _read_json(root / "data" / "live" / "DAEMON_STATUS.json"),
+        "queue": _read_json(reports / "QUEUE_STATUS.json"),
         "data": [{k: i.get(k) for k in ("symbol", "rows", "start", "end", "span_years", "sha256")} for i in prov.get("instruments", [])],
         "data_notes": ["Horloge courtier : UTC+2 hiver / UTC+3 été, calendrier européen (reconstruite depuis time_broker_epoch).",
                        "Export plafonné à 80 000 barres par instrument : ce n'est pas tout l'historique.",
