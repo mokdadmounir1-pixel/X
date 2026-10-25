@@ -47,7 +47,7 @@ def load_mt5_csv(path: str | Path, rule: str = "eu_dst") -> pd.DataFrame:
     try:
         raw = pd.read_csv(path)
     except FileNotFoundError as exc:
-        raise DataValidationError(f"CSV introuvable : {path}") from exc
+        raise DataValidationError(f"CSV introuvable : {path}. Les exports MT5 ne sont pas dans Git (data/real/*.csv est ignoré) : copiez-y vos fichiers EURUSD_M15.csv, XAUUSD_M15.csv, USTEC_M15.csv puis vérifiez avec `python scripts/check_data.py`") from exc
     need = {"time_broker_epoch", "open", "high", "low", "close"}
     if not need <= set(raw.columns):
         raise DataValidationError(f"Colonnes manquantes : {sorted(need - set(raw.columns))}")
