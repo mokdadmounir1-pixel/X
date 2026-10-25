@@ -6,3 +6,4 @@ __pycache__/
 logs/
 data/real/*.csv
 reports/registry.jsonl
+reports/*/cache/
