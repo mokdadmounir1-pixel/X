@@ -1,0 +1,2 @@
+[EURUSD amd    ] FAIL  | evts=  291 trades=  290 | E=-0.079R PF=0.70 worst=-1.08 | L 136/-0.0643 S 154/-0.0929 | échecs: ['expectancy', 'profit_factor', 'null_test', 'costs_x2', 'monte_carlo_p5', 'top3_share', 'folds_positive', 'risk_envelope', 'deflated_sharpe'] | essais=33
+[EURUSD vwap   ] FAIL  | evts=  614 trades=  609 | E=-0.063R PF=0.68 worst=-1.05 | L 301/-0.0563 S 308/-0.07 | échecs: ['expectancy', 'profit_factor', 'null_test', 'costs_x2', 'monte_carlo_p5', 'top3_share', 'folds_positive', 'risk_envelope', 'deflated_sharpe'] | essais=34
