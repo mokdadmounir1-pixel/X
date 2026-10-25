@@ -51,6 +51,7 @@ def run(cmd, log: Path) -> int:
 
 
 def main(argv=None) -> int:
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]  # console cp1252 : jamais de crash d'affichage
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--terminal", default=None); ap.add_argument("--symbols", nargs="+", default=SYMBOLS)
     ap.add_argument("--skip-export", action="store_true", help="réutiliser data/deep déjà exporté")

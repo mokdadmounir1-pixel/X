@@ -33,19 +33,25 @@ def deep_rates(mt5, symbol, tf_name, chunk_days, max_empty=3, floor_year=1999, n
         if rates is None or len(rates) == 0:
             empty += 1
             if rates is None:
-                notes.append(f"{start.date()}→{end.date()} : {mt5.last_error()}")
+                notes.append(f"{start.date()}->{end.date()} : {mt5.last_error()}")
         else:
-            empty = 0
-            parts.append(pd.DataFrame(rates))
+            frame = pd.DataFrame(rates)
+            parts.append(frame)
+            # le serveur peut répondre par la barre la plus proche (hors bornes) quand la tranche est vide : ce n'est PAS de l'historique trouvé
+            lo, hi = start.timestamp() - 2 * 86400, end.timestamp() + 2 * 86400
+            inside = int(((frame["time"] >= lo) & (frame["time"] <= hi)).sum())
+            empty = 0 if inside else empty + 1
         end = start + timedelta(days=1)          # léger recouvrement ; dédoublonné par époque
         sleep(0.05)
     if not parts:
         return pd.DataFrame(), notes + ["aucune donnée"]
     df = pd.concat(parts).drop_duplicates("time").sort_values("time").reset_index(drop=True)
-    return df.iloc[:-1], notes + [f"{n_calls} requêtes"]   # barre la plus récente écartée
+    stop = "tranches sans barre dans leurs bornes" if empty >= max_empty else f"plancher {floor_year}"
+    return df.iloc[:-1], notes + [f"{n_calls} requêtes ; arrêt : {stop}"]   # barre la plus récente écartée
 
 
 def main(argv=None, mt5=None) -> int:
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]  # console cp1252 : jamais de crash d'affichage
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--symbol", default="XAUUSD"); ap.add_argument("--timeframes", nargs="+", default=["M15", "H1", "H4", "D1"])
     ap.add_argument("--out", default="data/deep"); ap.add_argument("--max-empty", type=int, default=3)

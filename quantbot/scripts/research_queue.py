@@ -63,6 +63,7 @@ def run_once(root: Path, run=subprocess.run, check_git=spec_is_committed) -> dic
 
 
 def main(argv=None) -> int:
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]  # console cp1252 : jamais de crash d'affichage
     ap = argparse.ArgumentParser(description=__doc__); ap.add_argument("--once", action="store_true"); ap.add_argument("--poll", type=float, default=300.0)
     args = ap.parse_args(argv)
     try:

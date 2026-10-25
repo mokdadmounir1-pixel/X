@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "C:\Users\mokda\Documents\Codex\2026-10-22\referenced-chatgpt-conversation-this-is-an\work\quantbot-C8-7f82561\quantbot\scripts\run_backward.py", line 69, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\mokda\Documents\Codex\2026-10-22\referenced-chatgpt-conversation-this-is-an\work\quantbot-C8-7f82561\quantbot\scripts\run_backward.py", line 64, in main
+    print(f"[{inst} {name:7s}] {str(seg.index[0])[:10]}\u2192{str(seg.index[-1])[:10]} {ev.verdict:5s} | trades={m['n_trades']:5d} E={m['expectancy_R']:+.3f}R PF={m['profit_factor']:.2f} "
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          f"worst={m.get('worst_trade_R', 0):.2f} buy&hold={res['buy_hold_pct']:+.1f}% | échecs: {[g.name for g in ev.gates if not g.ok]} | essais={ev.n_trials}", flush=True)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mokda\AppData\Local\Programs\Python\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 27: character maps to <undefined>

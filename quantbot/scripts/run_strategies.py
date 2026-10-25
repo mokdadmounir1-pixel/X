@@ -23,6 +23,7 @@ def gen(name, scfg, df):
 
 
 def main():
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]  # console cp1252 : jamais de crash d'affichage
     ap = argparse.ArgumentParser(); ap.add_argument("spec"); ap.add_argument("--only"); ap.add_argument("--inst")
     ap.add_argument("--registry", default=str(ROOT / "reports" / "registry.jsonl"))
     args = ap.parse_args()

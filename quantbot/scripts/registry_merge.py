@@ -24,6 +24,7 @@ def merge(incoming: Path, current: Path) -> str:
 
 
 if __name__ == "__main__":
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]  # console cp1252 : jamais de crash d'affichage
     if len(sys.argv) != 2:
         raise SystemExit(__doc__)
     print(merge(Path(sys.argv[1]), ROOT / "reports" / "registry.jsonl"))

@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -58,6 +59,7 @@ def provenance_entry(df: pd.DataFrame, path: Path, symbol: str, tf: str) -> dict
 
 
 def main(argv=None, mt5=None) -> int:
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]  # console cp1252 : jamais de crash d'affichage
     ap = argparse.ArgumentParser()
     ap.add_argument("--symbol", default="XAUUSD")
     ap.add_argument("--timeframes", nargs="+", default=["M1", "M3", "M15", "H1"])

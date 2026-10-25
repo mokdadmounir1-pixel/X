@@ -11,7 +11,7 @@ une validation qui punit le nombre d'essais ; **aucune donnée ni aucun résulta
 | Moteur unique, risque, garde-fou FTMO 2-Step 100k | écrit et testé (216 tests) |
 | Laboratoire de validation (DSR, test nul, Monte-Carlo, registre chaîné, tranche verrouillée) | écrit et testé |
 | Données réelles MT5 (EURUSD, XAUUSD, USTEC en M15) | exportées par l'utilisateur ; empreintes dans `data/real/PROVENANCE.json` |
-| **Edge de trading prouvé** | **AUCUN** : 45 essais préenregistrés, 0 PASS (voir `reports/`) |
+| **Edge de trading prouvé** | **AUCUN** : 55 essais préenregistrés, 0 PASS (voir `reports/`) |
 | Tranche verrouillée de 12 mois | **jamais lue** |
 | `quantbot/live/` (runtime MT5 : journal préalable, coupe-circuit, broker durci, approbations) | écrit ; **jamais exécuté d'ordre sur un terminal réel**. Seul un diagnostic en lecture seule (C1) a tourné sur un vrai terminal démo ; il a révélé des défauts, corrigés ensuite et testés uniquement sur un faux terminal de test |
 | Orchestrateur IA (`ai/`), boucle d'amélioration (`improvement/`) | écrits, testés avec de faux adaptateurs, **non branchés** au runtime, jamais appelés avec de vraies clés |
@@ -24,7 +24,7 @@ le produit ne génère aucune donnée de remplacement (le CLI exige une source e
 - `baseline_v0/v1`, `v2_calibrated`, `mtf_v3` : aucun PASS ; le positif de l'or est le bêta haussier du marché.
 - `battery_v1` : aucun survivant (Reality Check p = 0,076).
 - `inst_strategies_v1` (13 essais) : tous FAIL. Meilleur : USTEC orb +0,075 R, PF 1,31, échoue à l'espérance, au test nul et au DSR.
-- Budget d'essais déclaré : 60 ; consommés : 45.
+- Budget d'essais déclaré : 80 ; consommés : 55.
 Les rapports sont dans `reports/` (JSON + logs) et l'interface locale les affiche.
 
 ## Arborescence

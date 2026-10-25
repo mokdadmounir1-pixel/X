@@ -10,6 +10,7 @@ import MetaTrader5 as mt5
 
 
 def main(output):
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]  # console cp1252 : jamais de crash d'affichage
     report = dict(kind="PRECONTROLE_AVANT_C3",captured_at_utc=datetime.now(timezone.utc).isoformat(),
                   symbol="XAUUSD",samples=[],eligible_for_c3=False,orders_sent=0,order_checks=0,
                   conclusions=dict(timezone="NON_CONCLUANT",freshness="NON_CONCLUANT",current_bar="NON_CONCLUANT",live_spread="NON_CONCLUANT"))

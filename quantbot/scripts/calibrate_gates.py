@@ -53,6 +53,7 @@ def run(n_null, n_power, cfg_kw):
 
 
 if __name__ == "__main__":
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]  # console cp1252 : jamais de crash d'affichage
     n_null = int(sys.argv[1]) if len(sys.argv) > 1 else 60
     n_pow = int(sys.argv[2]) if len(sys.argv) > 2 else 20
     kw = json.loads(sys.argv[3]) if len(sys.argv) > 3 else {}

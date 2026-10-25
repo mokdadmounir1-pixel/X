@@ -25,6 +25,7 @@ def run(name):
             "stop_median_pct_prix": round(float(stop_pct), 4), "sorties": reasons}
 
 if __name__ == "__main__":
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]  # console cp1252 : jamais de crash d'affichage
     with Pool(3) as p:
         out = p.map(run, ["EURUSD", "XAUUSD", "USTEC"])
     for o in out: print(json.dumps(o, ensure_ascii=False))

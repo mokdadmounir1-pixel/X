@@ -33,6 +33,7 @@ def cycle(mt5, store, symbols, tfs, n_bars):
 
 
 def main(argv=None, mt5=None, sleep=time.sleep, max_cycles=None):
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]  # console cp1252 : jamais de crash d'affichage
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--symbols", nargs="+", default=["XAUUSD"]); ap.add_argument("--timeframes", nargs="+", default=["M15"])
     ap.add_argument("--interval", type=float, default=30.0); ap.add_argument("--bars", type=int, default=1000)

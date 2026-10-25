@@ -21,6 +21,7 @@ def boot_diff(a, b, B=4000, seed=0):
     return [round(float(np.percentile(d, 2.5)), 3), round(float(np.percentile(d, 97.5)), 3)]
 
 def main(spec_path, inst, tf):
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]  # console cp1252 : jamais de crash d'affichage
     spec = json.loads(Path(spec_path).read_text(encoding="utf-8")); P = spec["procedure"]; tfc = spec["timeframes"][tf]
     df = load_mt5_csv(ROOT / "data" / "real" / spec["instruments"][inst])
     research, _ = split_locked(df, spec["lock_months"], spec["lock_min_frac"])

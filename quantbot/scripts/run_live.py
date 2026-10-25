@@ -337,6 +337,7 @@ def run(args):
 
 
 def main(argv=None):
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]  # console cp1252 : jamais de crash d'affichage
     for stream in (sys.stdout,sys.stderr):
         if hasattr(stream,"reconfigure"):
             stream.reconfigure(encoding="utf-8")

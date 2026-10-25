@@ -1,5 +1,6 @@
 """Vérifie que data/real/*.csv sont présents et identiques (SHA-256) à ceux de data/real/PROVENANCE.json. Aucune écriture."""
 import hashlib, json, sys
+[getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]  # console cp1252 : jamais de crash d'affichage
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
