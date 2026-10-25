@@ -38,7 +38,7 @@ quantbot/
   live/        runtime MT5 : état (SQLite), coupe-circuit, flux de barres, HardenedMT5Broker, approbations, runner
   lab/         statistiques, registre d'essais, tranche verrouillée, portes, pipeline
   ai/ improvement/ memory/                          non branchés (voir ci-dessus)
-  ui/          interface locale 127.0.0.1 (lecture seule)
+  ui/          interface locale 127.0.0.1, LECTURE SEULE : résultats, rejeu, onglet « En direct » (état du runtime via QUANTBOT_STATE)
 specs/         spécifications PRÉENREGISTRÉES, commitées AVANT chaque exécution
 scripts/       exécution des specs, diagnostics, export MT5 en lecture seule
 docs/prompts/  prompts pour ChatGPT (export MT5, connexion au terminal réel, protocole de liaison)

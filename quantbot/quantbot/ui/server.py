@@ -1,12 +1,16 @@
 """Interface locale (127.0.0.1 uniquement) : état du projet, résultats, calibration, données, rejeu d'un backtest.
 
-Lecture seule sur les rapports. Le rejeu n'utilise QUE la période de recherche (la période verrouillée n'est jamais lue)
-et n'envoie aucun ordre : le trading réel est verrouillé.
+Lecture seule sur les rapports et sur l'état du runtime (/api/live : SQLite en mode=ro). Le rejeu n'utilise QUE la période
+de recherche (la période verrouillée n'est jamais lue). Cette interface n'envoie aucun ordre, n'écrit aucune approbation,
+ne touche pas au coupe-circuit et ne se connecte pas au terminal.
 """
 from __future__ import annotations
 
 import json
+import os
+import sqlite3
 import threading
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -81,6 +85,66 @@ def collect_state(root: Path = ROOT) -> dict:
     }
 
 
+def _live_paths(root: Path) -> tuple[Path, Path, Path]:
+    state = Path(os.environ.get("QUANTBOT_STATE") or root / "runtime" / "live_state.db")
+    kill = Path(os.environ.get("QUANTBOT_KILL") or state.parent / "KILL")
+    appr = Path(os.environ.get("QUANTBOT_APPROVALS") or root / "approved_strategies.json")
+    return state, kill, appr
+
+
+def collect_live(root: Path = ROOT) -> dict:
+    """État du runtime en direct. LECTURE SEULE : SQLite en mode=ro, jamais de création de base, aucun appel au terminal."""
+    state_path, kill_path, appr_path = _live_paths(root)
+    out: dict = {"available": False, "state_path": str(state_path), "kill_file_present": kill_path.exists(),
+                 "approvals": _approvals_summary(appr_path), "kill_reasons": [], "intents": [], "events": [], "paper_trades": []}
+    if kill_path.exists():
+        out["kill_reasons"].append(f"fichier {kill_path.name} présent")
+    if not state_path.is_file():
+        out["note"] = "Aucune base d'état : le lanceur n'a jamais tourné avec ce chemin."
+        return out
+    conn = sqlite3.connect(state_path.resolve().as_uri() + "?mode=ro", uri=True, timeout=3)
+    conn.row_factory = sqlite3.Row
+    try:
+        conn.execute("PRAGMA query_only=ON")
+        kv = {r["key"]: json.loads(r["value"]) for r in conn.execute("SELECT key,value FROM kv")}
+        intents = [dict(r) for r in conn.execute("SELECT id,created,updated,kind,side,status,detail,ticket,strategy FROM intents ORDER BY created DESC LIMIT 20")]
+        events = [dict(r) for r in conn.execute("SELECT ts,level,kind,detail FROM events ORDER BY id DESC LIMIT 30")]
+        trades = []
+        for r in conn.execute("SELECT ts,detail FROM events WHERE kind='trade' ORDER BY id DESC LIMIT 50"):
+            try:
+                trades.append({"ts": r["ts"], **json.loads(r["detail"])})
+            except (json.JSONDecodeError, TypeError):
+                continue
+    finally:
+        conn.close()
+    open_intents = [i for i in intents if i["status"] in ("PENDING", "SENT", "UNKNOWN")]
+    if kv.get("kill"):
+        out["kill_reasons"].append(f"déclenché : {kv['kill']}")
+    if open_intents:
+        out["kill_reasons"].append(f"{len(open_intents)} intention(s) non rapprochée(s)")
+    hb = kv.get("heartbeat")
+    age = time.time() - hb if isinstance(hb, (int, float)) else None
+    running = bool(kv.get("launcher_running")) and age is not None and age < 60
+    out.update(available=True, mode=kv.get("mode", "NON_DEMARRE"), why=kv.get("why"), strategy=kv.get("strategy"),
+               last_bar=kv.get("last_bar"), heartbeat_age_s=age, running=running,
+               launcher_running_flag=kv.get("launcher_running"), stop_reason=kv.get("launcher_stop_reason"),
+               intents=intents, events=events, paper_trades=trades,
+               statistics_nature=("PAPER : prix MT5 réels, exécutions et PnL SIMULÉS — ce ne sont pas des fills réels"
+                                  if kv.get("mode") == "OBSERVATION" else "ordres démo sous contrôles du broker" if kv.get("mode") == "DEMO_ACTIF" else None))
+    return out
+
+
+def _approvals_summary(path: Path) -> dict:
+    if not path.is_file():
+        return {"present": False, "entries": [], "note": "aucune approbation : le bot reste en OBSERVATION"}
+    data = _read_json(path)
+    try:
+        entries = [{k: e.get(k) for k in ("id", "instrument", "spec", "approved_by", "date")} for e in data["approved"]]
+    except (KeyError, TypeError, AttributeError):
+        return {"present": True, "entries": [], "note": "fichier illisible : traité comme absent par le bot"}
+    return {"present": True, "entries": entries, "note": "approbations humaines (l'interface n'en écrit jamais)"}
+
+
 def run_replay(df: pd.DataFrame, settings, max_points: int = 500) -> dict:
     from ..backtest.engine import Backtester
     res = Backtester(settings).run(df)
@@ -147,6 +211,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send(200, STATIC.read_bytes(), "text/html; charset=utf-8")
             elif url.path == "/api/state":
                 self._json(collect_state(self.root))
+            elif url.path == "/api/live":
+                self._json(collect_live(self.root))
             elif url.path == "/api/replay":
                 q = parse_qs(url.query)
                 self._json(replay_instrument(q.get("instrument", [""])[0], int(q.get("bars", ["6000"])[0]),

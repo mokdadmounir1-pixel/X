@@ -42,8 +42,8 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--acc)}
   <section id="view"></section>
 </main>
 <script>
-const TABS=[["etat","État"],["res","Résultats"],["cal","Calibration v2"],["rejeu","Rejouer un backtest"],["data","Données"]];
-let S=null,tab="etat";
+const TABS=[["etat","État"],["res","Résultats"],["cal","Calibration v2"],["rejeu","Rejouer un backtest"],["data","Données"],["live","En direct"]];
+let S=null,L=null,tab="etat",timer=null;
 const $=s=>document.querySelector(s),esc=t=>String(t??"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const f=(x,d=3)=>x==null||!isFinite(x)?"—":Number(x).toFixed(d);
 const tag=v=>`<span class="tag ${v||"NA"}">${v||"—"}</span>`;
@@ -52,19 +52,20 @@ function tabs(){$("#tabs").innerHTML=TABS.map(([k,l])=>`<button role="tab" aria-
 function banner(){const s=S.status;const b=$("#banner");
   b.className="banner"+(s.edge_validated?" ok":"");
   b.textContent=s.edge_validated?"Au moins une stratégie a franchi les portes de recherche — pas encore confirmée sur la période verrouillée.":
-   "Aucun edge validé à ce jour · trading réel verrouillé · aucun ordre ne peut partir depuis cette interface.";}
+   "Aucun edge validé à ce jour · cette interface n'envoie jamais d'ordre et n'écrit aucune approbation.";}
 function etat(){const s=S.status;
   return `<div class="card"><h2>État du projet</h2><div class="grid">
-   <div class="kpi"><b>${esc(s.live_trading.split(" ")[0])}</b><span>Trading réel</span></div>
+   <div class="kpi"><b>${esc(s.live_trading.split(" ")[0])}</b><span>Ordres depuis cette interface</span></div>
    <div class="kpi"><b>${s.edge_validated?"oui":"non"}</b><span>Edge validé</span></div>
    <div class="kpi"><b>${s.trials} / ${s.trials_budget}</b><span>Essais consommés (budget)</span></div>
    <div class="kpi"><b>${s.locked_reads}</b><span>Lectures de la période verrouillée</span></div>
    <div class="kpi"><b>${s.registry_chain_ok?"intègre":"ALTÉRÉE"}</b><span>Chaîne du registre d'essais</span></div></div>
-   <p class="muted">Connecteur MetaTrader 5 : ${esc(s.mt5_broker)}.</p></div>
+   <p class="muted">Runtime MetaTrader 5 : ${esc(s.mt5_broker)}.</p></div>
    <div class="card"><h2>Ce que le projet est, aujourd'hui</h2>
    <p>Un <b>laboratoire de recherche et de validation</b> : moteur de simulation unique, statistiques anti-sur-apprentissage (DSR, test nul, Monte-Carlo par blocs),
-   registre d'essais chaîné par hachage, période verrouillée à lecture unique, garde-fou FTMO. Il n'y a <b>pas de robot qui trade</b> tant qu'une stratégie n'a pas passé les portes.</p>
-   <p class="muted">Les ordres réels exigent quatre verrous (mode, autorisation, variable d'environnement, garde-fou FTMO) et ne sont branchés sur aucune commande.</p></div>`;}
+   registre d'essais chaîné par hachage, période verrouillée à lecture unique, garde-fou FTMO, et un <b>runtime MT5</b> (onglet « En direct »)
+   qui reste en <b>OBSERVATION</b> (prix réels, exécutions simulées) tant qu'un humain n'a pas signé une approbation liée à l'empreinte de la spec.</p>
+   <p class="muted">Aucune stratégie n'a franchi les portes de validation : l'approbation d'une stratégie n'est pas recommandée à ce jour.</p></div>`;}
 function gatesHtml(gs){return `<div class="gates">`+gs.map(g=>`<span class="g ${g.ok?"":"x"}" title="valeur: ${esc(JSON.stringify(g.value))} · seuil: ${esc(JSON.stringify(g.threshold))}">${esc(g.name)}${g.eliminatory&&!g.ok?" ⛔":""}</span>`).join("")+`</div>`;}
 function res(){return battery()+S.specs.map(sp=>`<div class="card"><h2>${esc(sp.name)} ${sp.parent?`<span class="muted">← ${esc(sp.parent)}</span>`:""}</h2>
   <p class="muted">${esc(sp.change_reason||sp.hypothesis||"")}</p>
@@ -110,7 +111,34 @@ async function doReplay(){const b=$("#rgo"),o=$("#rout");b.disabled=true;o.textC
 function data(){return `<div class="card"><h2>Données (exports MetaTrader 5, démo MetaQuotes)</h2><table><thead><tr><th>Symbole</th><th class="n">Barres</th><th>Début</th><th>Fin</th><th class="n">Années</th><th>SHA-256</th></tr></thead><tbody>`+
   S.data.map(d=>`<tr><td>${esc(d.symbol)}</td><td class="n">${d.rows}</td><td>${esc((d.start||"").slice(0,10))}</td><td>${esc((d.end||"").slice(0,10))}</td><td class="n">${f(d.span_years,2)}</td><td class="muted">${esc((d.sha256||"").slice(0,16))}…</td></tr>`).join("")+`</tbody></table>
   <ul class="muted">${S.data_notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></div>`;}
-function render(){tabs();banner();$("#view").innerHTML=({etat,res,cal,rejeu,data})[tab]();if(tab==="rejeu")$("#rgo").onclick=doReplay;}
+function ago(x){if(x==null)return "—";x=Math.round(x);return x<90?x+" s":x<5400?Math.round(x/60)+" min":(x/3600).toFixed(1)+" h";}
+function when(t){return t?new Date(t*1000).toISOString().replace("T"," ").slice(0,19)+" UTC":"—";}
+function live(){if(!L)return `<div class="card muted">Chargement…</div>`;
+  if(!L.available)return `<div class="card"><h2>Runtime en direct</h2><p>${esc(L.note||"Indisponible")}</p>
+   <p class="muted">Chemin lu : ${esc(L.state_path)} (variable QUANTBOT_STATE). Lancez le lanceur : <code>python scripts\\run_live.py --project . --state runtime\\live_state.db</code></p>
+   ${approvals()}</div>`;
+  const kill=L.kill_reasons.length;
+  return `<div class="card"><h2>Runtime en direct <span class="muted">(lecture seule)</span></h2><div class="grid">
+   <div class="kpi"><b>${esc(L.mode)}</b><span>Mode</span></div>
+   <div class="kpi"><b>${L.running?"actif":"arrêté / inactif"}</b><span>Lanceur (battement ${ago(L.heartbeat_age_s)})</span></div>
+   <div class="kpi"><b>${esc((L.last_bar||"—").slice(0,19))}</b><span>Dernière barre clôturée</span></div>
+   <div class="kpi"><b style="color:var(${kill?"--bad":"--ok"})">${kill?"ACTIF":"inactif"}</b><span>Coupe-circuit</span></div></div>
+   <p class="muted">${esc(L.why||"")}</p>${L.statistics_nature?`<p class="banner">${esc(L.statistics_nature)}</p>`:""}
+   ${kill?`<p><b>Raisons :</b> ${L.kill_reasons.map(esc).join(" · ")}</p><p class="muted">Seul un humain peut le lever, en ligne de commande (--clear-kill). Cette interface ne le peut pas.</p>`:""}
+   ${L.stop_reason?`<p class="muted">Dernier arrêt du lanceur : ${esc(L.stop_reason)}</p>`:""}</div>
+  ${approvals()}
+  <div class="card"><h2>Trades PAPER enregistrés</h2>${L.paper_trades.length?`<table><thead><tr><th>Quand</th><th>Sens</th><th>Sortie</th><th class="n">PnL</th><th class="n">R</th></tr></thead><tbody>`+
+   L.paper_trades.map(t=>`<tr><td>${esc(when(t.ts))}</td><td>${esc(t.side)}</td><td>${esc(t.reason)}</td><td class="n">${f(t.pnl,2)}</td><td class="n">${f(t.r,2)}</td></tr>`).join("")+`</tbody></table>`:`<p class="muted">Aucun trade enregistré.</p>`}</div>
+  <div class="card"><h2>Intentions d'ordres (20 dernières)</h2>${L.intents.length?`<table><thead><tr><th>Créée</th><th>Type</th><th>Sens</th><th>Statut</th><th>Ticket</th><th>Détail</th></tr></thead><tbody>`+
+   L.intents.map(i=>`<tr><td>${esc(when(i.created))}</td><td>${esc(i.kind)}</td><td>${esc(i.side)}</td><td>${esc(i.status)}</td><td>${esc(i.ticket??"")}</td><td class="muted">${esc(i.detail||"")}</td></tr>`).join("")+`</tbody></table>`:`<p class="muted">Aucune intention (aucun ordre n'a été envisagé).</p>`}</div>
+  <div class="card"><h2>Journal (30 derniers événements)</h2><table><thead><tr><th>Quand</th><th>Niveau</th><th>Type</th><th>Détail</th></tr></thead><tbody>`+
+   L.events.map(e=>`<tr><td>${esc(when(e.ts))}</td><td>${esc(e.level)}</td><td>${esc(e.kind)}</td><td class="muted">${esc(e.detail||"")}</td></tr>`).join("")+`</tbody></table></div>`;}
+function approvals(){const a=L.approvals;return `<div class="card"><h2>Approbations humaines</h2><p class="muted">${esc(a.note)}</p>`+(a.entries.length?`<table><thead><tr><th>Stratégie</th><th>Instrument</th><th>Spec</th><th>Par</th><th>Date</th></tr></thead><tbody>`+
+   a.entries.map(e=>`<tr><td>${esc(e.id)}</td><td>${esc(e.instrument)}</td><td>${esc(e.spec)}</td><td>${esc(e.approved_by)}</td><td>${esc(e.date)}</td></tr>`).join("")+`</tbody></table>`:"")+`</div>`;}
+async function loadLive(){try{L=await (await fetch("/api/live")).json();}catch(e){L={available:false,note:"Erreur : "+e,approvals:{entries:[],note:""},kill_reasons:[],intents:[],events:[],paper_trades:[]};}
+  if(tab==="live")$("#view").innerHTML=live();}
+function render(){tabs();banner();$("#view").innerHTML=({etat,res,cal,rejeu,data,live})[tab]();if(tab==="rejeu")$("#rgo").onclick=doReplay;
+  clearInterval(timer);if(tab==="live"){loadLive();timer=setInterval(loadLive,5000);}}
 fetch("/api/state").then(r=>r.json()).then(s=>{S=s;render()}).catch(e=>{$("#banner").textContent="Impossible de charger l'état : "+e});
 </script>
 </body>
