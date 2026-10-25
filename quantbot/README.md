@@ -14,6 +14,7 @@ une validation qui punit le nombre d'essais ; **aucune donnée ni aucun résulta
 | **Edge de trading prouvé** | **AUCUN** : 73 essais préenregistrés, 0 PASS (voir `reports/`) |
 | Tranche verrouillée de 12 mois | **jamais lue** |
 | `quantbot/live/` (runtime MT5 : journal préalable, coupe-circuit, broker durci, approbations) | écrit ; **jamais exécuté d'ordre sur un terminal réel**. Seul un diagnostic en lecture seule (C1) a tourné sur un vrai terminal démo ; il a révélé des défauts, corrigés ensuite et testés uniquement sur un faux terminal de test |
+| Contrôle de risque actif (`risk/active.py`) | perte journalière latente, freinage par drawdown, arrêt sur dérive / volatilité, Kelly plafonné ; câblé au moteur, **désactivé par défaut** |
 | Orchestrateur IA (`ai/`), boucle d'amélioration (`improvement/`) | écrits, testés avec de faux adaptateurs, **non branchés** au runtime, jamais appelés avec de vraies clés |
 | Crypto (Coinbase) | connecteur de **données et de simulation** en lecture seule (API publique, sans clé) ; spec `crypto_paper_v1` en PAPER ; aucun ordre vers Coinbase ; **aucune validation, coûts = hypothèses** |
 | Simulation PAPER (13 stratégies sur MT5) | `scripts/paper_all.py`, trades simulés sur prix réels, jamais d'approbation lue |
@@ -41,7 +42,8 @@ quantbot/
   live/        runtime MT5 : état (SQLite), coupe-circuit, flux de barres, HardenedMT5Broker, approbations, runner
   lab/         statistiques, registre d'essais, tranche verrouillée, portes, pipeline
   ai/ improvement/ memory/                          non branchés (voir ci-dessus)
-  ui/          interface locale 127.0.0.1, LECTURE SEULE : résultats, rejeu, onglet « En direct » (état du runtime via QUANTBOT_STATE)
+  ui/          couche de données de l'interface (état, simulations, rejeu)
+  gui/         terminal FastAPI + interface sombre (127.0.0.1, LECTURE SEULE) : trades & attribution, marché (zones OB/FVG), backtests, risque, recherche, système
 specs/         spécifications PRÉENREGISTRÉES, commitées AVANT chaque exécution
 scripts/       exécution des specs, diagnostics, export MT5 en lecture seule
 docs/prompts/  prompts pour ChatGPT (export MT5, connexion au terminal réel, protocole de liaison)

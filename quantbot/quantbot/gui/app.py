@@ -14,8 +14,10 @@ from ..ui.replay import list_strategies, run_strategy_replay
 from .book import build_book
 from .chart import chart_payload
 
-STATIC = Path(__file__).parent / "static"
-ROOT = Path(__file__).resolve().parents[2]
+from .paths import app_root, bundle_dir
+
+STATIC = bundle_dir() / "static"
+ROOT = app_root()
 LOCAL_HOSTS = {"127.0.0.1", "localhost", "[::1]", "::1", "testserver"}
 
 
