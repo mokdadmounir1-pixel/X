@@ -28,3 +28,31 @@ def fractional_kelly(win_rate: float, payoff: float, fraction: float = 0.3, cap:
     if payoff <= 0:
         return 0.0
     return float(min(cap, max(0.0, fraction * (win_rate - (1.0 - win_rate) / payoff))))
+
+
+def gpd_fit_pwm(excesses) -> tuple[float, float]:
+    """Loi de Pareto généralisée (xi forme, beta échelle) par moments pondérés (Hosking & Wallis 1987). Robuste sur petits échantillons ; xi < 0,5 requis pour la validité."""
+    x = np.sort(np.asarray(excesses, float)); n = len(x)
+    if n < 20:
+        raise ValueError("au moins 20 excès pour ajuster une GPD")
+    a0 = x.mean(); a1 = float(np.mean(x * (1.0 - (np.arange(1, n + 1) - 0.35) / n)))          # estimateur PWM a1 = E[X(1-F)]
+    xi = 2.0 - a0 / (a0 - 2.0 * a1); beta = 2.0 * a0 * a1 / (a0 - 2.0 * a1)
+    return float(xi), float(beta)
+
+
+def evt_var_es(returns, confidence: float = 0.99, threshold_q: float = 0.95) -> dict:
+    """VaR et ES par Peaks-Over-Threshold (EVT) sur les PERTES : seuil u = quantile `threshold_q`, queue GPD ; formules de McNeil-Frey :
+    VaR_p = u + (beta/xi)((n/Nu x (1-p))^-xi - 1) ; ES_p = VaR_p/(1-xi) + (beta - xi u)/(1-xi). Renvoie aussi xi (indice de queue : plus grand = queue plus lourde)."""
+    r = np.asarray(returns, float); losses = -r[r < 0]
+    if len(losses) < 100:
+        return {"status": "donnees_insuffisantes"}
+    u = float(np.quantile(losses, threshold_q)); exc = losses[losses > u] - u
+    if len(exc) < 20:
+        return {"status": "queue_trop_courte"}
+    xi, beta = gpd_fit_pwm(exc); n, nu = len(losses), len(exc)
+    if not 0.0 < beta or xi >= 1.0:
+        return {"status": "ajustement_invalide", "xi": xi, "beta": beta}
+    q = (n / nu) * (1.0 - confidence)
+    var = u + (beta / xi) * (q ** (-xi) - 1.0) if abs(xi) > 1e-9 else u - beta * np.log(q)
+    es = var / (1.0 - xi) + (beta - xi * u) / (1.0 - xi)
+    return {"status": "ok", "var": float(var), "es": float(es), "xi": xi, "beta": beta, "threshold": u, "n_excess": nu}

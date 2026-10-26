@@ -134,3 +134,18 @@ def _close(pos: dict, i: int, xa: float, xb: float, reason: str, p: PairParams) 
     risk = (p.z_stop - p.z_entry) * pos["sigma"]                 # distance de stop en unités de spread
     return {"entry_i": pos["entry_i"], "exit_i": i, "side": s, "reason": reason, "beta": beta,
             "gross": float(pnl), "cost": float(cost), "r": float((pnl - cost) / risk)}
+
+
+def ou_half_life(x) -> dict:
+    """Processus d'Ornstein-Uhlenbeck discrétisé : dx_t = a + b x_{t-1} + e ; theta = -ln(1 + b) par pas, demi-vie = ln 2 / theta (en pas). Renvoie aussi la t-stat de b : sans
+    significativité (t > -2,9 environ pour une racine unitaire), la « demi-vie » n'a pas de sens et `mean_reverting` est False. numpy seul."""
+    x = np.asarray(x, float)
+    if len(x) < 50:
+        return {"status": "donnees_insuffisantes"}
+    y, z = np.diff(x), x[:-1]; X = np.column_stack([np.ones(len(z)), z])
+    coef, *_ = np.linalg.lstsq(X, y, rcond=None); res = y - X @ coef; s2 = res @ res / (len(y) - 2); se = np.sqrt(s2 * np.linalg.inv(X.T @ X)[1, 1])
+    b = float(coef[1]); t = b / se
+    if not -1.0 < b < 0.0:
+        return {"status": "ok", "theta": 0.0, "half_life": float("inf"), "b": b, "t_stat": float(t), "mean_reverting": False}
+    theta = -float(np.log(1.0 + b))
+    return {"status": "ok", "theta": theta, "half_life": float(np.log(2.0) / theta), "b": b, "t_stat": float(t), "mean_reverting": bool(t < -2.9)}
