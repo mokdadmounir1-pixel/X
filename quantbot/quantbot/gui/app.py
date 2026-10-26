@@ -11,6 +11,7 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from ..exceptions import DataValidationError
 from ..ui import server as data
 from ..ui.replay import list_strategies, run_strategy_replay
 from .book import build_book
@@ -41,6 +42,11 @@ def create_app(root: Path = ROOT) -> FastAPI:
             return fn(*a)
         except (ValueError, KeyError) as exc:
             raise HTTPException(status_code=400, detail=str(exc))
+        except (DataValidationError, FileNotFoundError) as exc:      # données absentes / invalides : message lisible (jamais un « HTTP 500 » muet)
+            raise HTTPException(status_code=409, detail=f"DONNEES_ABSENTES : {exc}")
+        except Exception as exc:                                       # toute autre erreur de calcul : type + message, trace complète dans la fenêtre noire
+            import traceback; traceback.print_exc()
+            raise HTTPException(status_code=500, detail=f"ERREUR_INTERNE {type(exc).__name__} : {exc}")
 
     @app.get("/api/health")
     def health():
