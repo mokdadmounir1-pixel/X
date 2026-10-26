@@ -12,7 +12,9 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-_cache: dict = {}
+from collections import OrderedDict
+_cache: OrderedDict = OrderedDict()      # LRU borné : le nombre de barres demandé est libre, la mémoire ne doit pas croître sans limite
+_CACHE_MAX = 48
 _lock = threading.Lock()
 MAX_TRADES = 1500
 
@@ -155,7 +157,9 @@ def run_strategy_replay(instrument: str, bars: int, strategy: str, segment: str 
         from ..strategies import smc
         out["zones"] = zones_payload(smc.zones(seg, scfg["rule"], scfg["params"]), seg.index[-1])
     with _lock:
-        _cache[key] = out
+        _cache[key] = out; _cache.move_to_end(key)
+        while len(_cache) > _CACHE_MAX:
+            _cache.popitem(last=False)
     return out
 
 

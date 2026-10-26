@@ -65,9 +65,17 @@ class LiveBarStore:
             prev = e["hash"]
         return True
 
+    def _tail_hash(self) -> str:
+        """Hachage du dernier événement SANS relire tout le journal (O(1) amorti) : la fin du fichier est lue ; le journal complet reste vérifiable par `verify`."""
+        if not self.manifest.exists() or self.manifest.stat().st_size == 0:
+            return GENESIS
+        with self.manifest.open("rb") as fh:
+            fh.seek(0, 2); size = fh.tell(); fh.seek(max(0, size - 65536))
+            lines = [l for l in fh.read().decode("utf-8").splitlines() if l.strip()]
+        return json.loads(lines[-1])["hash"]
+
     def _log(self, body: dict) -> None:
-        ev = self._events()
-        prev = ev[-1]["hash"] if ev else GENESIS
+        prev = self._tail_hash()
         body = {**body, "ts": time.time()}
         with self.manifest.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps({**body, "prev": prev, "hash": self._digest(prev, body)}, default=str) + "\n")

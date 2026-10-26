@@ -23,6 +23,13 @@ CREATE TABLE IF NOT EXISTS intents (
   status TEXT NOT NULL, plan TEXT, detail TEXT, ticket INTEGER, strategy TEXT);
 CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL NOT NULL, level TEXT NOT NULL, kind TEXT NOT NULL, detail TEXT);
 CREATE TABLE IF NOT EXISTS kv (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS executions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL NOT NULL, intent_id TEXT, kind TEXT NOT NULL, symbol TEXT, side TEXT, volume REAL,
+  expected_price REAL, fill_price REAL, slippage REAL, latency_ms REAL, retcode INTEGER, ticket INTEGER);
+CREATE INDEX IF NOT EXISTS idx_exec_ts ON executions(ts);
+CREATE INDEX IF NOT EXISTS idx_exec_intent ON executions(intent_id);
+CREATE TRIGGER IF NOT EXISTS executions_no_update BEFORE UPDATE ON executions BEGIN SELECT RAISE(ABORT, 'journal d''exécution append-only'); END;
+CREATE TRIGGER IF NOT EXISTS executions_no_delete BEFORE DELETE ON executions BEGIN SELECT RAISE(ABORT, 'journal d''exécution append-only'); END;
 """
 
 
@@ -83,6 +90,19 @@ class StateStore:
 
     def delete(self, key: str) -> None:
         self._x("DELETE FROM kv WHERE key=?", (key,))
+
+    def record_execution(self, intent_id: str, kind: str, symbol: str, side: str, volume: float, expected_price: float, fill_price: Optional[float],
+                         t_send: float, t_ack: float, retcode: Optional[int] = None, ticket: Optional[int] = None) -> None:
+        """Journal d'audit APPEND-ONLY (UPDATE/DELETE interdits par déclencheur) : latence d'envoi->réponse en ms (horloge monotone fournie par l'appelant) et glissement
+        signé (positif = défavorable : achat rempli plus haut / vente remplie plus bas que le prix attendu)."""
+        slip = None if fill_price is None else (fill_price - expected_price) * (1.0 if side in ("long", "buy") else -1.0)
+        self._x("INSERT INTO executions (ts, intent_id, kind, symbol, side, volume, expected_price, fill_price, slippage, latency_ms, retcode, ticket) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                (time.time(), intent_id, kind, symbol, side, volume, expected_price, fill_price, slip, (t_ack - t_send) * 1000.0, retcode, ticket))
+
+    def executions(self, n: int = 50) -> list[dict]:
+        with self._lock:
+            cur = self.db.execute("SELECT * FROM executions ORDER BY id DESC LIMIT ?", (n,)); cols = [c[0] for c in cur.description]
+            return [dict(zip(cols, r)) for r in cur.fetchall()]
 
     def log(self, level: str, kind: str, detail: str = "") -> None:
         self._x("INSERT INTO events (ts,level,kind,detail) VALUES (?,?,?,?)", (time.time(), level, kind, detail[:500]))
