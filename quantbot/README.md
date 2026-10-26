@@ -74,7 +74,7 @@ docs/prompts/  prompts pour ChatGPT (export MT5, connexion au terminal réel, pr
 - Limites connues non mesurées : fuseau et fraîcheur des ticks en séance ouverte, remplissages réels, glissement, swaps.
 
 ## Lancer et vérifier (Windows)
-`lancer_tout.bat` (un double-clic) : pré-vol en clair de la connexion MT5 (`scripts/preflight.py` : [OK]/[ATTENTION]/[BLOQUANT] + quoi faire), puis simulation PAPER de toutes les stratégies sur les prix réels + interface. Aucun ordre n'est envoyé à MT5.
+`lancer_tout.bat` (un double-clic) : pré-vol en clair de la connexion MT5 (`scripts/preflight.py` : [OK]/[ATTENTION]/[BLOQUANT] + quoi faire), puis simulation PAPER de toutes les stratégies sur les prix réels + interface. Aucun ordre n'est envoyé à MT5. Au premier lancement, `scripts/broker_profile.py` relève le profil de TON courtier (nom de l'or chez lui : GOLD, XAUUSD.a... ; contrat ; spread réel ; commission à fournir avec `--commission-per-lot-side`, jamais supposée nulle) dans `config/broker_profile.json`, et tout le reste s'y adapte (`live/symbols.py`).
 
 ## Utilisation
 ```bash
