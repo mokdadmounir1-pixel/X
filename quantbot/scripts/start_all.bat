@@ -6,4 +6,4 @@ rem (l'extraction MT5 est faite par la synchronisation automatique du terminal ;
 start "quantbot - file de recherche" cmd /k python scripts\research_queue.py
 start "quantbot - simulation PAPER (toutes les strategies)" cmd /k python scripts\paper_all.py --spec specs\inst_strategies_v1.json specs\smc_v1b.json specs\gold_quant_v1.json specs\apex_pullback_v1.json specs\stop_hunt_v1.json
 start "quantbot - simulation PAPER crypto (Coinbase, lecture seule)" cmd /k python scripts\paper_all.py --source coinbase
-start "quantbot - terminal http://127.0.0.1:3214" cmd /k python -m quantbot ui --port 3214
+start "quantbot - terminal http://127.0.0.1:3214" cmd /k python -m quantbot ui --port 3214 --open

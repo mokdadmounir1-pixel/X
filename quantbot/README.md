@@ -73,6 +73,9 @@ docs/prompts/  prompts pour ChatGPT (export MT5, connexion au terminal réel, pr
 - **Live** : OBSERVATION (paper sur barres réelles, aucun ordre) par défaut ; DEMO_ACTIF exige une approbation humaine liée au hachage de la spec et un coupe-circuit inactif ; le réel / FTMO est une décision humaine, jamais automatique.
 - Limites connues non mesurées : fuseau et fraîcheur des ticks en séance ouverte, remplissages réels, glissement, swaps.
 
+## Lancer et vérifier (Windows)
+`lancer_tout.bat` (un double-clic) : pré-vol en clair de la connexion MT5 (`scripts/preflight.py` : [OK]/[ATTENTION]/[BLOQUANT] + quoi faire), puis simulation PAPER de toutes les stratégies sur les prix réels + interface. Aucun ordre n'est envoyé à MT5.
+
 ## Utilisation
 ```bash
 pip install -r requirements.txt && python -m pytest -q
