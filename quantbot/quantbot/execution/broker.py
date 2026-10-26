@@ -5,7 +5,6 @@ journal préalable). Ce module ne contient aucun code d'envoi d'ordre.
 """
 from __future__ import annotations
 
-import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Optional

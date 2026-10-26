@@ -50,3 +50,22 @@ def release_direction_score(df: pd.DataFrame, a: np.ndarray, atr: np.ndarray, lo
     Positif = sortie haussière. C'est le « breakout » après absorption, observé APRÈS coup (pas anticipé)."""
     prev = pd.Series(a).shift(1).rolling(lookback).max().to_numpy(); move = (df["close"].to_numpy(float) - df["open"].to_numpy(float)) / atr
     return np.clip(np.sign(move) * _ramp(np.abs(move), thr, hi) * prev, -1.0, 1.0)
+
+
+def micro_price(bid, ask, bid_sz, ask_sz) -> np.ndarray:
+    """Micro-prix P = Pb x Va/(Vb+Va) + Pa x Vb/(Vb+Va) : tiré vers le côté le plus mince du carnet. Exige de VRAIES tailles ; NaN si la somme des tailles est nulle (rien n'est inventé)."""
+    pb, pa, vb, va = (np.asarray(x, float) for x in (bid, ask, bid_sz, ask_sz)); tot = vb + va
+    return np.where(tot > 0, (pb * va + pa * vb) / np.where(tot > 0, tot, 1.0), np.nan)
+
+
+def aggression_ratio(bid, ask, window: int = 10) -> np.ndarray:
+    """PROXY de toxicité de flux (VPIN simplifié) dans [0, 1] : sur les `window` derniers ticks, |achats agressifs - ventes agressives| / total, classés par la règle du tick
+    (mouvement du milieu de cotation). Sans ruban de transactions réel, ce n'est PAS un VPIN ; sert de garde-fou grossier."""
+    m = (np.asarray(bid, float) + np.asarray(ask, float)) / 2.0; d = np.sign(np.diff(m, prepend=m[0]))
+    b = pd.Series((d > 0).astype(float)).rolling(window).sum(); s = pd.Series((d < 0).astype(float)).rolling(window).sum()
+    return ((b - s).abs() / (b + s).replace(0, np.nan)).fillna(0.0).to_numpy()
+
+
+def toxicity_pause(ratio: float, threshold: float = 0.8, softness: float = 0.1) -> float:
+    """Facteur continu dans [0, 1] à multiplier à la taille : 1 sous le seuil, décroît vers 0 au-dessus (rampe de largeur `softness`), pas de coupure binaire."""
+    return float(np.clip(1.0 - (ratio - threshold) / softness, 0.0, 1.0))

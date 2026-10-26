@@ -41,6 +41,9 @@ le produit ne génère aucune donnée de remplacement (le CLI exige une source e
 - Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 106.
 Les rapports sont dans `reports/` (JSON + logs) et l'interface locale les affiche.
 
+## Audit
+Voir `docs/AUDIT_2026-10-26.md` (défauts corrigés, demandes impossibles et pourquoi) et `docs/prompts/chatgpt_finalisation.md` (tâches PC).
+
 ## Arborescence
 ```
 quantbot/

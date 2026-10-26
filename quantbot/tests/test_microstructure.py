@@ -45,3 +45,23 @@ def test_stop_hunt_events_causal_post_sweep_only():
     for e in full:
         px = df.close[e.ts]; assert abs(e.target - px) / abs(px - e.stop) == pytest.approx(3.0) and 0.5 <= e.meta["S"] <= 1.0 and 7 <= e.ts.hour < 17
     lv = sh.pool_score(np.array([2000.0, 2000.1, 2000.05, 2010.0]), 1.0, sh.PARAMS); assert lv[0] > 0 and abs(lv[1] - 2000.05) < 0.1
+
+
+def test_micro_price_pulls_toward_thin_side_and_never_invents_without_sizes():
+    mp = of.micro_price([100.0, 100.0, 100.0], [101.0, 101.0, 101.0], [1.0, 9.0, 0.0], [9.0, 1.0, 0.0])
+    assert mp[0] < 100.5 < mp[1] and abs(mp[0] - 100.1) < 1e-9 and np.isnan(mp[2])     # tailles bid fines -> micro-prix vers le bid ; rien sans tailles
+
+
+def test_toxicity_proxy_and_continuous_pause_factor():
+    one_way = np.cumsum(np.ones(40)) + 100; mixed = 100 + np.cumsum(np.tile([1.0, -1.0], 20))
+    assert of.aggression_ratio(one_way, one_way + .1)[-1] == 1.0 and of.aggression_ratio(mixed, mixed + .1)[-1] < 0.2
+    f = [of.toxicity_pause(r) for r in (0.5, 0.8, 0.85, 0.9, 1.0)]; assert f[0] == 1.0 and f == sorted(f, reverse=True) and f[-1] == 0.0 and 0 < f[2] < 1
+
+
+def test_live_store_manifest_append_is_not_quadratic_and_chain_stays_valid(tmp_path):
+    import time
+    from quantbot.data.live_store import LiveBarStore
+    st = LiveBarStore(tmp_path); t0 = time.time()
+    for i in range(3000):
+        st._log({"kind": "x", "i": i})
+    assert st.verify() and time.time() - t0 < 5.0

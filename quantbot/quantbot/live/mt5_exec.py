@@ -6,6 +6,8 @@ réponse ambiguë => état INCONNU + coupe-circuit + AUCUN renvoi ; compte non d
 """
 from __future__ import annotations
 
+import time
+
 import math
 import os
 from typing import Any, Optional
@@ -118,6 +120,15 @@ class HardenedMT5Broker(Broker):
             raise ExecutionError(f"Taille {lots} lot < volume minimum ({info.volume_min} lot)")
         return lots
 
+    def _audit(self, iid: str, kind: str, side: str, lots: float, expected: float, res: Any, t0: float, t1: float) -> None:
+        """Latence (ms) et glissement de CHAQUE envoi dans le journal append-only ; un échec d'écriture ne bloque jamais l'ordre déjà parti mais est consigné."""
+        try:
+            price = float(getattr(res, "price", 0.0) or 0.0) if res is not None else 0.0
+            sign = side if kind == "open" else ("short" if side == "long" else "long")             # une clôture d'un long se vend : glissement mesuré côté vente
+            self.state.record_execution(iid, kind, self.symbol, sign, lots, expected, price or None, t0, t1, getattr(res, "retcode", None), getattr(res, "order", None) or None)
+        except Exception as exc:
+            self.state.log("ERROR", "audit_execution", f"{type(exc).__name__}: {exc}")
+
     def _find(self, comment: str) -> Optional[Any]:
         for p in self._positions():
             if p.magic == self.cfg.mt5_magic and getattr(p, "comment", "") == comment:
@@ -165,7 +176,8 @@ class HardenedMT5Broker(Broker):
                 self.state.mark(iid, "REFUSED", f"order_check: {getattr(chk, 'retcode', None)} {getattr(chk, 'comment', '')}")
                 raise ExecutionError(f"order_check refusé : {getattr(chk, 'retcode', None)}")
             self.state.mark(iid, "SENT", f"tentative {attempt}")
-            res = m.order_send(req)
+            t0 = time.perf_counter(); res = m.order_send(req); t1 = time.perf_counter()
+            self._audit(iid, "open", plan.side, lots, float(req["price"]), res, t0, t1)
             if res is None or res.retcode in ambiguous:
                 self._ambiguous(iid, "réponse absente/ambiguë à l'envoi")
                 found = self._find(comment)  # le serveur a peut-être exécuté : on le vérifie, on ne renvoie JAMAIS
@@ -245,7 +257,8 @@ class HardenedMT5Broker(Broker):
             self.state.mark(iid, "REFUSED", f"order_check: {getattr(chk, 'retcode', None)}")
             raise ExecutionError(f"Clôture refusée par order_check : {getattr(chk, 'retcode', None)}")
         self.state.mark(iid, "SENT")
-        res = m.order_send(req)
+        t0 = time.perf_counter(); res = m.order_send(req); t1 = time.perf_counter()
+        self._audit(iid, "close", "long" if long else "short", float(req["volume"]), float(req["price"]), res, t0, t1)
         if res is None or res.retcode in ambiguous:
             self._ambiguous(iid, "réponse ambiguë à la clôture")
             if not any(int(p.ticket) == self._ticket for p in self._positions()):

@@ -215,3 +215,25 @@ def test_partial_fill_adopts_real_volume_and_keeps_kill_switch(tmp_path):
 def test_login_is_masked_in_logs(tmp_path):
     b, m, st, k = make(tmp_path)
     assert "1234" not in " ".join(str(e) for e in st.recent_events(10))
+
+
+def test_every_send_is_audited_with_latency_and_slippage_in_an_append_only_journal(tmp_path):
+    import sqlite3
+    b, m, st, k = make(tmp_path)
+    b.open_position(PLAN, 2000.0, TS)
+    rows = st.executions()
+    assert len(rows) == 1 and rows[0]["kind"] == "open" and rows[0]["latency_ms"] >= 0 and rows[0]["symbol"] == "XAUUSD" and rows[0]["intent_id"] == m.sent[0]["comment"][3:]
+    assert rows[0]["slippage"] is not None                                  # fill - attendu, signé côté achat
+    with pytest.raises(sqlite3.DatabaseError, match="append-only"):
+        st.db.execute("UPDATE executions SET slippage = 0")
+    with pytest.raises(sqlite3.DatabaseError, match="append-only"):
+        st.db.execute("DELETE FROM executions")
+
+
+def test_slippage_sign_is_adverse_positive_for_both_sides():
+    st = StateStore()
+    st.record_execution("a", "open", "XAUUSD", "long", 1.0, 2000.0, 2000.2, 0.0, 0.01)       # achat rempli plus haut = défavorable
+    st.record_execution("b", "open", "XAUUSD", "short", 1.0, 2000.0, 1999.8, 0.0, 0.01)      # vente remplie plus bas = défavorable
+    st.record_execution("c", "open", "XAUUSD", "long", 1.0, 2000.0, 1999.9, 0.0, 0.01)       # amélioration de prix = négatif
+    by = {r["intent_id"]: r["slippage"] for r in st.executions()}
+    assert by["a"] == pytest.approx(0.2) and by["b"] == pytest.approx(0.2) and by["c"] == pytest.approx(-0.1)
