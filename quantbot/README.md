@@ -43,6 +43,7 @@ le produit ne génère aucune donnée de remplacement (le CLI exige une source e
 Les rapports sont dans `reports/` (JSON + logs) et l'interface locale les affiche.
 
 ## Audit
+Audit de performance sur les journaux réels : `python scripts/audit_performance.py` (espérance, facteur de profit, réussite vs seuil d'équilibre, Sharpe/Sortino par trade, drawdown, latence/glissement, ticks ; chaque condition de passage est OK / ÉCHEC / NON MESURÉ).
 Voir `docs/AUDIT_2026-10-26.md` (défauts corrigés, demandes impossibles et pourquoi) et `docs/prompts/chatgpt_finalisation.md` (tâches PC).
 
 ## Arborescence
