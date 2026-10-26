@@ -38,7 +38,8 @@ le produit ne génère aucune donnée de remplacement (le CLI exige une source e
 - `gold_winrate_v1b` (9 variantes à cible rapprochée / stop éloigné sur l'or) : 9 FAIL ; des taux de réussite de 62-63 % existent mais avec un R:R réalisé de 0,5 (seuil d'équilibre 66-67 %) donc perdants. Meilleur : +0,05 R. (`gold_winrate_v1` invalide : réglage min_reward_risk, 0 trade.)
 - `apex_pullback_v1` (APEX PULLBACK ALPHA : score de similarité S >= 0,75, taille continue, stop 1,5 ATR, cible 2,6 R, or M15) : FAIL, +0,024 R (achats +0,08 R, ventes -0,05 R : bêta de l'or).
 - `stop_hunt_v1` (balayage de réservoir de liquidité + retour, or M15) : FAIL, +0,06 R (achats +0,13 R, ventes -0,03 R : bêta de l'or). Lead-lag EURUSD->or mesuré (sans essai) : corrélation simultanée 0,32, à un lag de 15 min 0,007 : aucune avance exploitable.
-- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 106.
+- `apex_levels_v1` (APEX pondéré par la proximité aux chiffres ronds et aux nœuds de volume, proxy qui n'est PAS un GEX) : FAIL, +0,016 R.
+- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 107.
 Les rapports sont dans `reports/` (JSON + logs) et l'interface locale les affiche.
 
 ## Audit
