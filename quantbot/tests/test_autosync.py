@@ -53,3 +53,22 @@ def test_mt5_absent_is_reported(tmp_path, monkeypatch):
     import sys; monkeypatch.setitem(sys.modules, "MetaTrader5", None)
     from quantbot.data.autosync import sync_mt5, DEFAULTS
     assert sync_mt5(tmp_path, DEFAULTS["mt5"])["status"] == "indisponible"
+
+
+class _Lvl:
+    def __init__(self, t, price, volume): self.type, self.price, self.volume = t, price, volume
+
+
+class FakeBookMT5:
+    BOOK_TYPE_SELL, BOOK_TYPE_BUY = 1, 2
+    def __init__(self, ok=True): self.ok = ok
+    def market_book_add(self, s): return self.ok
+    def market_book_get(self, s): return [_Lvl(2, 2399.9 - i * .1, 10 + i) for i in range(7)] + [_Lvl(1, 2400.1 + i * .1, 5 + i) for i in range(7)] if self.ok else None
+
+
+def test_depth_sampler_records_real_book_levels_or_reports_unavailable(tmp_path):
+    from quantbot.data.autosync import sample_depth
+    assert sample_depth(FakeBookMT5(), tmp_path, "XAUUSD", 5, now=1_700_000_000.0)["status"] == "ok"
+    f = next((tmp_path / "data" / "live" / "depth").glob("XAUUSD_*.jsonl")); rec = json.loads(f.read_text().splitlines()[0])
+    assert len(rec["bids"]) == 5 and len(rec["asks"]) == 5 and rec["bids"][0][0] > rec["bids"][1][0] and rec["asks"][0][0] < rec["asks"][1][0]
+    t2 = tmp_path / "x"; assert sample_depth(FakeBookMT5(ok=False), t2, "XAUUSD")["status"] == "carnet_indisponible" and not (t2 / "data").exists()
