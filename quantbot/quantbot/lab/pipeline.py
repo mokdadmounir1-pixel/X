@@ -26,6 +26,9 @@ def spec_hash(settings: Settings, gate_cfg: GateCfg = GateCfg(), extra: Any = No
     d = {k: v for k, v in settings.to_dict().items() if k not in _SPEC_EXCLUDE}
     if not d.get("active_risk", {}).get("enabled", False):
         d.pop("active_risk", None)      # désactivé (défaut) : l'identité des essais passés reste inchangée
+    for k, v in (("max_spread_frac", 0.0), ("score_sizing_floor", 0.0), ("score_min_mult", 0.25)):
+        if d.get("risk", {}).get(k, v) == v:
+            d["risk"].pop(k, None)          # pare-feu de spread / dimensionnement par score à leur valeur par défaut : identité des essais passés inchangée
     body = {"spec": d, "gates": gate_cfg.to_dict()}
     if extra is not None:
         body["extra"] = extra

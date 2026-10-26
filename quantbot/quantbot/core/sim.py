@@ -192,7 +192,8 @@ class TradingEngine:
                         cap = mcap if cap is None else min(cap, mcap)
                     ex = s.execution
                     cost_frac = ex.spread + 2.0 * (ex.fee_rate + ex.slippage)
-                    self.pending = self.risk.build_plan(signal, self.broker.equity(c), max_risk=cap, cost_frac=cost_frac)
+                    sp_now = float(df["spread"].iloc[-1]) / c if "spread" in df.columns and c > 0 else None
+                    self.pending = self.risk.build_plan(signal, self.broker.equity(c), max_risk=cap, cost_frac=cost_frac, spread_frac_now=sp_now if sp_now and sp_now > 0 else None)
                     if self.pending is None:
                         self._reject(self.risk.last_rejection or "plan")
 

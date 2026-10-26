@@ -115,7 +115,21 @@ def test_spec_hash_of_old_specs_is_unchanged_when_the_guard_is_disabled():
     from quantbot.lab.pipeline import spec_hash
     s = Settings()
     d = s.to_dict(); d.pop("active_risk")
+    for k in ("max_spread_frac", "score_sizing_floor", "score_min_mult"):
+        d["risk"].pop(k)                                   # absents de l'identité tant qu'ils sont à leur défaut : les essais passés gardent leur hachage
     from quantbot.lab.registry import canonical_hash
     from quantbot.lab.gates import GateCfg
     d = {k: v for k, v in d.items() if k not in ("logging", "ai", "validation")}
     assert spec_hash(s) == canonical_hash({"spec": d, "gates": GateCfg().to_dict()})
+
+
+def test_score_sizing_and_spread_firewall_are_continuous_opt_in_and_keep_old_hashes():
+    from quantbot.config import Settings
+    from quantbot.lab.pipeline import spec_hash
+    from quantbot.risk.manager import score_multiplier
+    assert score_multiplier(0.95, 0.0, 0.25) == 1.0                                     # désactivé
+    m = [score_multiplier(c, 0.6, 0.25) for c in (0.5, 0.75, 0.95, 1.0)]
+    assert m == sorted(m) and m[0] == 0.25 and m[-1] == 1.0 and 0.25 < m[1] < m[2] < 1.0   # croissant et continu : 75 % != 95 %
+    base = Settings.from_dict({})
+    assert spec_hash(base) == spec_hash(Settings.from_dict({"risk": {"max_spread_frac": 0.0, "score_sizing_floor": 0.0}}))
+    assert spec_hash(base) != spec_hash(Settings.from_dict({"risk": {"max_spread_frac": 0.001}}))
