@@ -31,7 +31,7 @@ def objective(root: Path) -> dict:
     return {"target_r_per_day": float(o.get("target_r_per_day", 0.33)), "note": o.get("note", ""), "beta_flags": o.get("beta_flags", {}), "target_monthly_net": float(o.get("target_monthly_net", 0.02)), "risk_per_trade": float(risk)}
 
 
-SPEC_FILES = ["inst_strategies_v1", "smc_v1b", "gold_quant_v1", "gold_winrate_v1"]      # specs préenregistrées dont les stratégies sont rejouables
+SPEC_FILES = ["inst_strategies_v1", "smc_v1b", "gold_quant_v1", "gold_winrate_v1b"]      # specs préenregistrées dont les stratégies sont rejouables
 
 
 def spec_for(strategy: str, root: Path) -> Optional[dict]:
