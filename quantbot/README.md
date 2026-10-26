@@ -33,7 +33,8 @@ le produit ne génère aucune donnée de remplacement (le CLI exige une source e
 - `pairs_v1` (stat-arb BTC/ETH) : écrit et préenregistré, **pas encore exécuté** (données Coinbase à récupérer ; le terminal les synchronise désormais seul).
 - `gold_quant_v1` (5 stratégies de scalping sur l'or, M15, 07-17 UTC : balayage de liquidité, cassure d'Asie, repli EMA, compression, retour à la moyenne) : 5 FAIL ; la seule positive (repli EMA, +0,026 R) est un profil de bêta haussier.
 - `portfolio_v1` (les 22 combinaisons stratégie x instrument combinées, poids causaux, ciblage de volatilité) : 2 FAIL, R/jour -0,04 et -0,03 ; corrélations ~0 mais aucune espérance à diversifier.
-- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 86.
+- `gold_winrate_v1b` (9 variantes à cible rapprochée / stop éloigné sur l'or) : 9 FAIL ; des taux de réussite de 62-63 % existent mais avec un R:R réalisé de 0,5 (seuil d'équilibre 66-67 %) donc perdants. Meilleur : +0,05 R. (`gold_winrate_v1` invalide : réglage min_reward_risk, 0 trade.)
+- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 104.
 Les rapports sont dans `reports/` (JSON + logs) et l'interface locale les affiche.
 
 ## Arborescence
