@@ -13,8 +13,8 @@ def events_for(name: str, scfg: dict, df: pd.DataFrame) -> list:
         return vwap.events(df, scfg["params"])
     if name == "orb":
         return orb.events(df, scfg["params"])
-    if name in goldq.GENERATORS:
-        return goldq.events(df, name, scfg.get("params"))
+    if name.split("__")[0] in goldq.GENERATORS:          # « gq_zrev__s2 » = variante de paramètres de gq_zrev (spec)
+        return goldq.events(df, name.split("__")[0], scfg.get("params"))
     if name.startswith("smc"):
         return smc.events(df, scfg["rule"], scfg["params"])
     return fvg.events(df, scfg["rule"], scfg["params"])
@@ -27,4 +27,6 @@ STRATEGY_CODES = {"amd": "AMD_PO3_M15", "vwap": "VWAP_BAND_M15", "orb": "ORB_15M
 
 
 def strategy_code(strategy_id: str) -> str:
-    return STRATEGY_CODES.get(strategy_id, strategy_id.upper())
+    base, _, variant = strategy_id.partition("__")
+    code = STRATEGY_CODES.get(base, base.upper())
+    return f"{code}_{variant.upper()}" if variant and base in STRATEGY_CODES and strategy_id not in STRATEGY_CODES else STRATEGY_CODES.get(strategy_id, code)

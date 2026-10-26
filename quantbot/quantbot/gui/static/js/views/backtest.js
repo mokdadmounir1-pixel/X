@@ -43,7 +43,7 @@ export function mount(root, ctx) {
     const eqHost = h("div", { style: { height: "190px" } }), dayHost = h("div", { style: { height: "190px" } });
     clear(out).append(
       h("div", { class: "metrics" }, metric("Trades", String(m.n_trades), "", `${R.label} · ${R.instrument}`), metric("Espérance / trade", sgn(m.expectancy_R, 3) + " R", pnlClass(m.expectancy_R), "R nominal"),
-        metric("Profit factor", isNum(m.profit_factor) ? m.profit_factor.toFixed(2) : "—", isNum(m.profit_factor) && m.profit_factor > 1 ? "up" : "dn", `gagnants ${pct(m.win_rate, 0)}`),
+        metric("Profit factor", isNum(m.profit_factor) ? m.profit_factor.toFixed(2) : "—", isNum(m.profit_factor) && m.profit_factor > 1 ? "up" : "dn", `gagnants ${pct(m.win_rate, 0)}` + (isNum(m.realised_rr) ? ` · R:R réalisé ${m.realised_rr.toFixed(2)} → seuil ${pct(1 / (1 + m.realised_rr), 0)}` : "")),
         metric("R / jour ouvré", sgn(d.avg_R_per_day, 3), d.avg_R_per_day >= d.target ? "up" : "dn", `objectif ${num(d.target, 2)} · ${pct(d.days_ge_target_pct, 0)} des jours`), metric("Drawdown max", pct(m.max_drawdown, 1), "dn", "capital simulé"),
         metric("Fenêtre", `${R.start.slice(0, 10)}`, "", `→ ${R.end.slice(0, 10)} · ${R.n_bars} barres · achat/conservation ${pct(R.buy_hold_return, 1)}`)),
       h("div", { class: "hint", text: "Une fenêtre courte ne prouve rien. Ce rejeu sert à LIRE les trades ; le jugement vient des portes de validation (onglet Recherche) et de l'échantillon futur." }),

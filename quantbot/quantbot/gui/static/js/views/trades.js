@@ -46,7 +46,7 @@ export function mount(root, ctx) {
     clear(metrics).append(
       metric("PnL total (session)", sgn(m.pnl_total, 2), pnlClass(m.pnl_total), `réalisé ${sgn(m.pnl_realized, 2)} · latent ${sgn(m.pnl_unrealized, 2)} · ${sgn(m.r_total, 2)} R`),
       metric("Drawdown en cours", m.drawdown_money > 0 ? "−" + num(m.drawdown_money, 2) : "0.00", m.drawdown_money > 0 ? "dn" : "mute", pct(m.drawdown_pct, 2) + " du capital simulé " + num(cap, 0)),
-      metric("Winrate global", m.win_rate == null ? "—" : pct(m.win_rate, 1), m.win_rate == null ? "mute" : m.win_rate >= 0.5 ? "up" : "amb", `${m.n_closed} trades clos`),
+      metric("Winrate global", m.win_rate == null ? "—" : pct(m.win_rate, 1), m.win_rate == null ? "mute" : m.wr_edge == null ? "amb" : m.wr_edge > 0 ? "up" : "dn", m.breakeven_wr == null ? `${m.n_closed} trades clos` : `seuil d'équilibre ${pct(m.breakeven_wr, 0)} (R:R réalisé ${m.realised_rr.toFixed(2)}) · ${m.n_closed} clos`),
       metric("Sharpe (annualisé)", m.sharpe == null ? "n/a" : m.sharpe.toFixed(2), m.sharpe == null ? "mute" : pnlClass(m.sharpe), m.sharpe == null ? `${m.sharpe_days} j ouvrés < 20 : non significatif` : `${m.sharpe_days} jours ouvrés`),
       metric("Positions ouvertes", String(m.n_open), m.n_open ? "acc" : "mute", "en simulation PAPER"),
       metric("R moyen / trade", m.avg_r == null ? "—" : sgn(m.avg_r, 3), pnlClass(m.avg_r), "R nominal"));
@@ -64,11 +64,11 @@ export function mount(root, ctx) {
   }
   function paintAttribution() {
     const rows = book.by_strategy, maxAbs = Math.max(1e-9, ...rows.map((r) => Math.abs(r.pnl)));
-    clear(attr).append(h("table", { class: "plain" }, h("thead", null, h("tr", null, ...["Stratégie", "N", "Win%", "R", "PnL", ""].map((x, i) => h("th", { class: i && i < 5 ? "r" : "", text: x })))),
+    clear(attr).append(h("table", { class: "plain" }, h("thead", null, h("tr", null, ...["Stratégie", "N", "Win%", "Seuil%", "R", "PnL", ""].map((x, i) => h("th", { class: i && i < 6 ? "r" : "", text: x })))),
       h("tbody", null, rows.length ? rows.map((r, i) => h("tr", { style: { cursor: "pointer" }, onclick: () => { F.strategies.clear(); F.strategies.add(r.strategy_code); apply(); } },
-        h("td", null, h("span", { style: { color: PALETTE[i % PALETTE.length] }, text: "■ " }), r.strategy_code), h("td", { class: "r", text: String(r.n + r.open) }), h("td", { class: "r", text: r.win_rate == null ? "—" : pct(r.win_rate, 0) }),
+        h("td", null, h("span", { style: { color: PALETTE[i % PALETTE.length] }, text: "■ " }), r.strategy_code), h("td", { class: "r", text: String(r.n + r.open) }), h("td", { class: "r", text: r.win_rate == null ? "—" : pct(r.win_rate, 0) }), h("td", { class: "r " + (r.wr_edge == null ? "dim" : r.wr_edge > 0 ? "up" : "dn"), title: "Taux de réussite d'équilibre = 1/(1+R:R réalisé)", text: r.breakeven_wr == null ? "—" : pct(r.breakeven_wr, 0) }),
         h("td", { class: "r " + pnlClass(r.r), text: sgn(r.r, 2) }), h("td", { class: "r " + pnlClass(r.pnl), text: sgn(r.pnl, 0) }),
-        h("td", { style: { width: "60px" } }, h("div", { class: "gauge " + (r.pnl >= 0 ? "good" : "bad") }, h("i", { style: { width: Math.round(Math.abs(r.pnl) / maxAbs * 100) + "%" } }))))) : [h("tr", null, h("td", { colspan: 6, class: "dim", text: "Aucune attribution tant qu'aucun trade n'existe." }))])));
+        h("td", { style: { width: "60px" } }, h("div", { class: "gauge " + (r.pnl >= 0 ? "good" : "bad") }, h("i", { style: { width: Math.round(Math.abs(r.pnl) / maxAbs * 100) + "%" } }))))) : [h("tr", null, h("td", { colspan: 7, class: "dim", text: "Aucune attribution tant qu'aucun trade n'existe." }))])));
   }
   function paintCum() {
     if (!window.LightweightCharts) return;

@@ -118,6 +118,17 @@ def build_book(root: Path, period: str = "all", now: Optional[float] = None) -> 
             "note": "PnL latent = dernière clôture publiée. Heures d'entrée/sortie = barres ; « enregistré » = horloge du programme (ms). Trades PAPER : exécutions simulées."}
 
 
+def win_profile(rs) -> dict:
+    """Taux de réussite lu AVEC son contexte : R:R réalisé (gain moyen / perte moyenne) et taux d'équilibre 1/(1+R:R). Un taux élevé avec un R:R faible ne prouve rien."""
+    rs = [float(x) for x in rs if x is not None]
+    wins, losses = [x for x in rs if x > 0], [x for x in rs if x <= 0]
+    out = {"avg_win_r": float(np.mean(wins)) if wins else None, "avg_loss_r": float(np.mean(losses)) if losses else None, "realised_rr": None, "breakeven_wr": None, "wr_edge": None}
+    if wins and losses and np.mean(losses) < 0:
+        rr = float(np.mean(wins) / -np.mean(losses)); out["realised_rr"] = rr; out["breakeven_wr"] = 1.0 / (1.0 + rr)
+        out["wr_edge"] = len(wins) / len(rs) - out["breakeven_wr"]
+    return out
+
+
 def metrics(rows: list, n_runners: int) -> dict:
     closed = [r for r in rows if not r["open"] and r["pnl"] is not None]
     openr = [r for r in rows if r["open"]]
@@ -132,7 +143,7 @@ def metrics(rows: list, n_runners: int) -> dict:
     out = {"n_closed": len(closed), "n_open": len(openr), "pnl_realized": realized, "pnl_unrealized": unreal, "pnl_total": realized + unreal, "r_total": float(sum(rs)),
            "drawdown_money": dd_money, "drawdown_pct": dd_money / cap if cap else 0.0, "capital": cap, "win_rate": (sum(1 for r in closed if r["pnl"] > 0) / len(closed)) if closed else None,
            "avg_r": float(np.mean(rs)) if rs else None, "sharpe": None, "sharpe_days": 0,
-           "sharpe_note": "Sharpe annualisé sur les PnL journaliers (jours ouvrés, jours sans trade = 0) ; non affiché sous 20 jours."}
+           **win_profile(rs), "sharpe_note": "Sharpe annualisé sur les PnL journaliers (jours ouvrés, jours sans trade = 0) ; non affiché sous 20 jours."}
     if closed:
         d = pd.Series([r["pnl"] for r in closed], index=pd.to_datetime([str(r["exit_time"])[:10] for r in closed])).groupby(level=0).sum()
         days = pd.bdate_range(d.index.min(), d.index.max())
@@ -146,15 +157,16 @@ def metrics(rows: list, n_runners: int) -> dict:
 def by_strategy(rows: list) -> list:
     g: dict = {}
     for r in rows:
-        a = g.setdefault(r["strategy_code"], {"strategy_code": r["strategy_code"], "n": 0, "open": 0, "wins": 0, "r": 0.0, "pnl": 0.0})
+        a = g.setdefault(r["strategy_code"], {"strategy_code": r["strategy_code"], "n": 0, "open": 0, "wins": 0, "r": 0.0, "pnl": 0.0, "_rs": []})
         if r["open"]:
             a["open"] += 1; a["pnl"] += r["pnl"] or 0.0
         elif r["pnl"] is not None:
-            a["n"] += 1; a["wins"] += int(r["pnl"] > 0); a["r"] += r["r"] or 0.0; a["pnl"] += r["pnl"]
+            a["n"] += 1; a["wins"] += int(r["pnl"] > 0); a["r"] += r["r"] or 0.0; a["pnl"] += r["pnl"]; a["_rs"].append(r["r"])
     out = []
     for a in g.values():
         a["win_rate"] = a["wins"] / a["n"] if a["n"] else None
         a["avg_r"] = a["r"] / a["n"] if a["n"] else None
+        a.update(win_profile(a.pop("_rs")))
         out.append(a)
     return sorted(out, key=lambda a: -a["pnl"])
 

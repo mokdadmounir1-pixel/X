@@ -31,7 +31,7 @@ def objective(root: Path) -> dict:
     return {"target_r_per_day": float(o.get("target_r_per_day", 0.33)), "note": o.get("note", ""), "beta_flags": o.get("beta_flags", {}), "target_monthly_net": float(o.get("target_monthly_net", 0.02)), "risk_per_trade": float(risk)}
 
 
-SPEC_FILES = ["inst_strategies_v1", "smc_v1b", "gold_quant_v1"]      # specs préenregistrées dont les stratégies sont rejouables
+SPEC_FILES = ["inst_strategies_v1", "smc_v1b", "gold_quant_v1", "gold_winrate_v1"]      # specs préenregistrées dont les stratégies sont rejouables
 
 
 def spec_for(strategy: str, root: Path) -> Optional[dict]:
@@ -132,7 +132,7 @@ def run_strategy_replay(instrument: str, bars: int, strategy: str, segment: str 
         "instrument": instrument, "strategy": strategy, "label": label, "segment": segment, "start": str(seg.index[0]), "end": str(seg.index[-1]), "n_bars": len(seg),
         "metrics": {"n_trades": int(len(r)), "expectancy_R": float(r.mean()) if len(r) else None,
                     "profit_factor": float(r[r > 0].sum() / -r[r < 0].sum()) if (r < 0).any() and (r > 0).any() else None,
-                    "win_rate": float((r > 0).mean()) if len(r) else None, "worst_R": float(r.min()) if len(r) else None, "best_R": float(r.max()) if len(r) else None,
+                    "win_rate": float((r > 0).mean()) if len(r) else None, "realised_rr": (float(r[r > 0].mean() / -r[r <= 0].mean()) if (r > 0).any() and (r <= 0).any() and r[r <= 0].mean() < 0 else None), "worst_R": float(r.min()) if len(r) else None, "best_R": float(r.max()) if len(r) else None,
                     "max_drawdown": float(res.metrics.get("max_drawdown", 0.0)), "total_return": float(res.metrics.get("total_return", 0.0))},
         "daily": daily, "reasons": {k: {"n": v["n"], "mean_R": v["sumR"] / v["n"], "win_rate": v["wins"] / v["n"]} for k, v in sorted(reasons.items())},
         "bars": {"t": t_epoch, "o": [round(float(x), 5) for x in seg["open"]], "h": [round(float(x), 5) for x in seg["high"]],
