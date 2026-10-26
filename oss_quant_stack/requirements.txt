@@ -1,0 +1,5 @@
+# Environnement principal (Python 3.12+ ; versions installées et essayées le 2026-10-26)
+vectorbt==1.2.0
+hftbacktest==2.4.2
+nautilus_trader==1.231.0
+pytest>=7

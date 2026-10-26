@@ -1,0 +1,3 @@
+# TensorTrade impose pandas<3.0 et TensorFlow : environnement SÉPARÉ (python -m venv .venv-tensortrade). NON installé ni testé ici.
+tensortrade==1.0.4
+pandas>=2.2.3,<3.0
