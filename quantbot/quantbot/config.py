@@ -274,8 +274,6 @@ class AIConfig(_Section):
     veto_enabled: bool = False
     claude_model: str = "claude-sonnet-5-5"
     chatgpt_model: str = "gpt-4o"
-    hermes_model: str = "hermes3"
-    hermes_url: str = "http://127.0.0.1:11434"        # serveur local Ollama-compatible ; toute adresse non locale est refusée
     timeout_s: float = 30.0
 
     def validate(self) -> None:

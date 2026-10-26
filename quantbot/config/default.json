@@ -107,8 +107,6 @@
     "veto_enabled": false,
     "claude_model": "claude-sonnet-5-5",
     "chatgpt_model": "gpt-4o",
-    "hermes_model": "hermes3",
-    "hermes_url": "http://127.0.0.1:11434",
     "timeout_s": 30.0
   },
   "logging": {

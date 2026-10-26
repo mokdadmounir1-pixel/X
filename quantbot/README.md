@@ -80,4 +80,4 @@ python -m quantbot ui                                    # interface locale (lec
 python -m quantbot audit-data --mt5-csv data/real/EURUSD_M15.csv
 python scripts/run_strategies.py specs/inst_strategies_v1.json
 ```
-IA (optionnelle, non branchée) : exclusivement Claude (`ANTHROPIC_API_KEY`), ChatGPT (`OPENAI_API_KEY`) et Hermes (modèle LOCAL via un serveur Ollama-compatible sur 127.0.0.1, sans clé).
+IA (optionnelle, non branchée) : exclusivement Claude (`ANTHROPIC_API_KEY`) et ChatGPT (`OPENAI_API_KEY`). Hermes est supprimé : son rôle (routage d'automatisation) est tenu par Claude ; l'exécution locale sur le PC est faite par ChatGPT via le protocole de liaison.
