@@ -50,6 +50,7 @@ class EventSignalEngine:
         frac = self.settings.signals.atr_floor_frac
         if frac > 0 and np.isfinite(a).any():
             atr = max(atr, frac * float(np.nanmedian(a[-200:])))
-        m = PatternMatch(ev.name or "event", "event", ev.direction, 0.9, 0, 1, True, ev.meta)
-        return Signal(ev.direction, 0.9, float(window["close"].iloc[-1]), atr, window.index[-1], [m],
+        conf = float(ev.meta.get("confidence", 0.9))        # score de similarité de la stratégie (0,9 par défaut : stratégies à règles figées)
+        m = PatternMatch(ev.name or "event", "event", ev.direction, conf, 0, 1, True, ev.meta)
+        return Signal(ev.direction, conf, float(window["close"].iloc[-1]), atr, window.index[-1], [m],
                       [ev.name], stop_price=ev.stop, take_profit_price=ev.target)

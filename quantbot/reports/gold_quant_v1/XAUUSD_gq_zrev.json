@@ -18,7 +18,7 @@
  "evaluation": {
   "verdict": "FAIL",
   "reason": "\u00e9choue : expectancy,profit_factor,null_test,costs_x2,monte_carlo_p5,top3_share,risk_envelope,deflated_sharpe | \u00e9liminatoire(s) : null_test,costs_x2,monte_carlo_p5,risk_envelope,deflated_sharpe",
-  "n_trials": 84,
+  "n_trials": 104,
   "spec_hash": "5f14d261549644d8679b08f83082906c717c92bc997916140b921a1a4487a406",
   "data_hash": "a4dd3476e40a365f0e8ed0d6d075aa641da35b4489127d4b4a05f521030fd224",
   "metrics": {
@@ -57,8 +57,8 @@
    {
     "name": "null_test",
     "ok": false,
-    "value": 0.565,
-    "threshold": 0.00125,
+    "value": 0.55951,
+    "threshold": 0.00101,
     "eliminatory": true
    },
    {
@@ -111,7 +111,7 @@
    {
     "name": "deflated_sharpe",
     "ok": false,
-    "value": 0.0047,
+    "value": 0.0063,
     "threshold": 0.5,
     "eliminatory": true
    }

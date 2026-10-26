@@ -28,6 +28,13 @@ class TradePlan:
     nominal_risk: float = 0.0  # risque VISÉ (equity x risk_per_trade) : unité stable du R, même si la taille est plafonnée
 
 
+def score_multiplier(confidence: float, floor: float, min_mult: float) -> float:
+    """Multiplicateur CONTINU de taille selon la force du setup (0 = désactivé -> 1). confiance <= plancher -> min_mult ; confiance = 1 -> 1."""
+    if floor <= 0:
+        return 1.0
+    return float(min(1.0, max(min_mult, (confidence - floor) / (1.0 - floor))))
+
+
 def historical_var(returns: np.ndarray, confidence: float = 0.95) -> float:
     """VaR historique (perte positive) ; 0 si pas de données."""
     r = np.asarray(returns, dtype=float)
@@ -74,7 +81,7 @@ class RiskManager:
         return None
 
     def build_plan(self, signal: Signal, equity: float, entry: Optional[float] = None,
-                   max_risk: Optional[float] = None, cost_frac: float = 0.0) -> Optional[TradePlan]:
+                   max_risk: Optional[float] = None, cost_frac: float = 0.0, spread_frac_now: Optional[float] = None) -> Optional[TradePlan]:
         self.last_rejection = None
         c = self.cfg
         if not np.isfinite(signal.atr) or signal.atr <= 0:
@@ -98,6 +105,8 @@ class RiskManager:
             return self._reject("stop_negatif")
         if c.max_cost_r > 0 and cost_frac * entry / dist > c.max_cost_r:
             return self._reject("cout_trop_eleve")  # le spread/commission mangerait trop du risque : pas de trade
+        if c.max_spread_frac > 0 and spread_frac_now is not None and spread_frac_now > c.max_spread_frac:
+            return self._reject("spread_trop_large")       # pare-feu pré-trade : spread mesuré hors tolérance
         rr = c.reward_risk
         if signal.take_profit_price is not None:
             gain = (signal.take_profit_price - entry) if long else (entry - signal.take_profit_price)
@@ -105,7 +114,7 @@ class RiskManager:
             if rr < c.min_reward_risk:
                 return self._reject("rr_insuffisant")
         target = entry + rr * dist if long else entry - rr * dist
-        size = min(equity * c.risk_per_trade / dist, equity * c.max_leverage / entry)
+        size = min(equity * c.risk_per_trade * score_multiplier(signal.confidence, c.score_sizing_floor, c.score_min_mult) / dist, equity * c.max_leverage / entry)
         if max_risk is not None:  # plafond externe (ex. marge restante avant les limites FTMO)
             if max_risk <= 0:
                 return self._reject("marge_de_risque_epuisee")

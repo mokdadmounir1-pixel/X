@@ -148,8 +148,12 @@ class RiskConfig(_Section):
     max_cost_r: float = 0.0  # 0 = désactivé ; sinon refuse l'entrée si coût aller-retour / distance de stop > ce seuil (en R)
     session_utc_start: int = 0  # fenêtre d'entrée [start, end[ en heures UTC (scalping : heures liquides)
     session_utc_end: int = 24
+    max_spread_frac: float = 0.0  # 0 = désactivé ; sinon pare-feu pré-trade : refuse si le spread MESURÉ de la barre / prix dépasse ce seuil
+    score_sizing_floor: float = 0.0  # 0 = désactivé ; sinon taille x clip((confiance - plancher) / (1 - plancher), score_min_mult, 1) : un setup à 75 % ne se taille pas comme un à 95 %
+    score_min_mult: float = 0.25
 
     def validate(self) -> None:
+        _require(self.max_spread_frac >= 0 and 0 <= self.score_sizing_floor < 1 and 0 < self.score_min_mult <= 1, "max_spread_frac >= 0, score_sizing_floor dans [0,1[, score_min_mult dans ]0,1]")
         _require(self.max_cost_r >= 0 and self.min_stop_atr >= 0, "max_cost_r, min_stop_atr >= 0")
         _require(0 <= self.session_utc_start < self.session_utc_end <= 24, "fenêtre UTC : 0 <= start < end <= 24")
         _require(0 <= self.weekend_cutoff_hour <= 23, "weekend_cutoff_hour dans [0,23]")
