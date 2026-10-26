@@ -101,3 +101,18 @@ def test_clock_offset_math_health_and_failure_reporting():
     assert clock_health({"status": "ok", "offset_s": 0.01}) == "ok" and clock_health({"status": "ok", "offset_s": 5}) == "mauvaise"
     def boom(s, t): raise TimeoutError()
     bad = clock_offset(query=boom); assert bad["status"] == "injoignable" and clock_health(bad) == "inconnue"
+
+
+def test_mt5_sync_refuses_to_write_when_another_daemon_holds_the_lock(tmp_path):
+    from quantbot.data.autosync import DEFAULTS, sync_mt5
+    from quantbot.filelock import exclusive_lock
+    class Term: connected = True
+    class Acct: trade_mode = 0
+    class M:
+        ACCOUNT_TRADE_MODE_DEMO = 0
+        def initialize(self, *a, **k): return True
+        def account_info(self): return Acct()
+        def terminal_info(self): return Term()
+        def shutdown(self): pass
+    with exclusive_lock(tmp_path / "data" / "live" / "daemon.lock"):
+        assert sync_mt5(tmp_path, DEFAULTS["mt5"], M())["status"] == "verrou_occupe"

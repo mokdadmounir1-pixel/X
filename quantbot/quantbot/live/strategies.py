@@ -10,24 +10,15 @@ import pandas as pd
 from ..config import Settings
 from ..data.mt5 import costs_from_frame
 from ..lab.specs import build_settings
-from ..strategies import amd, fvg, orb, smc, vwap
+from ..strategies.build import events_for
 from ..strategies.events import EventSignalEngine
 
 HISTORY_BARS = 3000  # fenêtre : couvre l'expiration des zones FVG H4 (50 barres H4 ~ 800 barres M15) avec marge
 
 
 def generate(strategy_id: str, scfg: dict, df: pd.DataFrame):
-    if strategy_id == "amd":
-        return amd.events(df, {**amd.PARAMS, **{k: tuple(v) if isinstance(v, list) else v for k, v in scfg["params"].items()}})
-    if strategy_id == "vwap":
-        return vwap.events(df, scfg["params"])
-    if strategy_id == "orb":
-        return orb.events(df, scfg["params"])
-    if strategy_id.startswith("smc"):
-        return smc.events(df, scfg["rule"], scfg["params"])
-    if strategy_id in ("fvg_h1", "fvg_h4"):
-        return fvg.events(df, scfg["rule"], scfg["params"])
-    raise KeyError(f"stratégie inconnue : {strategy_id}")
+    """Un seul point d'entrée partagé avec la recherche (strategies.build.events_for) : aucune dérive possible entre backtest et direct."""
+    return events_for(strategy_id, scfg, df)
 
 
 class LiveEventSignalEngine:

@@ -34,3 +34,13 @@ def test_variant_names_route_to_base_generator_with_overrides():
     df = _gold(); a = events_for("gq_sweep__rr05", {"params": {"rr": 0.5}}, df); b = events_for("gq_sweep", {"params": {"rr": 2.0}}, df)
     assert [e.ts for e in a] == [e.ts for e in b] and a and a[0].target != b[0].target
     assert strategy_code("gq_zrev__s20") == "XAU_ZREV_S20"
+
+
+def test_live_generator_is_the_research_generator_for_every_new_strategy():
+    from quantbot.live.strategies import generate
+    from quantbot.strategies import apex, goldq
+    df = _gold(3000)
+    for name in goldq.GENERATORS:
+        assert [e.ts for e in generate(name, {"params": {}}, df)] == [e.ts for e in goldq.events(df, name)]
+    assert [e.ts for e in generate("apex_pullback", {"params": {}}, df)] == [e.ts for e in apex.events(df)]
+    assert generate("gq_sweep__rr05", {"params": {"rr": 0.5}}, df)

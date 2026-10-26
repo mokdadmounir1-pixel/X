@@ -42,16 +42,16 @@ def build_runners(mt5, spec_path, out_dir, pairs, timeframe="M15", clock=time.ti
 def main(argv=None, mt5=None, sleep=time.sleep, max_cycles=None, coinbase_client=None):
     [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--spec", default="specs/inst_strategies_v1.json"); ap.add_argument("--out", default="runtime/paper")
+    ap.add_argument("--spec", nargs="+", default=["specs/inst_strategies_v1.json"]); ap.add_argument("--out", default="runtime/paper")
     ap.add_argument("--symbols", nargs="+"); ap.add_argument("--strategies", nargs="+"); ap.add_argument("--poll", type=float, default=10.0)
     ap.add_argument("--terminal", default=None)
     ap.add_argument("--source", choices=["mt5", "coinbase"], default="mt5", help="coinbase : crypto via l'API publique (lecture seule, sans clé, sans MT5)")
     ap.add_argument("--client", default=None, help=argparse.SUPPRESS)
     args = ap.parse_args(argv)
-    if args.source == "coinbase" and args.spec == "specs/inst_strategies_v1.json":
-        args.spec = "specs/crypto_paper_v1.json"
+    if args.source == "coinbase" and args.spec == ["specs/inst_strategies_v1.json"]:
+        args.spec = ["specs/crypto_paper_v1.json"]
     out_dir = (ROOT / args.out).resolve(); out_dir.mkdir(parents=True, exist_ok=True)
-    spec_path = ROOT / args.spec; spec = json.loads(spec_path.read_text(encoding="utf-8"))
+    specs = [(ROOT / sp, json.loads((ROOT / sp).read_text(encoding="utf-8"))) for sp in args.spec]
     feed_factory = None
     if args.source == "coinbase":
         from quantbot.data.coinbase import CoinbaseFeed
@@ -69,7 +69,9 @@ def main(argv=None, mt5=None, sleep=time.sleep, max_cycles=None, coinbase_client
             if acct is None or acct.trade_mode != mt5.ACCOUNT_TRADE_MODE_DEMO:
                 print(json.dumps({"erreur": "compte démo non confirmé : simulation refusée"}, ensure_ascii=False)); return 1
         with exclusive_lock(out_dir / "paper.lock"):
-            runners, errors = build_runners(mt5, spec_path, out_dir, combos(spec, args.symbols, args.strategies), feed_factory=feed_factory)
+            runners, errors = [], []
+            for spec_path, spec in specs:           # une ou plusieurs specs préenregistrées, chacune avec ses propres coûts/réglages
+                rs, es = build_runners(mt5, spec_path, out_dir, combos(spec, args.symbols, args.strategies), feed_factory=feed_factory); runners += rs; errors += es
             (out_dir / "STATUS.json").write_text(json.dumps({"runners": [f"{r.symbol}_{r.strategy_id}" for r in runners], "errors": errors, "started": time.time(), "source": args.source}, indent=1), encoding="utf-8")
             print(json.dumps({"runners": len(runners), "errors": errors}, ensure_ascii=False), flush=True)
             while max_cycles is None or n < max_cycles:
