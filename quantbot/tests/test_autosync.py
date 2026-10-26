@@ -1,4 +1,5 @@
 import json
+import pytest
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -72,3 +73,31 @@ def test_depth_sampler_records_real_book_levels_or_reports_unavailable(tmp_path)
     f = next((tmp_path / "data" / "live" / "depth").glob("XAUUSD_*.jsonl")); rec = json.loads(f.read_text().splitlines()[0])
     assert len(rec["bids"]) == 5 and len(rec["asks"]) == 5 and rec["bids"][0][0] > rec["bids"][1][0] and rec["asks"][0][0] < rec["asks"][1][0]
     t2 = tmp_path / "x"; assert sample_depth(FakeBookMT5(ok=False), t2, "XAUUSD")["status"] == "carnet_indisponible" and not (t2 / "data").exists()
+
+
+class FakeTickMT5:
+    COPY_TICKS_ALL = -1
+    def __init__(self): self.rows = [(1_700_000_000_000 + i * 500, 2400.0 + i * .01, 2400.1 + i * .01, 0.0, 0, 0) for i in range(6)]
+    def last_error(self): return (1, "ok")
+    def copy_ticks_from(self, symbol, start, n, flags):
+        import numpy as np
+        t0 = int(start.timestamp() * 1000); r = [x for x in self.rows if x[0] >= t0] or []
+        return np.array(r, dtype=[("time_msc", "i8"), ("bid", "f8"), ("ask", "f8"), ("last", "f8"), ("volume", "u8"), ("flags", "u4")]) if r else None
+
+
+def test_tick_recorder_appends_without_duplicates_and_reports_absence(tmp_path):
+    from quantbot.data.autosync import sample_ticks
+    m = FakeTickMT5(); m.rows = [(int(__import__("time").time() * 1000) - 5000 + i * 500, 2400.0 + i * .01, 2400.1 + i * .01, 0.0, 0, 0) for i in range(6)]
+    r1 = sample_ticks(m, tmp_path, "XAUUSD"); r2 = sample_ticks(m, tmp_path, "XAUUSD")
+    assert r1["status"] == "ok" and r1["appended"] == 6 and r2["appended"] == 0
+    files = list((tmp_path / "data" / "live" / "ticks").glob("XAUUSD_*.csv")); assert sum(len(f.read_text().splitlines()) - 1 for f in files) == 6
+    m2 = FakeTickMT5(); m2.rows = []; assert sample_ticks(m2, tmp_path / "y", "XAUUSD")["status"] == "aucun_tick"
+
+
+def test_clock_offset_math_health_and_failure_reporting():
+    from quantbot.clock import clock_health, clock_offset
+    ok = clock_offset(query=lambda s, t: (100.0, 100.55, 100.56, 100.2))          # serveur en avance de ~0,455 s sur la machine : machine en retard
+    assert ok["status"] == "ok" and ok["offset_s"] == pytest.approx(-0.455, abs=1e-3) and ok["round_trip_s"] == pytest.approx(0.19, abs=1e-3) and clock_health(ok) == "a_corriger"
+    assert clock_health({"status": "ok", "offset_s": 0.01}) == "ok" and clock_health({"status": "ok", "offset_s": 5}) == "mauvaise"
+    def boom(s, t): raise TimeoutError()
+    bad = clock_offset(query=boom); assert bad["status"] == "injoignable" and clock_health(bad) == "inconnue"

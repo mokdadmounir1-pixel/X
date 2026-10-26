@@ -79,6 +79,30 @@ def sync_mt5(root: Path, cfg: dict, mt5=None, shutdown: bool = True) -> dict:
                 pass
 
 
+def sample_ticks(mt5, root: Path, symbol: str, max_ticks: int = 100_000) -> dict:
+    """Ticks RÉELS (bid/ask/last/volume/flags en ms) ajoutés à data/live/ticks/<SYMBOLE>_<AAAAMMJJ>.csv, curseur par time_msc (aucun tick réécrit, aucun doublon).
+    Nécessaire à tout calcul intra-barre (flux de cotations, spread instantané) : les barres ne suffisent pas."""
+    try:
+        d = Path(root) / "data" / "live" / "ticks"; d.mkdir(parents=True, exist_ok=True); cur = d / f"_cursor_{symbol}.json"
+        last = json.loads(cur.read_text())["time_msc"] if cur.exists() else None
+        start = datetime.fromtimestamp((last / 1000.0) if last else time.time() - 600, timezone.utc)
+        ticks = mt5.copy_ticks_from(symbol, start, max_ticks, getattr(mt5, "COPY_TICKS_ALL", -1))
+        if ticks is None or len(ticks) == 0:
+            return {"status": "aucun_tick", "error": str(mt5.last_error()) if hasattr(mt5, "last_error") else ""}
+        df = pd.DataFrame(ticks)
+        if last:
+            df = df[df["time_msc"] > last]
+        if df.empty:
+            return {"status": "ok", "appended": 0}
+        df = df.drop_duplicates("time_msc").sort_values("time_msc"); cols = [c for c in ("time_msc", "bid", "ask", "last", "volume", "flags") if c in df.columns]
+        for day, g in df.groupby(pd.to_datetime(df["time_msc"], unit="ms", utc=True).dt.strftime("%Y%m%d")):
+            f = d / f"{symbol}_{day}.csv"; g[cols].to_csv(f, mode="a", header=not f.exists(), index=False)
+        cur.write_text(json.dumps({"time_msc": int(df["time_msc"].iloc[-1])}))
+        return {"status": "ok", "appended": int(len(df)), "last_time_msc": int(df["time_msc"].iloc[-1])}
+    except Exception as exc:
+        return {"status": "erreur", "error": f"{type(exc).__name__}: {exc}"[:200]}
+
+
 def sample_depth(mt5, root: Path, symbol: str, levels: int = 5, now: float | None = None) -> dict:
     """UN instantané de profondeur (market_book) ajouté à data/live/depth/<SYMBOLE>_<AAAAMMJJ>.jsonl : tailles bid/ask des `levels` meilleurs niveaux, nécessaires à un VRAI OFI.
     Si le courtier n'expose pas la profondeur, on le dit (status) et on n'écrit rien."""
@@ -106,7 +130,7 @@ class AutoSync:
 
     def __init__(self, root: Path, cfg: dict | None = None, client=None, mt5=None, mt5_enabled: bool = True) -> None:
         self.root, self.client, self.mt5, self.mt5_enabled = Path(root), client, mt5, mt5_enabled
-        self.cfg = {**DEFAULTS, **(cfg or {})}; self._stop = threading.Event(); self.cycles = 0; self._mt5_ok = False; self.depth_status: dict = {}
+        self.cfg = {**DEFAULTS, **(cfg or {})}; self._stop = threading.Event(); self.cycles = 0; self._mt5_ok = False; self.depth_status: dict = {}; self.tick_status: dict = {}; self.clock: dict = {}; self._clock_at = 0.0
 
     def run_once(self) -> dict:
         res = []
@@ -115,8 +139,16 @@ class AutoSync:
         if self.mt5_enabled:
             r = sync_mt5(self.root, self.cfg["mt5"], self.mt5, shutdown=False); res.append(r)
             self._mt5_ok = r.get("status") == "ok"
+            if self._mt5_ok:
+                m = self.cfg["mt5"]; mt5m = self.mt5
+                if mt5m is None:
+                    import MetaTrader5 as mt5m  # type: ignore
+                self.tick_status = sample_ticks(mt5m, self.root, m["depth_symbol"])
+        if time.time() - self._clock_at > 3600:       # contrôle NTP au plus une fois par heure
+            from ..clock import clock_health, clock_offset
+            self.clock = clock_offset(); self.clock["health"] = clock_health(self.clock); self._clock_at = time.time()
         self.cycles += 1
-        st = {"ts": time.time(), "cycle": self.cycles, "interval_s": self.cfg["interval_s"], "results": res, "depth": self.depth_status, "orders_sent": 0}
+        st = {"ts": time.time(), "cycle": self.cycles, "interval_s": self.cfg["interval_s"], "results": res, "depth": self.depth_status, "ticks": self.tick_status, "clock": self.clock, "orders_sent": 0}
         try:
             (self.root / "data").mkdir(parents=True, exist_ok=True); (self.root / "data" / "sync_status.json").write_text(json.dumps(st, indent=1, default=str), encoding="utf-8")
         except OSError:
