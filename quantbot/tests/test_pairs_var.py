@@ -70,3 +70,22 @@ def test_run_pairs_script_end_to_end_on_synthetic_csv(tmp_path):
     assert mod.main([str(sp), "--root", str(tmp_path)]) == 0
     res = json.loads((tmp_path / "reports" / "t" / "result.json").read_text())
     assert res["variants"]["v"]["n_trades"] > 0 and idx[-1] - pd.Timestamp(res["end"]) >= pd.Timedelta(days=28)
+
+
+def test_gpd_pwm_recovers_known_shape_and_evt_es_exceeds_var():
+    from quantbot.risk.var import evt_var_es, gpd_fit_pwm
+    rng = np.random.default_rng(0); xi_true, beta_true = 0.25, 1.0
+    u = rng.uniform(size=20000); exc = beta_true / xi_true * ((1 - u) ** (-xi_true) - 1)                # GPD par inversion
+    xi, beta = gpd_fit_pwm(exc); assert abs(xi - xi_true) < 0.05 and abs(beta - beta_true) < 0.1
+    r = -rng.standard_t(4, 20000) * 0.005; out = evt_var_es(r, 0.99)                                       # pertes à queue épaisse (Student 4 ddl)
+    assert out["status"] == "ok" and out["es"] > out["var"] > 0 and 0.0 < out["xi"] < 0.5
+    assert evt_var_es(r[:50])["status"] == "donnees_insuffisantes"
+
+
+def test_ou_half_life_on_simulated_process_and_random_walk():
+    from quantbot.stat.pairs import ou_half_life
+    rng = np.random.default_rng(1); theta = 0.05; x = np.zeros(20000)
+    for t in range(1, len(x)):
+        x[t] = x[t - 1] * (1 - theta) + rng.normal()
+    o = ou_half_life(x); assert abs(o["half_life"] - np.log(2) / -np.log(1 - theta)) < 2.0 and o["mean_reverting"]
+    rw = ou_half_life(np.cumsum(rng.normal(size=5000))); assert not rw["mean_reverting"]
