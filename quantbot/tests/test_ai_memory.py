@@ -104,7 +104,7 @@ def test_journal_records_lesson_with_and_without_ai():
     st = ExperimentStore()
     plain = TradeJournal(st).record("v0", trade(-3, "stop_loss"))
     assert "stop_loss" in plain and "perte" in plain
-    ai = AIOrchestrator({"gemini": FakeAdapter("gemini", '{"lesson": "entrée trop tôt"}')}, S)
+    ai = AIOrchestrator({"hermes": FakeAdapter("hermes", '{"lesson": "entrée trop tôt"}')}, S)
     assert "IA: entrée trop tôt" in TradeJournal(st, ai).record("v0", trade())
     assert len(st.learnings()) == 2
 
@@ -126,3 +126,15 @@ def test_rule_hypotheses_are_valid_and_changed():
         assert S.with_overrides(h.overrides).to_dict() != S.to_dict()
 
 
+
+
+def test_llm_stack_is_exactly_claude_chatgpt_hermes_and_hermes_is_local_only():
+    import pytest
+    from quantbot.ai import orchestrator
+    from quantbot.ai.adapters import HermesAdapter
+    from quantbot.config import AIConfig
+    assert {n for names in orchestrator.ROUTING.values() for n in names} == {"claude", "chatgpt", "hermes"}
+    with pytest.raises(Exception, match="local"):
+        HermesAdapter(AIConfig(hermes_url="http://example.com:11434"))
+    with pytest.raises(Exception, match="injoignable"):
+        HermesAdapter(AIConfig(hermes_url="http://127.0.0.1:9", timeout_s=1.0))

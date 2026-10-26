@@ -71,4 +71,4 @@ python -m quantbot ui                                    # interface locale (lec
 python -m quantbot audit-data --mt5-csv data/real/EURUSD_M15.csv
 python scripts/run_strategies.py specs/inst_strategies_v1.json
 ```
-IA (optionnelle, non branchée) : `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`.
+IA (optionnelle, non branchée) : exclusivement Claude (`ANTHROPIC_API_KEY`), ChatGPT (`OPENAI_API_KEY`) et Hermes (modèle LOCAL via un serveur Ollama-compatible sur 127.0.0.1, sans clé).

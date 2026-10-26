@@ -3,7 +3,7 @@
 Rôles (d'après l'architecture) :
   reasoning  -> Claude   : analyse des échecs, hypothèses d'amélioration
   validation -> ChatGPT  : relecture critique (Research Reviewer)
-  automation -> Gemini   : leçons du journal en volume, repli économique
+  automation -> Hermes   : modèle LOCAL (exécution / routage d'automatisation), leçons du journal en volume
 Les IA sont consultatives : elles ne contournent jamais la validation (lab/) ni le RiskManager.
 """
 from __future__ import annotations
@@ -22,9 +22,9 @@ from .adapters import LLMAdapter, extract_json
 log = get_logger("ai.orchestrator")
 
 ROUTING: dict[str, list[str]] = {
-    "reasoning": ["claude", "chatgpt", "gemini"],
-    "validation": ["chatgpt", "claude", "gemini"],
-    "automation": ["gemini", "claude", "chatgpt"],
+    "reasoning": ["claude", "chatgpt", "hermes"],
+    "validation": ["chatgpt", "claude", "hermes"],
+    "automation": ["hermes", "claude", "chatgpt"],
 }
 _SYSTEM = ("You are a rigorous quantitative trading researcher. Reply ONLY with valid JSON. "
            "Never propose code; only parameter changes from the allowed list.")
@@ -104,7 +104,7 @@ class AIOrchestrator:
             return Review("neutral", f"IA indisponible : {exc}")
 
     def lesson(self, trade: dict) -> Optional[str]:
-        """Leçon d'une phrase tirée d'un trade clôturé (Gemini en priorité) ; None si IA indisponible."""
+        """Leçon d'une phrase tirée d'un trade clôturé (Hermes en priorité) ; None si IA indisponible."""
         prompt = json.dumps({"task": "Write ONE short lesson a trader would note in their journal about this closed "
                                      "trade (setup quality, exit, context). No advice to change risk.",
                              "trade": trade, "output_format": {"lesson": "str"}}, default=str)
