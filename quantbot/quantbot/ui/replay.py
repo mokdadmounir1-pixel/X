@@ -69,6 +69,13 @@ def daily_stats(trades: list, df: pd.DataFrame, target: float) -> dict:
             "best_day_R": max(by_day.values()) if by_day else 0.0, "worst_day_R": min(by_day.values()) if by_day else 0.0, "series": series[-400:]}
 
 
+def _price_csv(root: Path, fname: str) -> Path:
+    """Exports de recherche (data/real) en priorité ; à défaut, barres synchronisées automatiquement par le terminal (data/live, même format)."""
+    real = root / "data" / "real" / fname
+    live = root / "data" / "live" / fname
+    return real if real.is_file() or not live.is_file() else live
+
+
 def run_strategy_replay(instrument: str, bars: int, strategy: str, segment: str = "recherche", root: Path = Path(".")) -> dict:
     from ..backtest.engine import Backtester
     from ..data.mt5 import costs_from_frame, load_mt5_csv
@@ -87,7 +94,7 @@ def run_strategy_replay(instrument: str, bars: int, strategy: str, segment: str 
     if base is None or instrument not in base["instruments"]:
         raise ValueError("instrument ou stratégie inconnu")
     fname = base["instruments"][instrument]
-    full = load_mt5_csv(root / "data" / "real" / fname)
+    full = load_mt5_csv(_price_csv(root, fname))
     research, _locked = split_locked(full, base["lock_months"], base["lock_min_frac"])      # la période verrouillée n'est jamais renvoyée
     if segment == "avant":
         deep_path = root / "data" / "deep" / fname

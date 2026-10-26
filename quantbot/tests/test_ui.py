@@ -176,3 +176,17 @@ def test_win_profile_shows_breakeven_win_rate_and_unmasks_high_win_rate_low_rr()
     assert abs(trap["realised_rr"] - 0.3) < 1e-9 and trap["wr_edge"] < 0 and abs(trap["breakeven_wr"] - 1 / 1.3) < 1e-9
     good = win_profile([3.0] * 40 + [-1.0] * 60)
     assert good["wr_edge"] > 0 and win_profile([1.0, 2.0])["breakeven_wr"] is None
+
+
+def test_backtest_errors_are_explicit_not_silent_http_500_and_live_data_is_used_as_fallback(tmp_path):
+    import shutil
+    from fastapi.testclient import TestClient
+    from quantbot.gui.app import create_app
+    (tmp_path / "specs").mkdir(); [shutil.copy(f, tmp_path / "specs") for f in __import__("pathlib").Path("specs").glob("*.json")]
+    c = TestClient(create_app(tmp_path), base_url="http://127.0.0.1")
+    r = c.get("/api/strategy_replay", params={"instrument": "XAUUSD", "strategy": "gq_zrev", "bars": 800})
+    assert r.status_code == 409 and r.json()["detail"].startswith("DONNEES_ABSENTES") and "CSV introuvable" in r.json()["detail"]
+    src = __import__("pathlib").Path("data/real/XAUUSD_M15.csv")
+    if src.exists():                                        # repli sur data/live quand data/real est absent
+        (tmp_path / "data" / "live").mkdir(parents=True); shutil.copy(src, tmp_path / "data" / "live" / "XAUUSD_M15.csv")
+        assert c.get("/api/strategy_replay", params={"instrument": "XAUUSD", "strategy": "gq_zrev", "bars": 800}).status_code == 200
