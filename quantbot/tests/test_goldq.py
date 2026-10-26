@@ -28,3 +28,9 @@ def test_asia_break_once_per_day_and_dispatch():
     df = _gold(); ev = goldq.events(df, "gq_asia_break")
     assert len({e.ts.date() for e in ev}) == len(ev)
     assert events_for("gq_zrev", {"params": {}}, df) == goldq.events(df, "gq_zrev") and strategy_code("gq_sweep") == "XAU_LIQ_SWEEP"
+
+
+def test_variant_names_route_to_base_generator_with_overrides():
+    df = _gold(); a = events_for("gq_sweep__rr05", {"params": {"rr": 0.5}}, df); b = events_for("gq_sweep", {"params": {"rr": 2.0}}, df)
+    assert [e.ts for e in a] == [e.ts for e in b] and a and a[0].target != b[0].target
+    assert strategy_code("gq_zrev__s20") == "XAU_ZREV_S20"

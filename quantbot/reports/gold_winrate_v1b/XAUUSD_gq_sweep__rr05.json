@@ -1,0 +1,124 @@
+{
+ "instrument": "XAUUSD",
+ "strategy": "gq_sweep__rr05",
+ "label": "Balayage de liquidit\u00e9, cible 0.5 R",
+ "n_events": 705,
+ "by_side": {
+  "long": {
+   "n": 329,
+   "E_R": -0.0346
+  },
+  "short": {
+   "n": 375,
+   "E_R": -0.0241
+  }
+ },
+ "buy_hold_research_pct": 112.1,
+ "rejections": {},
+ "evaluation": {
+  "verdict": "FAIL",
+  "reason": "\u00e9choue : expectancy,profit_factor,null_test,costs_x2,monte_carlo_p5,top3_share,folds_positive,risk_envelope,deflated_sharpe | \u00e9liminatoire(s) : null_test,costs_x2,monte_carlo_p5,risk_envelope,deflated_sharpe",
+  "n_trials": 96,
+  "spec_hash": "3707fc6c15bc3afa2f62fe4c69e0851ad6c9ad335bc7b755fa9f687cbb5c8d81",
+  "data_hash": "a4dd3476e40a365f0e8ed0d6d075aa641da35b4489127d4b4a05f521030fd224",
+  "metrics": {
+   "n_trades": 704,
+   "expectancy_R": -0.029006859283110975,
+   "profit_factor": 0.8208339339300004,
+   "years": 2.403832991101985,
+   "sharpe_per_trade": -0.08222360582769238,
+   "worst_trade_R": -1.0521696231616475,
+   "median_R": 0.11059739269146548,
+   "total_return": -0.09805932507508852,
+   "max_drawdown": 0.11702163226721075
+  },
+  "gates": [
+   {
+    "name": "n_trades",
+    "ok": true,
+    "value": 704,
+    "threshold": 60,
+    "eliminatory": true
+   },
+   {
+    "name": "expectancy",
+    "ok": false,
+    "value": -0.029,
+    "threshold": 0.15,
+    "eliminatory": false
+   },
+   {
+    "name": "profit_factor",
+    "ok": false,
+    "value": 0.821,
+    "threshold": 1.2,
+    "eliminatory": false
+   },
+   {
+    "name": "null_test",
+    "ok": false,
+    "value": 0.97895,
+    "threshold": 0.0011,
+    "eliminatory": true
+   },
+   {
+    "name": "costs_x2",
+    "ok": false,
+    "value": -0.0383,
+    "threshold": 0.0,
+    "eliminatory": true
+   },
+   {
+    "name": "monte_carlo_p5",
+    "ok": false,
+    "value": 0.8184,
+    "threshold": 1.0,
+    "eliminatory": true
+   },
+   {
+    "name": "top3_share",
+    "ok": false,
+    "value": 1.0,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "folds_positive",
+    "ok": false,
+    "value": 0.0,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "risk_envelope",
+    "ok": false,
+    "value": {
+     "dd95_pct": 10.44,
+     "streak95": 8.0
+    },
+    "threshold": {
+     "max_pct": 6.0
+    },
+    "eliminatory": true
+   },
+   {
+    "name": "worst_trade",
+    "ok": true,
+    "value": -1.052,
+    "threshold": -5.0,
+    "eliminatory": true
+   },
+   {
+    "name": "deflated_sharpe",
+    "ok": false,
+    "value": 0.0,
+    "threshold": 0.5,
+    "eliminatory": true
+   }
+  ]
+ },
+ "costs_used": {
+  "spread": 2.5565977486733276e-05,
+  "max_leverage": 1.5025909330454783
+ }
+}

@@ -168,3 +168,11 @@ def test_cli_ui_accepts_open_flag():
     from quantbot import cli
     import argparse, inspect
     assert "--open" in inspect.getsource(cli)
+
+
+def test_win_profile_shows_breakeven_win_rate_and_unmasks_high_win_rate_low_rr():
+    from quantbot.gui.book import win_profile
+    trap = win_profile([0.3] * 65 + [-1.0] * 35)          # 65 % de réussite mais R:R 0,3
+    assert abs(trap["realised_rr"] - 0.3) < 1e-9 and trap["wr_edge"] < 0 and abs(trap["breakeven_wr"] - 1 / 1.3) < 1e-9
+    good = win_profile([3.0] * 40 + [-1.0] * 60)
+    assert good["wr_edge"] > 0 and win_profile([1.0, 2.0])["breakeven_wr"] is None
