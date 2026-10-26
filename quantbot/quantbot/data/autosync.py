@@ -14,6 +14,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from ..filelock import exclusive_lock
 from .coinbase import GRANULARITY, CoinbaseClient, load_utc_csv
 
 DEFAULTS = {"coinbase": {"products": ["BTC-USD", "ETH-USD"], "timeframes": ["M15"], "initial_days": 90},
@@ -61,22 +62,30 @@ def sync_mt5(root: Path, cfg: dict, mt5=None, shutdown: bool = True) -> dict:
             return {"source": "mt5", "status": "deconnecte"}
         if acct.trade_mode != mt5.ACCOUNT_TRADE_MODE_DEMO:
             return {"source": "mt5", "status": "refuse", "note": "compte non démo : aucune lecture"}
-        store = LiveBarStore(Path(root) / "data" / "live"); series = []
-        for s in cfg["symbols"]:
-            if not mt5.symbol_select(s, True):
-                series.append({"symbol": s, "status": "symbole_indisponible"}); continue
-            for tf in cfg["timeframes"]:
-                try:
-                    series.append(store.update(mt5, s, tf, cfg["bootstrap_bars"] if store.last_epoch(s, tf) is None else cfg["bars"]))
-                except Exception as exc:
-                    series.append({"symbol": s, "tf": tf, "status": "erreur", "error": f"{type(exc).__name__}: {exc}"[:300]})
-        return {"source": "mt5", "status": "ok", "series": series, "chain_ok": store.verify()}
+        try:                                   # un seul écrivain sur data/live (le démon autonome tient le même verrou)
+            with exclusive_lock(Path(root) / "data" / "live" / "daemon.lock"):
+                return _sync_series(mt5, LiveBarStore(Path(root) / "data" / "live"), cfg)
+        except RuntimeError:
+            return {"source": "mt5", "status": "verrou_occupe", "note": "data_daemon.py écrit déjà dans data/live : un seul écrivain à la fois"}
     finally:
         if shutdown:
             try:
                 mt5.shutdown()
             except Exception:
                 pass
+
+
+def _sync_series(mt5, store, cfg) -> dict:
+    series = []
+    for s in cfg["symbols"]:
+        if not mt5.symbol_select(s, True):
+            series.append({"symbol": s, "status": "symbole_indisponible"}); continue
+        for tf in cfg["timeframes"]:
+            try:
+                series.append(store.update(mt5, s, tf, cfg["bootstrap_bars"] if store.last_epoch(s, tf) is None else cfg["bars"]))
+            except Exception as exc:
+                series.append({"symbol": s, "tf": tf, "status": "erreur", "error": f"{type(exc).__name__}: {exc}"[:300]})
+    return {"source": "mt5", "status": "ok", "series": series, "chain_ok": store.verify()}
 
 
 def sample_ticks(mt5, root: Path, symbol: str, max_ticks: int = 100_000) -> dict:

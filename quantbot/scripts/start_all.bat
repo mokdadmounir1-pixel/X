@@ -2,8 +2,8 @@
 rem Lance l'automatisation 24 h/24 (une fenêtre par processus). Lecture seule côté MT5 ; le lanceur reste en OBSERVATION sans approbation signée.
 cd /d "%~dp0\.."
 set QUANTBOT_STATE=%CD%\runtime\live_state.db
-start "quantbot - extraction MT5" cmd /k python scripts\data_daemon.py --symbols XAUUSD EURUSD USTEC --timeframes M15 H1 --interval 30
+rem (l'extraction MT5 est faite par la synchronisation automatique du terminal ; data_daemon.py reste utilisable seul, jamais en même temps)
 start "quantbot - file de recherche" cmd /k python scripts\research_queue.py
-start "quantbot - simulation PAPER (13 strategies)" cmd /k python scripts\paper_all.py
+start "quantbot - simulation PAPER (toutes les strategies)" cmd /k python scripts\paper_all.py --spec specs\inst_strategies_v1.json specs\smc_v1b.json specs\gold_quant_v1.json specs\apex_pullback_v1.json specs\stop_hunt_v1.json
 start "quantbot - simulation PAPER crypto (Coinbase, lecture seule)" cmd /k python scripts\paper_all.py --source coinbase
 start "quantbot - terminal http://127.0.0.1:3214" cmd /k python -m quantbot ui --port 3214
