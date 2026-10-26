@@ -18,6 +18,7 @@ une validation qui punit le nombre d'essais ; **aucune donnée ni aucun résulta
 | Orchestrateur IA (`ai/`), boucle d'amélioration (`improvement/`) | écrits, testés avec de faux adaptateurs, **non branchés** au runtime, jamais appelés avec de vraies clés |
 | Crypto (Coinbase) | connecteur de **données et de simulation** en lecture seule (API publique, sans clé) ; spec `crypto_paper_v1` en PAPER ; aucun ordre vers Coinbase ; **aucune validation, coûts = hypothèses** |
 | Synchronisation auto des données | `python -m quantbot ui` lance un thread (lecture seule) : Coinbase public -> `data/crypto/`, MT5 -> `data/live/` si un terminal démo est joignable ; état dans l'onglet Système (`data/sync_status.json`) ; `--no-sync` pour couper |
+| GEX / gamma des teneurs de marché (`strategies/dealer_gex.py`) | calcul réel (gamma de Black-76, niveau de gamma nul, score G, fusion avec APEX) **sur une chaîne d'options RÉELLE à fournir** (open interest par strike : `data/options/GC_chain_<date>.csv`) ; sans fichier, aucun signal, aucun GEX inventé ; **jamais backtesté** (aucun historique d'OI) |
 | Simulation PAPER (13 stratégies sur MT5) | `scripts/paper_all.py`, trades simulés sur prix réels, jamais d'approbation lue |
 
 Le faux terminal MT5 (`tests/fake_mt5_live.py`) et le générateur synthétique (`tests/synthetic.py`) n'existent **que dans `tests/`** :
