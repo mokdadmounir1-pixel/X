@@ -1,4 +1,4 @@
-"""Adaptateurs LLM : Claude, ChatGPT, Hermes (exclusivement). Hermes = modèle LOCAL (exécution / routage d'automatisation), jamais d'appel hors de cette machine.
+"""Adaptateurs LLM : Claude et ChatGPT (exclusivement). Aucun autre modèle.
 
 Chaque adaptateur n'importe son SDK à la demande ; sans clé/SDK il lève
 AIAdapterError à la construction et `build_adapters` l'ignore.
@@ -70,38 +70,9 @@ class ChatGPTAdapter(LLMAdapter):
             raise AIAdapterError(f"ChatGPT a échoué : {exc}") from exc
 
 
-class HermesAdapter(LLMAdapter):
-    """Hermes local via un serveur Ollama-compatible (`POST /api/chat`) sur la boucle locale uniquement : aucune clé, aucune donnée ne quitte le PC."""
-
-    name = "hermes"
-
-    def __init__(self, cfg: AIConfig) -> None:
-        from urllib.parse import urlparse
-        u = urlparse(cfg.hermes_url)
-        if u.scheme != "http" or u.hostname not in ("127.0.0.1", "localhost", "::1"):
-            raise AIAdapterError(f"Hermes doit être local (127.0.0.1/localhost), reçu : {cfg.hermes_url}")
-        self._url = cfg.hermes_url.rstrip("/") + "/api/chat"; self._model = cfg.hermes_model; self._timeout = cfg.timeout_s
-        import urllib.request
-        try:
-            urllib.request.urlopen(cfg.hermes_url.rstrip("/") + "/api/tags", timeout=min(3.0, cfg.timeout_s)).read()
-        except Exception as exc:
-            raise AIAdapterError(f"serveur Hermes local injoignable ({cfg.hermes_url}) : {type(exc).__name__}") from exc
-
-    def complete(self, prompt: str, system: Optional[str] = None) -> str:
-        import urllib.request
-        msgs = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": prompt}]
-        body = json.dumps({"model": self._model, "messages": msgs, "stream": False}).encode()
-        try:
-            req = urllib.request.Request(self._url, data=body, headers={"Content-Type": "application/json"})
-            with urllib.request.urlopen(req, timeout=self._timeout) as r:
-                return str(json.loads(r.read().decode()).get("message", {}).get("content", ""))
-        except Exception as exc:
-            raise AIAdapterError(f"Hermes a échoué : {exc}") from exc
-
-
 def build_adapters(cfg: AIConfig) -> dict[str, LLMAdapter]:
     adapters: dict[str, LLMAdapter] = {}
-    for klass in (ClaudeAdapter, ChatGPTAdapter, HermesAdapter):
+    for klass in (ClaudeAdapter, ChatGPTAdapter):
         try:
             adapters[klass.name] = klass(cfg)
         except AIAdapterError as exc:
