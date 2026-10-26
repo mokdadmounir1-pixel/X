@@ -68,6 +68,9 @@ def main(argv=None, mt5=None, sleep=time.sleep, max_cycles=None, coinbase_client
             acct = mt5.account_info()
             if acct is None or acct.trade_mode != mt5.ACCOUNT_TRADE_MODE_DEMO:
                 print(json.dumps({"erreur": "compte démo non confirmé : simulation refusée"}, ensure_ascii=False)); return 1
+        if mt5 is not None:
+            from quantbot.live.symbols import maybe_alias
+            mt5 = maybe_alias(mt5, ROOT)        # noms de symboles du courtier (config/broker_profile.json) ; sans profil : aucun changement
         with exclusive_lock(out_dir / "paper.lock"):
             runners, errors = [], []
             for spec_path, spec in specs:           # une ou plusieurs specs préenregistrées, chacune avec ses propres coûts/réglages

@@ -54,6 +54,7 @@ def sync_mt5(root: Path, cfg: dict, mt5=None, shutdown: bool = True) -> dict:
         except ImportError:
             return {"source": "mt5", "status": "indisponible", "note": "module MetaTrader5 absent (Windows + pip install MetaTrader5)"}
     from .live_store import LiveBarStore
+    from ..live.symbols import maybe_alias
     try:
         if not mt5.initialize(cfg["terminal"], timeout=15000):
             return {"source": "mt5", "status": "terminal_injoignable", "note": str(mt5.last_error())}
@@ -64,7 +65,7 @@ def sync_mt5(root: Path, cfg: dict, mt5=None, shutdown: bool = True) -> dict:
             return {"source": "mt5", "status": "refuse", "note": "compte non démo : aucune lecture"}
         try:                                   # un seul écrivain sur data/live (le démon autonome tient le même verrou)
             with exclusive_lock(Path(root) / "data" / "live" / "daemon.lock"):
-                return _sync_series(mt5, LiveBarStore(Path(root) / "data" / "live"), cfg)
+                return _sync_series(maybe_alias(mt5, root), LiveBarStore(Path(root) / "data" / "live"), cfg)
         except RuntimeError:
             return {"source": "mt5", "status": "verrou_occupe", "note": "data_daemon.py écrit déjà dans data/live : un seul écrivain à la fois"}
     finally:

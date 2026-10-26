@@ -31,6 +31,11 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
+if not exist config\broker_profile.json (
+  echo.
+  echo --- PREMIER LANCEMENT : profil de TON courtier (noms des symboles, contrat, spread reel sur 20 s) ---
+  python scripts\broker_profile.py --seconds 20
+)
 echo.
 echo Demarrage des fenetres : simulation PAPER (MT5 + crypto) et interface http://127.0.0.1:3214/
 call scripts\start_all.bat

@@ -41,9 +41,12 @@ def run(root: Path = ROOT, terminal: str | None = None, symbol: str = "XAUUSD", 
                     demo = acct.trade_mode == getattr(mt5, "ACCOUNT_TRADE_MODE_DEMO", 0)
                     add(OK if demo else BLOCK, f"compte {mask(acct.login)} @ {acct.server} : {'DÉMO' if demo else 'NON DÉMO'}", "" if demo else "quantbot refuse tout compte non démo : se connecter à un compte démo")
                     if term is not None and not getattr(term, "trade_allowed", True): add(WARN, "le trading automatique est désactivé dans MT5", "bouton « Algo Trading » (inutile pour la simulation et la lecture)")
-                if not mt5.symbol_select(symbol, True): add(BLOCK, f"symbole {symbol} introuvable chez ce courtier", "Vue > Symboles : chercher l'or (XAUUSD, GOLD, XAUUSD.a...) et le lui donner via --symbol")
+                from quantbot.live.symbols import maybe_alias, resolve
+                m2 = maybe_alias(mt5, root); rs = resolve(mt5, symbol)
+                if rs["broker"] and rs["broker"] != symbol and symbol not in __import__("quantbot.live.symbols", fromlist=["load_map"]).load_map(root): add(WARN, f"{symbol} s'appelle « {rs['broker']} » chez ce courtier", "lancer : python scripts/broker_profile.py (enregistre la correspondance de noms et mesure le spread réel)")
+                if not m2.symbol_select(symbol, True): add(BLOCK, f"symbole {symbol} introuvable chez ce courtier" + (f" (proches : {rs.get('similar')})" if rs.get("similar") else ""), "lancer : python scripts/broker_profile.py (il cherche le bon nom) ou éditer config/broker_profile.json > symbol_map")
                 else:
-                    info, tick = mt5.symbol_info(symbol), mt5.symbol_info_tick(symbol)
+                    info, tick = m2.symbol_info(symbol), m2.symbol_info_tick(symbol)
                     if getattr(info, "trade_mode", 4) == 0: add(WARN, f"{symbol} : trade_mode = 0 (désactivé chez ce courtier)", "les données arrivent mais aucun ordre ne serait accepté ; sans effet sur la simulation PAPER")
                     if tick is None: add(BLOCK, f"aucune cotation reçue pour {symbol}", "afficher le symbole dans la Surveillance du marché de MT5")
                     else:
