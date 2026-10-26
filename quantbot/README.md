@@ -18,6 +18,7 @@ une validation qui punit le nombre d'essais ; **aucune donnée ni aucun résulta
 | Orchestrateur IA (`ai/`), boucle d'amélioration (`improvement/`) | écrits, testés avec de faux adaptateurs, **non branchés** au runtime, jamais appelés avec de vraies clés |
 | Crypto (Coinbase) | connecteur de **données et de simulation** en lecture seule (API publique, sans clé) ; spec `crypto_paper_v1` en PAPER ; aucun ordre vers Coinbase ; **aucune validation, coûts = hypothèses** |
 | Synchronisation auto des données | `python -m quantbot ui` lance un thread (lecture seule) : Coinbase public -> `data/crypto/`, MT5 -> `data/live/` si un terminal démo est joignable ; état dans l'onglet Système (`data/sync_status.json`) ; `--no-sync` pour couper |
+| Microstructure (`order_flow_ofi.py`) | OFI de Cont-Kukanov-Stoikov sur VRAIES tailles bid/ask (aucune sur MT5 CFD : non utilisable en l'état) ; proxys de flux par ticks et d'absorption par barres, nommés comme tels ; un iceberg est invisible par construction |
 | GEX / gamma des teneurs de marché (`strategies/dealer_gex.py`) | calcul réel (gamma de Black-76, niveau de gamma nul, score G, fusion avec APEX) **sur une chaîne d'options RÉELLE à fournir** (open interest par strike : `data/options/GC_chain_<date>.csv`) ; sans fichier, aucun signal, aucun GEX inventé ; **jamais backtesté** (aucun historique d'OI) |
 | Simulation PAPER (13 stratégies sur MT5) | `scripts/paper_all.py`, trades simulés sur prix réels, jamais d'approbation lue |
 
@@ -36,7 +37,8 @@ le produit ne génère aucune donnée de remplacement (le CLI exige une source e
 - `portfolio_v1` (les 22 combinaisons stratégie x instrument combinées, poids causaux, ciblage de volatilité) : 2 FAIL, R/jour -0,04 et -0,03 ; corrélations ~0 mais aucune espérance à diversifier.
 - `gold_winrate_v1b` (9 variantes à cible rapprochée / stop éloigné sur l'or) : 9 FAIL ; des taux de réussite de 62-63 % existent mais avec un R:R réalisé de 0,5 (seuil d'équilibre 66-67 %) donc perdants. Meilleur : +0,05 R. (`gold_winrate_v1` invalide : réglage min_reward_risk, 0 trade.)
 - `apex_pullback_v1` (APEX PULLBACK ALPHA : score de similarité S >= 0,75, taille continue, stop 1,5 ATR, cible 2,6 R, or M15) : FAIL, +0,024 R (achats +0,08 R, ventes -0,05 R : bêta de l'or).
-- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 105.
+- `stop_hunt_v1` (balayage de réservoir de liquidité + retour, or M15) : FAIL, +0,06 R (achats +0,13 R, ventes -0,03 R : bêta de l'or). Lead-lag EURUSD->or mesuré (sans essai) : corrélation simultanée 0,32, à un lag de 15 min 0,007 : aucune avance exploitable.
+- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 106.
 Les rapports sont dans `reports/` (JSON + logs) et l'interface locale les affiche.
 
 ## Arborescence
