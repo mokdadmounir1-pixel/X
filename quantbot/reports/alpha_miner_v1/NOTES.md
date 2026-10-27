@@ -1,0 +1,8 @@
+# alpha_miner_v1 — extraction rétrospective sur les 4 314 trades de l'or (recherche seulement)
+Spec préenregistrée avant exécution. 1 essai (registre : 109 / 120). Tranche verrouillée non lue. Apprentissage 2 513 trades, test chronologique 1 677 (trou de 3 jours, purge des trades chevauchants).
+
+Verdict préenregistré : **RIEN**. AUC hors-échantillon 0,527 contre 0,500 étiquettes mélangées (p = 0,032) : significatif au sens strict mais sous le seuil préenregistré de 0,53, donc aucune exploitation. Les p-valeurs sont de plus OPTIMISTES : les trades de stratégies différentes se chevauchent dans le temps (non indépendants).
+Variable la plus utile (baisse d'AUC si mélangée) : `atr_ratio` (régime de volatilité) 0,022, puis `range_atr` 0,010, `side` 0,007, `hour_sin` 0,006, `trend_d1` 0,005 : très faibles.
+Règles : 120 essayées, 15 jugées hors-échantillon (meilleur seuil par variable), 1 « retenue » : `trend_h1 >= -0,57` (écarter les trades pris contre une forte tendance H1 baissière) : +0,18 R sur le test, p corrigé 0,015. MAIS son gain sur l'apprentissage n'était que de +0,005 R : la règle ne tenait pas dans la période où elle a été cherchée et ne « marche » que dans la période test = consigne contraire au régime (hausse de l'or), pas une propriété stable. À ne PAS appliquer ; à suivre seulement sur l'échantillon futur.
+Amas (k-means, descriptif) : écarts de taux de pertes de ±3 écarts-types sur 4 amas, attendus par hasard quand on regarde plusieurs amas : aucune règle déduite.
+Conclusion : pas de signature d'alpha exploitable dans ces trades ; le garde-fou « apprendre sur le passé, juger sur le plus récent » a fait exactement ce qu'il devait.
