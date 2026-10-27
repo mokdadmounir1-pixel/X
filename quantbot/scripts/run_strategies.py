@@ -17,7 +17,7 @@ from quantbot.strategies.events import EventSignalEngine
 
 
 def gen(name, scfg, df):
-    if name.startswith("gq_") or name in ("apex_pullback", "stop_hunt", "apex_levels", "mtf_confluence"): return events_for(name, scfg, df)
+    if name.startswith("gq_") or name in ("apex_pullback", "stop_hunt", "apex_levels", "mtf_confluence") or name.startswith("stop_hunt__"): return events_for(name, scfg, df)
     if name == "amd": return amd.events(df, {**amd.PARAMS, **{k: tuple(v) if isinstance(v, list) else v for k, v in scfg["params"].items()}})
     if name == "vwap": return vwap.events(df, scfg["params"])
     if name == "orb": return orb.events(df, scfg["params"])

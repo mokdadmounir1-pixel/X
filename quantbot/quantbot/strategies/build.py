@@ -17,7 +17,7 @@ def events_for(name: str, scfg: dict, df: pd.DataFrame) -> list:
         return mtf_confluence.events(df, scfg.get("params"))
     if name == "apex_levels":
         return level_proximity.events(df, scfg.get("params"))
-    if name == "stop_hunt":
+    if name.split("__")[0] == "stop_hunt":          # « stop_hunt__sell » / « stop_hunt__flip » : variantes (paramètre mode dans la spec)
         return stop_hunt_engine.events(df, scfg.get("params"))
     if name == "apex_pullback":
         return apex.events(df, scfg.get("params"))
