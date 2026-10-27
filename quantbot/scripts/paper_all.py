@@ -24,13 +24,13 @@ def combos(spec: dict, symbols=None, strategies=None):
     return out
 
 
-def build_runners(mt5, spec_path, out_dir, pairs, timeframe="M15", clock=time.time, feed_factory=None):
+def build_runners(mt5, spec_path, out_dir, pairs, timeframe="M15", clock=time.time, feed_factory=None, overlay=None):
     runners, errors = [], []
     for inst, name in pairs:
         try:
             r = LiveRunner(mt5, inst, name, spec_path, approvals_path=out_dir / "NO_APPROVALS_READ.json", state_path=out_dir / f"{inst}_{name}.db",
                            kill_file=out_dir / "KILL", timeframe=timeframe, clock=clock, force_observation=True,
-                           feed=feed_factory(inst) if feed_factory else None)
+                           feed=feed_factory(inst) if feed_factory else None, overlay=overlay)
             r.setup()
             assert r.mode == "OBSERVATION"
             runners.append(r)
@@ -46,6 +46,7 @@ def main(argv=None, mt5=None, sleep=time.sleep, max_cycles=None, coinbase_client
     ap.add_argument("--symbols", nargs="+"); ap.add_argument("--strategies", nargs="+"); ap.add_argument("--poll", type=float, default=10.0)
     ap.add_argument("--terminal", default=None)
     ap.add_argument("--source", choices=["mt5", "coinbase"], default="mt5", help="coinbase : crypto via l'API publique (lecture seule, sans clé, sans MT5)")
+    ap.add_argument("--no-overlay", action="store_true", help="désactive la surcouche de risque (annonces macro + queue de pertes) ; elle ne fait que RÉDUIRE la taille")
     ap.add_argument("--client", default=None, help=argparse.SUPPRESS)
     args = ap.parse_args(argv)
     if args.source == "coinbase" and args.spec == ["specs/inst_strategies_v1.json"]:
@@ -73,8 +74,12 @@ def main(argv=None, mt5=None, sleep=time.sleep, max_cycles=None, coinbase_client
             mt5 = maybe_alias(mt5, ROOT)        # noms de symboles du courtier (config/broker_profile.json) ; sans profil : aucun changement
         with exclusive_lock(out_dir / "paper.lock"):
             runners, errors = [], []
+            overlay_fn = None
+            if not args.no_overlay:
+                from quantbot.risk.overlay import build_overlay
+                _ov = build_overlay(ROOT); overlay_fn = lambda ts, close: _ov.multiplier(ts, close)["multiplier"]
             for spec_path, spec in specs:           # une ou plusieurs specs préenregistrées, chacune avec ses propres coûts/réglages
-                rs, es = build_runners(mt5, spec_path, out_dir, combos(spec, args.symbols, args.strategies), feed_factory=feed_factory); runners += rs; errors += es
+                rs, es = build_runners(mt5, spec_path, out_dir, combos(spec, args.symbols, args.strategies), feed_factory=feed_factory, overlay=overlay_fn); runners += rs; errors += es
             (out_dir / "STATUS.json").write_text(json.dumps({"runners": [f"{r.symbol}_{r.strategy_id}" for r in runners], "errors": errors, "started": time.time(), "source": args.source}, indent=1), encoding="utf-8")
             print(json.dumps({"runners": len(runners), "errors": errors}, ensure_ascii=False), flush=True)
             if not runners:                     # rien n'a pu démarrer (MT5/réseau) : on sort en erreur, le superviseur relance avec un délai croissant

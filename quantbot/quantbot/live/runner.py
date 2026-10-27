@@ -30,10 +30,10 @@ log = get_logger("live.runner")
 class LiveRunner:
     def __init__(self, mt5: Any, symbol: str, strategy_id: str, spec_path: str | Path, approvals_path: str | Path = "approved_strategies.json",
                  state_path: str | Path = "live_state.db", kill_file: str | Path = "KILL", timeframe: str = "M15",
-                 allowed_servers: tuple = (), clock=time.time, sleep=time.sleep, feed: Any = None, force_observation: bool = False) -> None:
+                 allowed_servers: tuple = (), clock=time.time, sleep=time.sleep, feed: Any = None, force_observation: bool = False, overlay: Any = None) -> None:
         """`feed` : source de barres alternative (ex. Coinbase) ; `force_observation` : simulation PAPER garantie, sans jamais lire d'approbation ni construire de broker d'ordres."""
         self.mt5, self.symbol, self.strategy_id = mt5, symbol, strategy_id
-        self.force_observation = force_observation
+        self.force_observation = force_observation; self.overlay = overlay
         self.spec_path, self.approvals_path = Path(spec_path), Path(approvals_path)
         self.state = StateStore(state_path)
         self.kill = KillSwitch(self.state, kill_file)
@@ -66,7 +66,7 @@ class LiveRunner:
             why = why if not approved else f"coupe-circuit actif au démarrage : {blocked}"
             self.state.set("source", getattr(self.feed, "source", "MT5"))
             broker = PaperBroker(settings.backtest.initial_equity, settings.execution)
-        self.engine = TradingEngine(settings, broker=broker, signal_engine=sig, on_close=self._on_close)
+        self.engine = TradingEngine(settings, broker=broker, signal_engine=sig, on_close=self._on_close, overlay=self.overlay)
         if self.mode == "DEMO_ACTIF":
             try:
                 broker.restore(self.engine._n)
