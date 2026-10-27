@@ -61,11 +61,11 @@ def propose_rules(train: pd.DataFrame, test: pd.DataFrame, feats: list[str], qua
     for gain, f, thr, sense in sorted(cands, reverse=True):
         best.setdefault(f, (gain, thr, sense))
     n_tests = max(len(best), 1); out = []
-    for f, (gain, thr, sense) in best.items():
+    for f, (train_gain, thr, sense) in best.items():
         keep = (test[f] >= thr) if sense == ">=" else (test[f] <= thr); r = test.loc[keep, "r"].to_numpy()
         if len(r) < 30:
             continue
-        gain, p = subset_gain_p(test["r"].to_numpy(), np.asarray(keep)); out.append({"feature": f, "rule": f"{f} {sense} {thr:.4g}", "train_gain_r": gain, "test_n": int(len(r)), "test_keep_frac": float(keep.mean()),
+        gain, p = subset_gain_p(test["r"].to_numpy(), np.asarray(keep)); out.append({"feature": f, "rule": f"{f} {sense} {thr:.4g}", "train_gain_r": train_gain, "test_n": int(len(r)), "test_keep_frac": float(keep.mean()),
                                                       "test_mean_r": float(r.mean()), "test_base_mean_r": float(test["r"].mean()), "test_gain_r": gain, "p_value": p, "p_bonferroni": min(1.0, p * n_tests),
                                                       "retained": bool(gain > 0 and r.mean() > 0 and min(1.0, p * n_tests) <= alpha)})
     return {"rules_tried": tried, "rules_tested_on_holdout": n_tests, "rules": sorted(out, key=lambda r: r["p_bonferroni"])}

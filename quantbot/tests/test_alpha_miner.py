@@ -53,3 +53,8 @@ def test_script_runs_on_a_prebuilt_dataset_and_never_applies_rules(tmp_path):
     s = importlib.util.spec_from_file_location("run_alpha_miner", Path(__file__).resolve().parents[1] / "scripts" / "run_alpha_miner.py"); mod = importlib.util.module_from_spec(s); s.loader.exec_module(mod)
     assert mod.main([str(sp), "--root", str(tmp_path), "--dataset", str(p)]) == 0
     res = json.loads((tmp_path / "reports" / "am" / "result.json").read_text()); assert res["verdict"] in ("RIEN", "SIGNAL", "NON_CONCLUANT") and "holdout" in res
+
+
+def test_rule_report_keeps_train_and_test_gains_distinct():
+    ds = _ds(6000, planted=True); tr, te = mn.chrono_split(ds); rules = mn.propose_rules(tr, te, dsm.FEATURES)["rules"]
+    assert rules and any(abs(r["train_gain_r"] - r["test_gain_r"]) > 1e-9 for r in rules)
