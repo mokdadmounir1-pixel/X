@@ -12,7 +12,7 @@ import pandas as pd
 from .events import Event, atr_series
 
 PARAMS = {"lookback": 48, "tol_atr": 0.25, "min_touches": 2, "touch_full": 4, "sweep_min_atr": 0.1, "sweep_full_atr": 0.6, "reclaim_full": 0.5, "s_min": 0.5,
-          "stop_atr": 1.8, "rr": 3.0, "cooldown": 8, "session": [7, 17], "mode": "both"}   # mode : both | sell_only | flip
+          "stop_atr": 1.8, "rr": 3.0, "cooldown": 8, "session": [7, 17], "mode": "both"}   # mode : both | sell_only | buy_only | flip
 
 
 def _ramp(x, lo, hi):
@@ -56,6 +56,6 @@ def events(df: pd.DataFrame, params: dict | None = None) -> list[Event]:
         elif s_long >= p["s_min"] and s_long > s_short:
             if mode == "flip":                      # version « inversée » : le signal d'ACHAT d'origine est pris en VENTE (stop au-dessus, cible en dessous) ; étiquetée origin="buy_flipped"
                 stop = c[i] + p["stop_atr"] * a; out.append(Event(df.index[i], "bearish", stop, c[i] - p["rr"] * (stop - c[i]), "hunt_flip_short", {"confidence": min(s_long, 1.0), "S": s_long, "pool": pl, "origin": "buy_flipped"})); last = i
-            elif mode == "both":
+            elif mode in ("both", "buy_only"):
                 stop = c[i] - p["stop_atr"] * a; out.append(Event(df.index[i], "bullish", stop, c[i] + p["rr"] * (c[i] - stop), "hunt_long", {"confidence": min(s_long, 1.0), "S": s_long, "pool": pl, "origin": "buy"})); last = i
     return out
