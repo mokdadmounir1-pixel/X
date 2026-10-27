@@ -55,8 +55,9 @@ def check_exit(pos, o: float, h: float, l: float, c: float, held: int, max_hold:
 class TradingEngine:
     def __init__(self, settings: Settings, broker: Optional[Broker] = None, cost_multiplier: float = 1.0,
                  signal_engine: Any = None, on_close: Optional[Callable[[Trade, Any], None]] = None,
-                 mt5: Any = None) -> None:
+                 mt5: Any = None, overlay: Optional[Callable[[Any, Any], float]] = None) -> None:
         self.settings = settings
+        self.overlay = overlay             # (ts, série de clôtures) -> multiplicateur de taille dans [0, 1] : ne peut que RÉDUIRE le risque (annonces macro, queue de pertes)
         s = settings
         start = s.ftmo.initial_balance if s.ftmo.enabled else s.backtest.initial_equity
         self.broker = broker or make_broker(start, s.execution, cost_multiplier, ftmo=s.ftmo, mt5=mt5)
@@ -190,6 +191,11 @@ class TradingEngine:
                     if decision is not None and decision.risk_multiplier < 1.0:
                         mcap = self.broker.equity(c) * s.risk.risk_per_trade * decision.risk_multiplier
                         cap = mcap if cap is None else min(cap, mcap)
+                    if self.overlay is not None:
+                        om = float(self.overlay(ts, df["close"].iloc[-6000:]))
+                        if om < 1.0:
+                            ocap = self.broker.equity(c) * s.risk.risk_per_trade * max(om, 0.0)
+                            cap = ocap if cap is None else min(cap, ocap)
                     ex = s.execution
                     cost_frac = ex.spread + 2.0 * (ex.fee_rate + ex.slippage)
                     sp_now = float(df["spread"].iloc[-1]) / c if "spread" in df.columns and c > 0 else None

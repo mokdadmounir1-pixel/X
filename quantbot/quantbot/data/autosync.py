@@ -7,6 +7,7 @@ Un échec réseau ou un terminal absent est RAPPORTÉ (data/sync_status.json) et
 from __future__ import annotations
 
 import json
+import os
 import threading
 import time
 from datetime import datetime, timedelta, timezone
@@ -89,6 +90,26 @@ def _sync_series(mt5, store, cfg) -> dict:
     return {"source": "mt5", "status": "ok", "series": series, "chain_ok": store.verify()}
 
 
+def sync_external(root: Path, get=None, fred_key: str | None = None, now: float | None = None) -> list[dict]:
+    """COT or (CFTC, gratuit) -> data/external/cot_gold.csv ; releases FRED -> data/external/macro_events.csv SI une clé gratuite est fournie (FRED_API_KEY). Échec = rapporté, jamais comblé."""
+    from .external import _get, cot_percentile, fetch_cot, fetch_fred_releases
+    get = get or _get; d = Path(root) / "data" / "external"; d.mkdir(parents=True, exist_ok=True); out = []
+    try:
+        cot = fetch_cot(get); cot["percentile_156w"] = cot_percentile(cot); cot.to_csv(d / "cot_gold.csv")
+        out.append({"source": "cot", "status": "ok", "rows": int(len(cot)), "last_report": str(cot["report_date"].iloc[-1].date())})
+    except Exception as exc:
+        out.append({"source": "cot", "status": "erreur", "error": f"{type(exc).__name__}: {exc}"[:200]})
+    if fred_key:
+        try:
+            ev = fetch_fred_releases(fred_key, (datetime.now(timezone.utc) - timedelta(days=30)).strftime("%Y-%m-%d"), (datetime.now(timezone.utc) + timedelta(days=365)).strftime("%Y-%m-%d"), get)
+            ev.to_csv(d / "macro_events.csv", index=False); out.append({"source": "fred", "status": "ok", "rows": int(len(ev))})
+        except Exception as exc:
+            out.append({"source": "fred", "status": "erreur", "error": f"{type(exc).__name__}: {str(exc)[:80]}"})
+    else:
+        out.append({"source": "fred", "status": "non_configure", "note": "clé gratuite FRED absente (variable FRED_API_KEY) : calendrier limité aux règles régulières (NFP)"})
+    return out
+
+
 def sample_ticks(mt5, root: Path, symbol: str, max_ticks: int = 100_000) -> dict:
     """Ticks RÉELS (bid/ask/last/volume/flags en ms) ajoutés à data/live/ticks/<SYMBOLE>_<AAAAMMJJ>.csv, curseur par time_msc (aucun tick réécrit, aucun doublon).
     Nécessaire à tout calcul intra-barre (flux de cotations, spread instantané) : les barres ne suffisent pas."""
@@ -140,7 +161,7 @@ class AutoSync:
 
     def __init__(self, root: Path, cfg: dict | None = None, client=None, mt5=None, mt5_enabled: bool = True) -> None:
         self.root, self.client, self.mt5, self.mt5_enabled = Path(root), client, mt5, mt5_enabled
-        self.cfg = {**DEFAULTS, **(cfg or {})}; self._stop = threading.Event(); self.cycles = 0; self._mt5_ok = False; self.depth_status: dict = {}; self.tick_status: dict = {}; self.clock: dict = {}; self._clock_at = 0.0
+        self.cfg = {**DEFAULTS, **(cfg or {})}; self._stop = threading.Event(); self.cycles = 0; self._mt5_ok = False; self.depth_status: dict = {}; self.tick_status: dict = {}; self.clock: dict = {}; self._clock_at = 0.0; self.external: list = []; self._ext_at = 0.0
 
     def run_once(self) -> dict:
         res = []
@@ -157,6 +178,9 @@ class AutoSync:
         if time.time() - self._clock_at > 3600:       # contrôle NTP au plus une fois par heure
             from ..clock import clock_health, clock_offset
             self.clock = clock_offset(); self.clock["health"] = clock_health(self.clock); self._clock_at = time.time()
+        if time.time() - self._ext_at > 6 * 3600:          # données externes : au plus toutes les 6 h
+            self.external = sync_external(self.root, fred_key=os.environ.get("FRED_API_KEY")); self._ext_at = time.time()
+        res += self.external
         self.cycles += 1
         st = {"ts": time.time(), "cycle": self.cycles, "interval_s": self.cfg["interval_s"], "results": res, "depth": self.depth_status, "ticks": self.tick_status, "clock": self.clock, "orders_sent": 0}
         try:
