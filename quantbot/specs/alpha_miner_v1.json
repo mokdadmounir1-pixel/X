@@ -1,0 +1,17 @@
+{
+ "name": "alpha_miner_v1",
+ "preregistered": "2026-10-27 : commitée AVANT toute exécution",
+ "hypothesis": "Parmi les trades historiques de l'or (périodes de RECHERCHE, tranche verrouillée non lue), des caractéristiques causales à la barre du signal (régime de volatilité, momentum normalisé, heure, spread/ATR, volume, FracDiff, réversion OU, tendances D1/H4/H1) prédisent mieux que le hasard quels trades gagnent, sur la partie chronologique la plus récente jamais vue pendant l'apprentissage.",
+ "script": "scripts/run_alpha_miner.py",
+ "sources": ["specs/gold_quant_v1.json", "specs/apex_pullback_v1.json", "specs/stop_hunt_v1.json", "specs/mtf_confluence_v1.json", "specs/apex_levels_v1.json"],
+ "instrument": "XAUUSD",
+ "pooling": "toutes les stratégies de l'or regroupées ; l'identifiant de stratégie N'EST PAS une variable explicative (pour ne pas apprendre « quelle stratégie gagne »). Les trades de stratégies différentes se chevauchent dans le temps : non indépendants, ce qui rend les p-valeurs optimistes (signalé dans le rapport).",
+ "split": {"train_frac": 0.6, "gap_days": 3.0},
+ "model": {"type": "LightGBM binaire (profit > 0)", "rounds": 150, "num_leaves": 7, "min_data_in_leaf": 50, "lambda_l2": 10.0},
+ "rules": {"quantiles": [0.2, 0.4, 0.6, 0.8], "min_keep_frac": 0.3, "alpha": 0.05, "correction": "Bonferroni sur le nombre de variables testées hors-échantillon"},
+ "gates": {"min_trades": 1000, "auc_null_alpha": 0.05, "min_auc": 0.53},
+ "verdict_rules": {"NON_CONCLUANT": "moins de 1000 trades", "RIEN": "AUC hors-échantillon non significative contre étiquettes mélangées, ou < 0,53 : aucun motif exploitable ne ressort", "SIGNAL": "AUC significative ET >= 0,53 : des règles PROPOSÉES sont listées ; elles ne valent rien tant qu'elles n'ont pas été préenregistrées et testées sur l'échantillon FUTUR"},
+ "no_auto_apply": "Aucune règle n'est appliquée au système. Toute règle retenue devient une spec préenregistrée testée en simulation PAPER (>= 60 trades futurs).",
+ "trials": 1,
+ "max_trials_budget": 120
+}
