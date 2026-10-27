@@ -5,3 +5,4 @@ pytest>=7
 fastapi>=0.110
 uvicorn>=0.29
 MetaTrader5>=5.0.45; platform_system == "Windows"
+lightgbm>=4.0          # ML (scripts/run_ml.py, alpha_miner) : sans lui ces scripts échouent

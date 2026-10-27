@@ -61,7 +61,8 @@ def main(argv=None, mt5=None, sleep=time.sleep) -> int:
     ap.add_argument("--seconds", type=float, default=120.0); ap.add_argument("--commission-per-lot-side", type=float); ap.add_argument("--root", default=str(ROOT)); a = ap.parse_args(argv)
     if mt5 is None:
         import MetaTrader5 as mt5  # type: ignore
-    if not (mt5.initialize(a.terminal) if a.terminal else mt5.initialize()):
+    from quantbot.live.terminal import mt5_initialize
+    if not mt5_initialize(mt5, a.terminal):
         print(f"MT5 injoignable : {mt5.last_error()} -> ouvre MetaTrader 5 et connecte-toi au compte démo."); return 1
     try:
         prof = build(mt5, a.symbols, a.seconds, a.commission_per_lot_side, sleep=sleep)
