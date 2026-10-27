@@ -18,14 +18,14 @@ import pandas as pd
 from ..filelock import exclusive_lock
 from .coinbase import GRANULARITY, CoinbaseClient, load_utc_csv
 
-DEFAULTS = {"coinbase": {"products": ["BTC-USD", "ETH-USD"], "timeframes": ["M15"], "initial_days": 90},
+DEFAULTS = {"coinbase": {"products": ["BTC-USD", "ETH-USD"], "timeframes": ["M15"], "initial_days": 800},
             "mt5": {"symbols": ["XAUUSD", "XAGUSD", "EURUSD", "USTEC", "DXY"], "timeframes": ["M1", "M5", "M15", "H1"],
                     "extra_symbols": ["GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD", "US500", "US30", "DE40", "UK100", "JP225", "USOIL"], "extra_timeframes": ["M15", "H1"], "bars": 1000, "bootstrap_bars": 50000,
                     "terminal": r"C:\Program Files\MetaTrader 5\terminal64.exe", "depth_symbol": "XAUUSD", "depth_levels": 5, "depth_interval_s": 2.0},
             "interval_s": 300}
 
 
-def sync_coinbase(root: Path, products, timeframes, initial_days: int = 90, client=None, now: datetime | None = None) -> list[dict]:
+def sync_coinbase(root: Path, products, timeframes, initial_days: int = 800, client=None, now: datetime | None = None) -> list[dict]:
     client = client or CoinbaseClient(); now = now or datetime.now(timezone.utc); out = []
     d = Path(root) / "data" / "crypto"; d.mkdir(parents=True, exist_ok=True)
     for p in products:
@@ -34,6 +34,14 @@ def sync_coinbase(root: Path, products, timeframes, initial_days: int = 90, clie
             try:
                 old = load_utc_csv(path) if path.exists() else None
                 start = (old.index[-1] + pd.Timedelta(seconds=g)).to_pydatetime().replace(tzinfo=timezone.utc) if old is not None and len(old) else now - timedelta(days=initial_days)
+                if old is not None and len(old):          # historique trop court (ex. 90 j d'une ancienne synchro) : on complète VERS LE PASSÉ, sans toucher aux barres déjà stockées
+                    want = pd.Timestamp(now.replace(tzinfo=None)) - pd.Timedelta(days=initial_days)
+                    if old.index[0] - want > pd.Timedelta(days=2):
+                        back = client.fetch_range(p, tf, want.to_pydatetime().replace(tzinfo=timezone.utc), old.index[0].to_pydatetime().replace(tzinfo=timezone.utc))
+                        back = back[back.index < old.index[0]]
+                        if len(back):
+                            old = pd.concat([back, old]); w0 = old.reset_index(); w0["time"] = pd.to_datetime(w0["time"]).dt.strftime("%Y-%m-%d %H:%M:%S+00:00")
+                            tmp0 = path.with_suffix(".tmp"); w0.to_csv(tmp0, index=False); tmp0.replace(path); rec["backfilled"] = int(len(back))
                 new = client.fetch_range(p, tf, start, now)
                 new = new[new.index + pd.Timedelta(seconds=g) <= pd.Timestamp(now.replace(tzinfo=None))]       # barre en formation écartée
                 if old is not None:

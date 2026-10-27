@@ -116,3 +116,12 @@ def test_mt5_sync_refuses_to_write_when_another_daemon_holds_the_lock(tmp_path):
         def shutdown(self): pass
     with exclusive_lock(tmp_path / "data" / "live" / "daemon.lock"):
         assert sync_mt5(tmp_path, DEFAULTS["mt5"], M())["status"] == "verrou_occupe"
+
+
+def test_short_history_is_backfilled_towards_the_past_without_rewriting_stored_bars(tmp_path):
+    c = FakeClient(); sync_coinbase(tmp_path, ["BTC-USD"], ["M15"], 3, c, NOW)
+    f = tmp_path / "data" / "crypto" / "BTC-USD_M15.csv"; first = load_utc_csv(f); n0 = len(first)
+    r = sync_coinbase(tmp_path, ["BTC-USD"], ["M15"], 30, c, NOW)
+    second = load_utc_csv(f)
+    assert r[0]["backfilled"] > 0 and len(second) > n0 * 5 and second.index.is_unique and second.index.is_monotonic_increasing
+    pd.testing.assert_frame_equal(second.loc[first.index], first)

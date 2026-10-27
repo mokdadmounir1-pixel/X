@@ -119,7 +119,7 @@ def _price_csv(root: Path, fname: str) -> Path:
 def run_strategy_replay(instrument: str, bars: int, strategy: str, segment: str = "recherche", root: Path = Path(".")) -> dict:
     from ..backtest.engine import Backtester
     from ..data.mt5 import costs_from_frame, load_mt5_csv
-    from ..lab.locked import split_locked
+    from ..lab.locked import LockedSliceError, split_locked
     from ..lab.specs import build_settings
     from ..strategies.build import events_for
     from ..strategies.events import EventSignalEngine
@@ -140,7 +140,10 @@ def run_strategy_replay(instrument: str, bars: int, strategy: str, segment: str 
     exploration = not in_spec
     if exploration:                                              # coûts propres à l'instrument (spec copiée, jamais modifiée sur disque)
         base = {**base, "instruments": {**base["instruments"], instrument: fname}, "costs": {**base["costs"], instrument: exploration_costs(base, instrument, src["kind"], root)}}
-    research, _locked = split_locked(full, base["lock_months"], base["lock_min_frac"])      # la période verrouillée n'est jamais renvoyée
+    try:
+        research, _locked = split_locked(full, base["lock_months"], base["lock_min_frac"])
+    except LockedSliceError:
+        raise FileNotFoundError(f"{instrument} : seulement {len(full)} barres ({full.index[0]:%Y-%m-%d} -> {full.index[-1]:%Y-%m-%d}) ; il en faut assez AVANT la période verrouillée (12 mois / 20 %). Lance la synchro des données (lancer_tout.bat) pour accumuler l'historique, ou choisis un instrument MT5 déjà exporté")      # la période verrouillée n'est jamais renvoyée
     if segment == "avant":
         deep_path = root / "data" / "deep" / fname
         if not deep_path.is_file():
