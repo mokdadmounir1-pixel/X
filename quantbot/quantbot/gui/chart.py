@@ -19,7 +19,7 @@ def _epoch(s) -> int:
 def chart_payload(root: Path, runner: Optional[str]) -> dict:
     dbs = {rid: (p, k) for rid, p, k in runner_dbs(root)}
     if not dbs:
-        return {"available": False, "note": "Aucune simulation en cours : lancer scripts/paper_all.py."}
+        return {"available": False, "note": "Simulation en démarrage ou indisponible. Le terminal la lance et la relance tout seul ; la cause exacte (MT5 fermé, compte non démo, réseau) est dans l'onglet Système > Processus automatiques."}
     rid = runner if runner in dbs else sorted(dbs)[0]
     db = read_db(dbs[rid][0])
     if db is None:

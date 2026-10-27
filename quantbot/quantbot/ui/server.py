@@ -100,6 +100,8 @@ def collect_state(root: Path = ROOT) -> dict:
         "walkforward": walkforward,
         "objective": obj,
         "daemon": _read_json(root / "data" / "live" / "DAEMON_STATUS.json"),
+        "sync": _read_json(root / "data" / "sync_status.json"),
+        "supervisor": _read_json(root / "runtime" / "supervisor.json"),
         "queue": _read_json(reports / "QUEUE_STATUS.json"),
         "data": [{k: i.get(k) for k in ("symbol", "rows", "start", "end", "span_years", "sha256")} for i in prov.get("instruments", [])],
         "data_notes": ["Horloge courtier : UTC+2 hiver / UTC+3 été, calendrier européen (reconstruite depuis time_broker_epoch).",

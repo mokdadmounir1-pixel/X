@@ -43,7 +43,7 @@ def write_port_file(root: Path, port: int) -> None:
         pass
 
 
-def serve(port: int | None = None, root: Path = ROOT, open_browser: bool = False, autosync: bool = False) -> None:
+def serve(port: int | None = None, root: Path = ROOT, open_browser: bool = False, autosync: bool = False, workers: bool = False) -> None:
     wanted = configured_port(port)
     port = free_port(wanted)
     if port != wanted:
@@ -54,6 +54,7 @@ def serve(port: int | None = None, root: Path = ROOT, open_browser: bool = False
     server = uvicorn.Server(uvicorn.Config(create_app(root), host=HOST, port=port, log_level="warning"))
     if autosync:
         _start_autosync(root)
+    sup = _start_workers(root) if workers else None
     if open_browser:
         def _open() -> None:
             for _ in range(100):
@@ -62,7 +63,18 @@ def serve(port: int | None = None, root: Path = ROOT, open_browser: bool = False
                     return
                 time.sleep(0.1)
         threading.Thread(target=_open, daemon=True).start()
-    server.run()
+    try:
+        server.run()
+    finally:
+        if sup is not None:
+            sup.stop()
+
+
+def _start_workers(root: Path):
+    from ..supervisor import start_default
+    sup = start_default(root)
+    print("Processus automatiques : simulation PAPER (MT5 + crypto) lancée et surveillée ; journaux dans runtime/logs/" if sup else "Processus automatiques non disponibles dans l'exécutable : utiliser lancer_tout.bat")
+    return sup
 
 
 def _start_autosync(root: Path) -> None:

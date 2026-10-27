@@ -17,8 +17,12 @@ function pills(S, L, D) {
   const P = [], st = S && S.status, d = S && S.daemon, age = d ? Date.now() / 1000 - d.ts : null;
   const pill = (cls, text, title) => h("span", { class: "pill " + cls, title }, h("i"), text);
   if (st) { P.push(pill(st.edge_validated ? "ok" : "warn", "Avantage " + (st.edge_validated ? "validé" : "non validé"), "Une stratégie a-t-elle franchi toutes les portes de validation ?")); P.push(pill(st.registry_chain_ok ? "ok" : "bad", `Essais ${st.trials}/${st.trials_budget}`, "Registre d'essais (chaîne de hachage)")); }
-  P.push(pill(D && D.available ? "ok" : "warn", D && D.available ? `Simulation ${D.runners.length}` : "Simulation à l'arrêt", "Simulations PAPER sur prix réels"));
-  P.push(pill(d && age < 180 && d.connected ? "ok" : "warn", d && age < 180 ? (d.connected ? "Données en direct" : "Terminal déconnecté") : "Données à l'arrêt", "Extraction MT5 en lecture seule"));
+  const sv = S && S.supervisor, sy = S && S.sync, now = Date.now() / 1000, wk = sv ? (sv.workers || []).find((w) => w.name === "paper_mt5") : null;
+  const simText = D && D.available ? `Simulation ${D.runners.length}` : wk ? (wk.state === "en cours" ? "Simulation : démarrage" : `Simulation : MT5 indisponible (relance ${Math.round(wk.next_start_in_s)} s)`) : "Simulation à l'arrêt";
+  P.push(pill(D && D.available ? "ok" : "warn", simText, wk && wk.tail && wk.tail.length ? wk.tail.slice(-2).join(" | ") : "Simulations PAPER sur prix réels (lancées automatiquement par le terminal)"));
+  const mt5 = sy ? (sy.results || []).find((r) => r.source === "mt5") : null, syAge = sy ? now - sy.ts : null, fresh = sy && syAge < 2 * (sy.interval_s || 300) + 120;
+  const dataText = !sy ? (d && age < 180 && d.connected ? "Données en direct" : "Données : démarrage") : !fresh ? "Données à l'arrêt" : mt5 && mt5.status === "ok" ? "Données MT5 en direct" : `MT5 : ${mt5 ? mt5.status : "non tenté"}`;
+  P.push(pill(sy && fresh && mt5 && mt5.status === "ok" ? "ok" : "warn", dataText, mt5 && mt5.note ? mt5.note : "Synchronisation automatique MT5 + Coinbase en lecture seule"));
   P.push(pill("", "LECTURE SEULE", "Cette interface n'envoie jamais d'ordre"));
   clear($("#pills")).append(...P);
 }

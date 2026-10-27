@@ -1,0 +1,37 @@
+{
+ "ts": 1793059885.5910656,
+ "workers": [
+  {
+   "name": "paper_mt5",
+   "state": "arr\u00eat\u00e9",
+   "pid": null,
+   "restarts": 3,
+   "last_exit": 1,
+   "uptime_s": 0.0,
+   "next_start_in_s": 37.99907636642456,
+   "log": "/home/user/X/quantbot/runtime/logs/paper_mt5.log",
+   "tail": [
+    "    sys.exit(main())",
+    "             ~~~~^^",
+    "  File \"/home/user/X/quantbot/scripts/paper_all.py\", line 62, in main",
+    "    import MetaTrader5 as mt5  # type: ignore",
+    "    ^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "ModuleNotFoundError: No module named 'MetaTrader5'"
+   ]
+  },
+  {
+   "name": "paper_coinbase",
+   "state": "en cours",
+   "pid": 307,
+   "restarts": 0,
+   "last_exit": null,
+   "uptime_s": 38.94039535522461,
+   "next_start_in_s": 0.0,
+   "log": "/home/user/X/quantbot/runtime/logs/paper_coinbase.log",
+   "tail": [
+    "=== d\u00e9marrage 2026-10-27 00:10:46 : /usr/bin/python /home/user/X/quantbot/scripts/paper_all.py --source coinbase",
+    "{\"runners\": 0, \"errors\": [{\"instrument\": \"BTC-USD\", \"strategy\": \"vwap\", \"error\": \"DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>\"}, {\"instrument\": \"ETH-USD\", \"strategy\": \"vwap\", \"error\": \"DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>\"}, {\"instrument\": \"BTC-USD\", \"strategy\": \"fvg_h1\", \"error\": \"DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>\"}, {\"instrument\": \"ETH-USD\", \"strategy\": \"fvg_h1\", \"error\": \"DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>\"}, {\"instrument\": \"BTC-USD\", \"strategy\": \"fvg_h4\", \"error\": \"DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>\"}, {\"instrument\": \"ETH-USD\", \"strategy\": \"fvg_h4\", \"error\": \"DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>\"}, {\"instrument\": \"BTC-USD\", \"strategy\": \"amd\", \"error\": \"DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>\"}, {\"instrument\": \"ETH-USD\", \"strategy\": \"amd\", \"error\": \"DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>\"}]}"
+   ]
+  }
+ ]
+}

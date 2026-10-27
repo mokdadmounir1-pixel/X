@@ -37,8 +37,9 @@ if not exist config\broker_profile.json (
   python scripts\broker_profile.py --seconds 20
 )
 echo.
-echo Demarrage des fenetres : simulation PAPER (MT5 + crypto) et interface http://127.0.0.1:3214/
-call scripts\start_all.bat
+echo Demarrage : le terminal lance et RELANCE tout seul la simulation PAPER (MT5 + crypto) et la synchronisation des donnees.
+echo Interface : http://127.0.0.1:3214/  (laissez cette fenetre ouverte ; pour arreter, fermez-la)
+python -m quantbot ui --open
 echo.
-echo Tout est lance. Laissez les fenetres ouvertes. Controle de performance : python scripts\audit_performance.py
+echo Le terminal s'est arrete. Le message juste au-dessus donne la cause.
 pause
