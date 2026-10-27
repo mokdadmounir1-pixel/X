@@ -61,7 +61,8 @@ def main(argv=None, mt5=None, sleep=time.sleep, max_cycles=None, coinbase_client
     else:
         if mt5 is None:
             import MetaTrader5 as mt5  # type: ignore
-        if not (mt5.initialize(args.terminal, timeout=15000) if args.terminal else mt5.initialize()):
+        from quantbot.live.terminal import mt5_initialize
+        if not mt5_initialize(mt5, args.terminal):
             print(json.dumps({"erreur": f"initialize() a échoué : {mt5.last_error()}"}, ensure_ascii=False)); return 1
     n = 0
     try:
@@ -72,7 +73,7 @@ def main(argv=None, mt5=None, sleep=time.sleep, max_cycles=None, coinbase_client
         if mt5 is not None:
             from quantbot.live.symbols import maybe_alias
             mt5 = maybe_alias(mt5, ROOT)        # noms de symboles du courtier (config/broker_profile.json) ; sans profil : aucun changement
-        with exclusive_lock(out_dir / "paper.lock"):
+        with exclusive_lock(out_dir / f"paper_{args.source}.lock"):        # un verrou PAR source : la simulation MT5 et la simulation Coinbase tournent en même temps sans collision
             runners, errors = [], []
             overlay_fn = None
             if not args.no_overlay:
@@ -80,7 +81,7 @@ def main(argv=None, mt5=None, sleep=time.sleep, max_cycles=None, coinbase_client
                 _ov = build_overlay(ROOT); overlay_fn = lambda ts, close: _ov.multiplier(ts, close)["multiplier"]
             for spec_path, spec in specs:           # une ou plusieurs specs préenregistrées, chacune avec ses propres coûts/réglages
                 rs, es = build_runners(mt5, spec_path, out_dir, combos(spec, args.symbols, args.strategies), feed_factory=feed_factory, overlay=overlay_fn); runners += rs; errors += es
-            (out_dir / "STATUS.json").write_text(json.dumps({"runners": [f"{r.symbol}_{r.strategy_id}" for r in runners], "errors": errors, "started": time.time(), "source": args.source}, indent=1), encoding="utf-8")
+            (out_dir / ("STATUS.json" if args.source == "mt5" else f"STATUS_{args.source}.json")).write_text(json.dumps({"runners": [f"{r.symbol}_{r.strategy_id}" for r in runners], "errors": errors, "started": time.time(), "source": args.source}, indent=1), encoding="utf-8")
             print(json.dumps({"runners": len(runners), "errors": errors}, ensure_ascii=False), flush=True)
             if not runners:                     # rien n'a pu démarrer (MT5/réseau) : on sort en erreur, le superviseur relance avec un délai croissant
                 return 2

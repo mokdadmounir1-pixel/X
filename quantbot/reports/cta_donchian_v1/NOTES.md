@@ -1,0 +1,4 @@
+# cta_donchian_v1 — suivi de tendance CTA : Donchian 20 barres H4 + tendance D1, or (07-21 UTC)
+Spec préenregistrée avant exécution. 1 essai (registre : 114 / 120). Tranche verrouillée non lue.
+Résultat : FAIL, mais UN SEUL échec de porte : le test nul. 61 trades, +0,223 R, PF 1,86 ; achats 57 trades +0,241 R / ventes 4 trades -0,024 R. Espérance, facteur de profit, DSR, Monte-Carlo, enveloppe de risque : passés.
+Lecture prudente : 61 trades à 93 % acheteurs dans un marché haussier de l'or (+111 % sur la période) : c'est la configuration où un suiveur de tendance gagne par construction (bêta). Le test nul ne rejette pas le hasard (échantillon trop petit). Le comparateur est l'achat-conservation, pas zéro. Seul l'échantillon FUTUR (>= 60 trades, en simulation PAPER) tranchera ; il est lancé automatiquement.

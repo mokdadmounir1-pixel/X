@@ -45,7 +45,8 @@ le produit ne génère aucune donnée de remplacement (le CLI exige une source e
 - `stop_hunt_v2` (asymétrie achat/vente corrigée + variantes VENTES SEULES et INVERSÉE) : 3 FAIL ; sur 2,5 ans les achats gagnent (+0,11 R) et les ventes perdent (-0,06 R). Les 3 variantes tournent séparément en simulation PAPER.
 - `stop_hunt_v3` : variante ACHATS SEULS du stop-hunt corrigé, post-hoc, **simulation PAPER uniquement** (aucun essai de recherche : rejouer sur les mêmes données répéterait +0,106 R sans indépendance) ; jugée sur >= 60 trades futurs contre l'achat-conservation de l'or.
 - `il_svr_v1` (IL-SVR : balayage de la première heure + épuisement sur la bande ±2σ du VWAP + divergence de flux proxy, fenêtres UTC 08h-10h30 / 13h30-16h, indice Nasdaq M15) : FAIL, +0,002 R sur 89 trades. Registre de portefeuille FTMO simulé (compte unique 100 000 $, coupe-circuit global, `/api/ledger`, `/metrics`) ajouté.
-- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 113.
+- `cta_donchian_v1` (suivi de tendance : Donchian 20 barres H4 + tendance D1, or) : FAIL sur UNE seule porte (test nul) : 61 trades, +0,223 R, PF 1,86, 93 % d'achats dans un marché haussier = profil de bêta ; suivi en simulation PAPER. Corrections : verrous/état séparés par source (simulation MT5 et Coinbase en parallèle), `QUANTBOT_MT5_TERMINAL`, `lightgbm` dans requirements.
+- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 114.
 Les rapports sont dans `reports/` (JSON + logs) et l'interface locale les affiche.
 
 ## Audit

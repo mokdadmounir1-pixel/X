@@ -29,7 +29,8 @@ def run(root: Path = ROOT, terminal: str | None = None, symbol: str = "XAUUSD", 
         except ImportError:
             add(BLOCK, "module MetaTrader5 absent", "Windows uniquement : pip install MetaTrader5 (lancer_terminal.bat le fait). Sur Linux/Mac MT5 n'est pas joignable."); mt5 = None
     if mt5 is not None:
-        ok = mt5.initialize(terminal, timeout=15000) if terminal else mt5.initialize()
+        from quantbot.live.terminal import mt5_initialize
+        ok = mt5_initialize(mt5, terminal)
         if not ok:
             add(BLOCK, f"MT5 injoignable : {mt5.last_error()}", "ouvrir MetaTrader 5, se connecter au compte DÉMO, laisser la fenêtre ouverte, puis relancer ; sinon passer --terminal avec le chemin de terminal64.exe")
         else:

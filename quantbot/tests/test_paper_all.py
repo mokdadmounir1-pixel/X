@@ -84,7 +84,7 @@ def test_coinbase_source_paper_runs_without_mt5_and_never_builds_an_order_broker
     finally:
         cb.CoinbaseFeed.__init__ = orig
     assert rc == 0 and (tmp_path / "BTC-USD_vwap.db").exists() and (tmp_path / "BTC-USD_fvg_h1.db").exists()
-    st = json.loads((tmp_path / "STATUS.json").read_text())
+    st = json.loads((tmp_path / "STATUS_coinbase.json").read_text())
     assert st["source"] == "coinbase" and st["errors"] == [] and sorted(st["runners"]) == ["BTC-USD_fvg_h1", "BTC-USD_vwap"]
     from quantbot.ui import server
     import os

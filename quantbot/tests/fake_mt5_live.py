@@ -41,7 +41,7 @@ class FakeMT5Live:
         self.account_per_usd = 1.0     # EUR par USD pour order_calc_profit
 
     # --- cycle de vie
-    def initialize(self): self.initialized = True; return True
+    def initialize(self, *a, **k): self.initialized = True; self.init_args = (a, k); return True
     def shutdown(self): self.initialized = False
     def last_error(self): return (-1, "erreur") if self.positions_error else (1, "Success")
     def account_info(self): return self.acct

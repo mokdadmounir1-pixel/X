@@ -58,7 +58,8 @@ def sync_mt5(root: Path, cfg: dict, mt5=None, shutdown: bool = True) -> dict:
     from .live_store import LiveBarStore
     from ..live.symbols import maybe_alias
     try:
-        if not mt5.initialize(cfg["terminal"], timeout=15000):
+        from ..live.terminal import mt5_initialize
+        if not mt5_initialize(mt5, None, cfg.get("terminal")):
             return {"source": "mt5", "status": "terminal_injoignable", "note": str(mt5.last_error())}
         acct, term = mt5.account_info(), mt5.terminal_info()
         if acct is None or term is None or not term.connected:
