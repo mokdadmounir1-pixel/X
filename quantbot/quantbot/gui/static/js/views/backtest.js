@@ -11,17 +11,18 @@ export function mount(root, ctx) {
   const kv = (k, v, c) => [h("span", { class: "k", text: k }), h("span", { class: "v " + (c || ""), text: v })];
   function paintForm() {
     if (!ST) { clear(form).append(h("div", { class: "skel", style: { width: "320px" } })); return; }
-    const allowed = E.strategy === "patterns" ? ST.patterns.instruments : (ST.strategies.find((s) => s.id === E.strategy) || { instruments: [] }).instruments;
+    const own = E.strategy === "patterns" ? ST.patterns.instruments : (ST.strategies.find((s) => s.id === E.strategy) || { instruments: [] }).instruments;
+    const allowed = E.strategy === "patterns" ? own : (ST.instruments_all || []).map((i) => i.id);
     if (!allowed.includes(E.instrument)) E.instrument = allowed[0];
     const deep = ST.deep_available && ST.deep_available[E.instrument];
     const sel = (label, key, opts, on) => h("label", { class: "f" }, h("span", { class: "lbl", text: label }), h("select", { onchange: (e) => { E[key] = key === "bars" ? +e.target.value : e.target.value; if (on) on(); } }, ...opts.map(([v, t, dis]) => h("option", { value: v, text: t, selected: String(E[key]) === String(v), disabled: dis }))));
-    clear(form).append(sel("Stratégie", "strategy", [...ST.strategies.map((s) => [s.id, s.label]), ["patterns", ST.patterns.label]], paintForm), sel("Instrument", "instrument", allowed.map((i) => [i, i])),
+    clear(form).append(sel("Stratégie", "strategy", [...ST.strategies.map((s) => [s.id, s.label]), ["patterns", ST.patterns.label]], paintForm), sel("Instrument", "instrument", allowed.map((i) => [i, own.includes(i) ? i : i + "  (exploration)"])),
       sel("Période", "segment", [["recherche", "Recherche (récent)"], ["avant", deep ? "Années d'avant" : "Années d'avant (historique profond absent)", !deep]]), sel("Barres", "bars", [[3000, "3 000"], [6000, "6 000"], [12000, "12 000"]]),
       h("button", { class: "btn primary", id: "go", onclick: run }, "Lancer le test"));
   }
   async function run(e) {
     const b = e.target; b.disabled = true; b.textContent = "Calcul…"; clear(out).append(h("div", { class: "panel" }, h("div", { class: "pb" }, h("div", { class: "skel" }), h("div", { class: "skel", style: { width: "60%" } }))));
-    try { R = await api(`/api/strategy_replay?instrument=${E.instrument}&bars=${E.bars}&strategy=${E.strategy}&segment=${E.segment}`); show(); } catch (err) { clear(out); }
+    try { R = await api(`/api/strategy_replay?instrument=${encodeURIComponent(E.instrument)}&bars=${E.bars}&strategy=${encodeURIComponent(E.strategy)}&segment=${E.segment}`); show(); } catch (err) { clear(out).append(h("div", { class: "panel" }, h("div", { class: "pb" }, h("div", { class: "note", text: "Impossible de lancer ce test : " + (err && err.message ? err.message : "erreur inconnue") })))); }
     b.disabled = false; b.textContent = "Lancer le test";
   }
   function metric(k, v, cls, s) { return h("div", { class: "metric" }, h("div", { class: "k", text: k }), h("div", { class: "v " + (cls || ""), text: v }), h("div", { class: "s", text: s || "" })); }
@@ -42,6 +43,7 @@ export function mount(root, ctx) {
     const detailHost = h("div", { class: "pb flush", style: { display: "flex", height: "380px" } }), detailKv = h("div", { class: "kv", style: { padding: "10px" } });
     const eqHost = h("div", { style: { height: "190px" } }), dayHost = h("div", { style: { height: "190px" } });
     clear(out).append(
+      R.exploration ? h("div", { class: "panel" }, h("div", { class: "pb" }, h("div", { class: "note", style: { color: "var(--amb, #e0a030)" }, text: R.note }))) : null,
       h("div", { class: "metrics" }, metric("Trades", String(m.n_trades), "", `${R.label} · ${R.instrument}`), metric("Espérance / trade", sgn(m.expectancy_R, 3) + " R", pnlClass(m.expectancy_R), "R nominal"),
         metric("Profit factor", isNum(m.profit_factor) ? m.profit_factor.toFixed(2) : "—", isNum(m.profit_factor) && m.profit_factor > 1 ? "up" : "dn", `gagnants ${pct(m.win_rate, 0)}` + (isNum(m.realised_rr) ? ` · R:R réalisé ${m.realised_rr.toFixed(2)} → seuil ${pct(1 / (1 + m.realised_rr), 0)}` : "")),
         metric("R / jour ouvré", sgn(d.avg_R_per_day, 3), d.avg_R_per_day >= d.target ? "up" : "dn", `objectif ${num(d.target, 2)} · ${pct(d.days_ge_target_pct, 0)} des jours`), metric("Drawdown max", pct(m.max_drawdown, 1), "dn", "capital simulé"),

@@ -56,3 +56,12 @@ def test_broker_profile_maps_symbols_samples_spread_and_never_assumes_zero_commi
 def test_non_demo_account_is_refused_by_the_profile():
     with pytest.raises(SystemExit, match="NON démo"):
         bp.build(GoldBroker(demo=False), ["XAUUSD"], 1, None, sleep=lambda s: None)
+
+
+def test_sync_auto_resolves_broker_names_for_many_instruments_and_saves_under_canonical_names(tmp_path):
+    from quantbot.data.autosync import _sync_series, DEFAULTS
+    from quantbot.live.symbols import AliasMT5, auto_map
+    m = GoldBroker(); m.NAMES = {"GOLD.a", "EURUSD.a", "NAS100.a", "GER40.a"}; mp = auto_map(m, tmp_path, ["XAUUSD", "EURUSD", "USTEC", "DE40", "UK100"])
+    assert mp == {"XAUUSD": "GOLD.a", "EURUSD": "EURUSD.a", "USTEC": "NAS100.a", "DE40": "GER40.a"}          # UK100 absent chez ce courtier : simplement ignoré
+    from quantbot.live.symbols import PATTERNS
+    assert {"US500", "US30", "DE40", "UK100", "JP225", "USOIL", "GBPUSD", "USDJPY"} <= set(PATTERNS) and {"US500", "DE40"} <= set(DEFAULTS["mt5"]["extra_symbols"])

@@ -43,11 +43,15 @@ def collect_state(root: Path = ROOT) -> dict:
         reg_ok, n_trials, locked = False, 0, 0
     specs = []
     budget = None
+    for f in sorted((root / "specs").glob("*.json")):          # budget déclaré = le plus élevé de TOUTES les specs (les anciennes gardent leur ancien chiffre)
+        b = (_read_json(f) or {}).get("max_trials_budget")
+        if isinstance(b, (int, float)):
+            budget = max(budget or 0, int(b))
     for name in SPEC_ORDER:
         spec = _read_json(root / "specs" / f"{name}.json")
         if spec is None:
             continue
-        budget = spec.get("max_trials_budget", budget)
+        budget = max(budget or 0, spec.get("max_trials_budget") or 0) or budget        # le budget déclaré le plus récent/élevé (les anciennes specs gardent leur 80)
         results = []
         if name in GLOB_SPECS:
             keys = [(f.stem, f) for f in sorted((reports / name).glob("*.json")) if not f.stem.endswith("_model")]

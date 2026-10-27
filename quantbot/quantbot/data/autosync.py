@@ -19,7 +19,8 @@ from ..filelock import exclusive_lock
 from .coinbase import GRANULARITY, CoinbaseClient, load_utc_csv
 
 DEFAULTS = {"coinbase": {"products": ["BTC-USD", "ETH-USD"], "timeframes": ["M15"], "initial_days": 90},
-            "mt5": {"symbols": ["XAUUSD", "XAGUSD", "EURUSD", "USTEC", "USDX", "DXY", "USDIDX"], "timeframes": ["M1", "M5", "M15", "H1"], "bars": 1000, "bootstrap_bars": 50000,
+            "mt5": {"symbols": ["XAUUSD", "XAGUSD", "EURUSD", "USTEC", "DXY"], "timeframes": ["M1", "M5", "M15", "H1"],
+                    "extra_symbols": ["GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD", "US500", "US30", "DE40", "UK100", "JP225", "USOIL"], "extra_timeframes": ["M15", "H1"], "bars": 1000, "bootstrap_bars": 50000,
                     "terminal": r"C:\Program Files\MetaTrader 5\terminal64.exe", "depth_symbol": "XAUUSD", "depth_levels": 5, "depth_interval_s": 2.0},
             "interval_s": 300}
 
@@ -66,7 +67,9 @@ def sync_mt5(root: Path, cfg: dict, mt5=None, shutdown: bool = True) -> dict:
             return {"source": "mt5", "status": "refuse", "note": "compte non démo : aucune lecture"}
         try:                                   # un seul écrivain sur data/live (le démon autonome tient le même verrou)
             with exclusive_lock(Path(root) / "data" / "live" / "daemon.lock"):
-                return _sync_series(maybe_alias(mt5, root), LiveBarStore(Path(root) / "data" / "live"), cfg)
+                from ..live.symbols import AliasMT5, auto_map
+                every = list(cfg["symbols"]) + list(cfg.get("extra_symbols", []))
+                return _sync_series(AliasMT5(mt5, auto_map(mt5, Path(root), every)), LiveBarStore(Path(root) / "data" / "live"), cfg)
         except RuntimeError:
             return {"source": "mt5", "status": "verrou_occupe", "note": "data_daemon.py écrit déjà dans data/live : un seul écrivain à la fois"}
     finally:
@@ -79,10 +82,11 @@ def sync_mt5(root: Path, cfg: dict, mt5=None, shutdown: bool = True) -> dict:
 
 def _sync_series(mt5, store, cfg) -> dict:
     series = []
-    for s in cfg["symbols"]:
+    plan = [(s, cfg["timeframes"]) for s in cfg["symbols"]] + [(s, cfg.get("extra_timeframes", cfg["timeframes"])) for s in cfg.get("extra_symbols", [])]
+    for s, tfs in plan:
         if not mt5.symbol_select(s, True):
             series.append({"symbol": s, "status": "symbole_indisponible"}); continue
-        for tf in cfg["timeframes"]:
+        for tf in tfs:
             try:
                 series.append(store.update(mt5, s, tf, cfg["bootstrap_bars"] if store.last_epoch(s, tf) is None else cfg["bars"]))
             except Exception as exc:
