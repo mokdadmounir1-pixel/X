@@ -83,6 +83,9 @@ docs/prompts/  prompts pour ChatGPT (export MT5, connexion au terminal réel, pr
 ## Lancer et vérifier (Windows)
 **`lancer_terminal.bat` ou `lancer_tout.bat` : le terminal lance et RELANCE TOUT SEUL la simulation PAPER (MT5 + crypto) et la synchronisation des données** (`supervisor.py`, journaux `runtime/logs/`, état dans l'onglet Système > Processus automatiques ; `--no-workers` pour couper). `lancer_tout.bat` ajoute le pré-vol : pré-vol en clair de la connexion MT5 (`scripts/preflight.py` : [OK]/[ATTENTION]/[BLOQUANT] + quoi faire), puis simulation PAPER de toutes les stratégies sur les prix réels + interface. Aucun ordre n'est envoyé à MT5. Au premier lancement, `scripts/broker_profile.py` relève le profil de TON courtier (nom de l'or chez lui : GOLD, XAUUSD.a... ; contrat ; spread réel ; commission à fournir avec `--commission-per-lot-side`, jamais supposée nulle) dans `config/broker_profile.json`, et tout le reste s'y adapte (`live/symbols.py`).
 
+## Catalogue (onglet Stratégies)
+TOUTES les stratégies de quantbot (29 exécutables) sur une page : code, famille, instruments, verdict de recherche (espérance, PF, trades, portes ratées), état de la simulation PAPER, bouton direct vers le banc d'essai ; plus la liste des modules qui ne sont pas des stratégies exécutables et la raison exacte (données manquantes, inapplicable).
+
 ## Banc d'essai (onglet Backtests)
 Toutes les stratégies à règles (28) se rejouent sur TOUS les instruments qui ont un CSV M15 : `data/real`, `data/live` (synchronisé depuis MT5 : or, argent, EURUSD, USTEC, DXY, GBPUSD, USDJPY, USDCHF, AUDUSD, USDCAD, US500, US30, DE40, UK100, JP225, USOIL quand le courtier les propose ; noms du courtier détectés automatiquement) et `data/crypto`. Un instrument hors de la spec préenregistrée est rejoué en **EXPLORATION** (règles figées, coûts mesurés ou hypothèses déclarées, aucun essai compté, aucune validité statistique, bannière affichée).
 

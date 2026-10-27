@@ -7,8 +7,9 @@ import { mount as mBacktest } from "./views/backtest.js";
 import { mount as mRisque } from "./views/risque.js";
 import { mount as mRecherche } from "./views/recherche.js";
 import { mount as mSysteme } from "./views/systeme.js";
+import { mount as mStrategies } from "./views/strategies.js";
 
-const TABS = [["trades", "Live trades & attribution", mTrades], ["marche", "Marché", mMarche], ["backtest", "Backtests", mBacktest], ["risque", "Risque", mRisque], ["recherche", "Recherche", mRecherche], ["systeme", "Système", mSysteme]];
+const TABS = [["trades", "Live trades & attribution", mTrades], ["marche", "Marché", mMarche], ["strategies", "Stratégies", mStrategies], ["backtest", "Backtests", mBacktest], ["risque", "Risque", mRisque], ["recherche", "Recherche", mRecherche], ["systeme", "Système", mSysteme]];
 const store = { period: "session" };
 let current = null, unmount = null;
 const $ = (s) => document.querySelector(s);
