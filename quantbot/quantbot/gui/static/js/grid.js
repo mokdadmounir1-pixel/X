@@ -41,9 +41,11 @@ export class DataGrid {
     this.select(this.key(this.rows[i]));
   }
   paint(force) {
-    const n = this.rows.length; clear(this.tbody);
+    // IMPORTANT : lire la position de défilement et la hauteur AVANT de vider le tableau. Vider d'abord force une mise en page avec un tbody vide : scrollHeight s'effondre et le navigateur
+    // ramène scrollTop à 0 à chaque événement de défilement (impossible de faire défiler les trades). On restaure aussi scrollTop après la reconstruction.
+    const n = this.rows.length, top = this.scroller.scrollTop, view = this.scroller.clientHeight || 400; clear(this.tbody);
     if (!n) { this.tbody.append(h("tr", null, h("td", { colspan: this.cols.length, class: "empty" }, this.emptyMsg))); return; }
-    const view = this.scroller.clientHeight || 400; const first = Math.max(0, Math.floor(this.scroller.scrollTop / ROW) - 8); const last = Math.min(n, first + Math.ceil(view / ROW) + 16);
+    const first = Math.max(0, Math.floor(top / ROW) - 8); const last = Math.min(n, first + Math.ceil(view / ROW) + 16);
     if (first > 0) this.tbody.append(h("tr", { class: "spacer" }, h("td", { colspan: this.cols.length, style: { height: first * ROW + "px" } })));
     for (let i = first; i < last; i++) {
       const r = this.rows[i]; const k = this.key(r);
@@ -52,5 +54,6 @@ export class DataGrid {
       this.tbody.append(tr);
     }
     if (last < n) this.tbody.append(h("tr", { class: "spacer" }, h("td", { colspan: this.cols.length, style: { height: (n - last) * ROW + "px" } })));
+    if (this.scroller.scrollTop !== top) this.scroller.scrollTop = top;
   }
 }

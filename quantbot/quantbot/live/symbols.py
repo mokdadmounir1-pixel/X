@@ -16,6 +16,9 @@ PATTERNS = {
     "EURUSD": ["EURUSD", "EUR/USD"],
     "USTEC": ["USTEC", "NAS100", "US100", "NDX100", "NASDAQ", "USTECH"],
     "DXY": ["DXY", "USDX", "USDIDX", "DOLLAR"],
+    "GBPUSD": ["GBPUSD", "GBP/USD"], "USDJPY": ["USDJPY", "USD/JPY"], "USDCHF": ["USDCHF", "USD/CHF"], "AUDUSD": ["AUDUSD", "AUD/USD"], "USDCAD": ["USDCAD", "USD/CAD"],
+    "US500": ["US500", "SPX500", "SP500", "USSPX500", "S&P500"], "US30": ["US30", "DJ30", "DOW30", "WS30", "USDOW30"], "DE40": ["DE40", "GER40", "DAX40", "GER30", "DE30"],
+    "UK100": ["UK100", "FTSE100", "UKX100"], "JP225": ["JP225", "JPN225", "NI225", "NIKKEI225"], "USOIL": ["USOIL", "WTI", "XTIUSD", "CL-OIL", "USCRUDE"],
 }
 SUFFIXES = ("", ".a", ".m", ".r", ".pro", ".ecn", ".raw", ".c", "m", "_i", "#", "-ECN", "+")
 
@@ -79,3 +82,15 @@ class AliasMT5:
 def maybe_alias(mt5: Any, root: Path) -> Any:
     m = load_map(root)
     return AliasMT5(mt5, m) if any(k != v for k, v in m.items()) else mt5
+
+
+def auto_map(mt5: Any, root: Path, canonicals: list[str]) -> dict:
+    """Correspondance canonique -> nom du courtier pour TOUS les symboles demandés : profil enregistré d'abord, puis détection automatique ; les introuvables sont simplement absents."""
+    m = dict(load_map(root))
+    for c in canonicals:
+        if c in m:
+            continue
+        r = resolve(mt5, c)
+        if r["broker"]:
+            m[c] = r["broker"]
+    return m
