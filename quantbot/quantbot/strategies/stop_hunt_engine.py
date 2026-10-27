@@ -12,22 +12,24 @@ import pandas as pd
 from .events import Event, atr_series
 
 PARAMS = {"lookback": 48, "tol_atr": 0.25, "min_touches": 2, "touch_full": 4, "sweep_min_atr": 0.1, "sweep_full_atr": 0.6, "reclaim_full": 0.5, "s_min": 0.5,
-          "stop_atr": 1.8, "rr": 3.0, "cooldown": 8, "session": [7, 17]}
+          "stop_atr": 1.8, "rr": 3.0, "cooldown": 8, "session": [7, 17], "mode": "both"}   # mode : both | sell_only | flip
 
 
 def _ramp(x, lo, hi):
     return float(np.clip((x - lo) / (hi - lo), 0.0, 1.0))
 
 
-def pool_score(levels: np.ndarray, atr: float, p: dict) -> tuple[float, float]:
-    """(score de réservoir [0,1], niveau du réservoir). Amas = plus grand groupe de niveaux dans une bande de `tol_atr` ATR."""
+def pool_score(levels: np.ndarray, atr: float, p: dict, prefer: str = "low") -> tuple[float, float]:
+    """(score de réservoir [0,1], niveau du réservoir). Amas = plus grand groupe de niveaux dans une bande de `tol_atr` ATR.
+    À taille égale, `prefer` choisit l'amas le plus BAS (creux : prefer="low") ou le plus HAUT (sommets : prefer="high"), c'est-à-dire toujours le plus EXTRÊME : sans ce paramètre (révision 1) les égalités
+    donnaient l'amas le plus bas aussi pour les sommets, soit un niveau plus facile à balayer côté vente que côté achat (asymétrie corrigée, voir tests/test_stop_hunt_symmetry.py)."""
     if len(levels) == 0 or atr <= 0:
         return 0.0, float("nan")
     lv = np.sort(levels); band = p["tol_atr"] * atr; best_n, best_lvl, j = 0, float("nan"), 0
     for i in range(len(lv)):
         while lv[i] - lv[j] > band:
             j += 1
-        if i - j + 1 > best_n:
+        if i - j + 1 > best_n or (prefer == "high" and i - j + 1 == best_n):
             best_n, best_lvl = i - j + 1, float(lv[j:i + 1].mean())
     if best_n < p["min_touches"]:
         return 0.0, best_lvl
@@ -41,15 +43,19 @@ def events(df: pd.DataFrame, params: dict | None = None) -> list[Event]:
         if not sess[i] or not np.isfinite(atr[i]) or i - last < p["cooldown"]:
             continue
         a = atr[i]; win = slice(i - lb, i - 1)
-        ph, lvl_h = pool_score(h[win], a, p); pl, lvl_l = pool_score(l[win], a, p)
+        ph, lvl_h = pool_score(h[win], a, p, "high"); pl, lvl_l = pool_score(l[win], a, p, "low")
         # balayage au-dessus d'un réservoir de sommets, puis clôture revenue sous le niveau -> vente
         sweep_up = _ramp((h[i] - lvl_h) / a, p["sweep_min_atr"], p["sweep_full_atr"]) if np.isfinite(lvl_h) else 0.0
         reclaim_dn = _ramp((lvl_h - c[i]) / a, 0.0, p["reclaim_full"]) if np.isfinite(lvl_h) else 0.0
         sweep_dn = _ramp((lvl_l - l[i]) / a, p["sweep_min_atr"], p["sweep_full_atr"]) if np.isfinite(lvl_l) else 0.0
         reclaim_up = _ramp((c[i] - lvl_l) / a, 0.0, p["reclaim_full"]) if np.isfinite(lvl_l) else 0.0
         s_short = (ph * sweep_up * reclaim_dn) ** (1 / 3); s_long = (pl * sweep_dn * reclaim_up) ** (1 / 3)
-        if s_short >= p["s_min"] and s_short >= s_long:
-            stop = c[i] + p["stop_atr"] * a; out.append(Event(df.index[i], "bearish", stop, c[i] - p["rr"] * (stop - c[i]), "hunt_short", {"confidence": min(s_short, 1.0), "S": s_short, "pool": ph})); last = i
-        elif s_long >= p["s_min"]:
-            stop = c[i] - p["stop_atr"] * a; out.append(Event(df.index[i], "bullish", stop, c[i] + p["rr"] * (c[i] - stop), "hunt_long", {"confidence": min(s_long, 1.0), "S": s_long, "pool": pl})); last = i
+        mode = p.get("mode", "both")
+        if s_short >= p["s_min"] and s_short > s_long and mode in ("both", "sell_only", "flip"):       # strict : à score égal, aucun des deux sens n'est favorisé
+            stop = c[i] + p["stop_atr"] * a; out.append(Event(df.index[i], "bearish", stop, c[i] - p["rr"] * (stop - c[i]), "hunt_short", {"confidence": min(s_short, 1.0), "S": s_short, "pool": ph, "origin": "sell"})); last = i
+        elif s_long >= p["s_min"] and s_long > s_short:
+            if mode == "flip":                      # version « inversée » : le signal d'ACHAT d'origine est pris en VENTE (stop au-dessus, cible en dessous) ; étiquetée origin="buy_flipped"
+                stop = c[i] + p["stop_atr"] * a; out.append(Event(df.index[i], "bearish", stop, c[i] - p["rr"] * (stop - c[i]), "hunt_flip_short", {"confidence": min(s_long, 1.0), "S": s_long, "pool": pl, "origin": "buy_flipped"})); last = i
+            elif mode == "both":
+                stop = c[i] - p["stop_atr"] * a; out.append(Event(df.index[i], "bullish", stop, c[i] + p["rr"] * (c[i] - stop), "hunt_long", {"confidence": min(s_long, 1.0), "S": s_long, "pool": pl, "origin": "buy"})); last = i
     return out
