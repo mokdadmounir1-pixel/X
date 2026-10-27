@@ -42,7 +42,8 @@ le produit ne génère aucune donnée de remplacement (le CLI exige une source e
 - `apex_levels_v1` (APEX pondéré par la proximité aux chiffres ronds et aux nœuds de volume, proxy qui n'est PAS un GEX) : FAIL, +0,016 R.
 - `mtf_confluence_v1` (analyse descendante D1/H4/H1/M15, confluence continue par moyenne géométrique, or) : FAIL mais le meilleur de la série or : +0,113 R, PF 1,25, 301 trades (achats +0,116 R, ventes +0,093 R) ; sous le seuil de 0,15 R, test nul non rejeté. Suivi en simulation PAPER.
 - `alpha_miner_v1` (extraction rétrospective : 4 314 trades de l'or, jeu de données causal avec MFE/MAE, LightGBM + importance par permutation + test nul + règles à seuil corrigées Bonferroni, jugées sur la période la plus récente) : verdict RIEN (AUC hors-échantillon 0,527 < 0,53 préenregistré ; la seule règle « retenue », écarter les trades contre une forte tendance H1 baissière, ne tenait pas dans la période d'apprentissage : à ne pas appliquer). Aucune règle n'est jamais appliquée automatiquement.
-- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 109.
+- `stop_hunt_v2` (asymétrie achat/vente corrigée + variantes VENTES SEULES et INVERSÉE) : 3 FAIL ; sur 2,5 ans les achats gagnent (+0,11 R) et les ventes perdent (-0,06 R). Les 3 variantes tournent séparément en simulation PAPER.
+- Budget d'essais déclaré : 120 (relevé de 80 le 2026-10-25, avant les essais stat-arb/ML/VWAP ; le DSR compte tous les essais) ; consommés : 112.
 Les rapports sont dans `reports/` (JSON + logs) et l'interface locale les affiche.
 
 ## Audit
