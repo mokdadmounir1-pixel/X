@@ -19,5 +19,5 @@ def test_catalog_lists_every_executable_strategy_with_research_verdict_and_missi
     assert cta["code"] == "CTA_DONCHIAN_H4" and cta["family"] == "Suivi de tendance" and cta["paper"]["running"] is False
     if (ROOT / "reports" / "cta_donchian_v1").exists():
         assert cta["research"][0]["verdict"] == "FAIL" and cta["research"][0]["gates_failed"] == ["null_test"]
-    other = {m["id"]: m for m in c["other_modules"]}; assert "carnet" in other["ofi_lob"]["status"] and "options" in other["vol_arb"]["status"]
+    other = {m["id"]: m for m in c["other_modules"]}; assert "chaîne" in other["vol_arb"]["status"] and "tail_dependence" in other; assert any(r["id"] == "ofi_depth" and r["data_missing"] is not None for r in c["strategies"])
     assert "0 PASS" in c["note"]

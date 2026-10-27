@@ -1,0 +1,28 @@
+{
+ "name": "rl_v1",
+ "preregistered": "2026-10-27 : commitée AVANT toute exécution",
+ "lock_months": 12,
+ "instruments": {
+  "XAUUSD": "data/real/XAUUSD_M15.csv"
+ },
+ "rl": {
+  "train_bars": 8000,
+  "test_bars": 2000,
+  "episodes": 5,
+  "alpha": 0.1,
+  "gamma": 0.9,
+  "eps": 0.2,
+  "cost_atr": 0.05,
+  "day_loss_atr": 3.0,
+  "seed": 0
+ },
+ "hypothesis": "Un agent Q-learning tabulaire (états discrétisés tendance/volatilité/position, coût 0,05 ATR par changement, arrêt journalier -3 ATR) entraîné sur le passé a une somme OOS positive en walk-forward sur l'or. Hypothèse faible : sur-ajustement attendu.",
+ "trials": 1,
+ "max_trials_budget": 120,
+ "rules": [
+  "Paramètres figés.",
+  "Un PASS n'existe pas pour ce script : CANDIDAT au mieux.",
+  "Pas de coûts réels du courtier : coût en ATR = hypothèse.",
+  "CANDIDAT seulement si somme OOS > 0 ET > achat-conservation sur la même fenêtre (bêta de l'or)."
+ ]
+}

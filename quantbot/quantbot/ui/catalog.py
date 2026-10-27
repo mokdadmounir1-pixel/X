@@ -10,10 +10,11 @@ from typing import Optional
 
 from ..gui.book import build_book
 from ..strategies.build import strategy_code
+from ..strategies.external_data import missing
 from .replay import list_strategies
 
 FAMILIES = [("amd", "Session / manipulation"), ("vwap", "Réversion VWAP"), ("orb", "Ouverture (ORB)"), ("fvg", "Fair Value Gap"), ("smc", "SMC order block"), ("gq_", "Scalping or"),
-            ("apex_pullback", "Repli APEX"), ("apex_levels", "Repli APEX x niveaux"), ("stop_hunt", "Stop-hunt"), ("mtf", "Multi-temporel descendant"), ("il_svr", "Indices (IL-SVR)"), ("cta", "Suivi de tendance")]
+            ("apex_pullback", "Repli APEX"), ("apex_levels", "Repli APEX x niveaux"), ("stop_hunt", "Stop-hunt"), ("mtf", "Multi-temporel descendant"), ("il_svr", "Indices (IL-SVR)"), ("cta", "Suivi de tendance"), ("kalman", "Kalman / Ornstein-Uhlenbeck"), ("orderflow", "Flux d'ordres (proxy)"), ("fixing", "Saisonnalité fixings"), ("cot", "Positionnement COT"), ("macro", "Macro taux réels"), ("ofi_depth", "Carnet réel (OFI)")]
 
 
 def _family(sid: str) -> str:
@@ -35,13 +36,10 @@ NOT_EXECUTABLE = [
     ("pairs_kalman", "Stat-arb de paires BTC/ETH (Kalman + Engle-Granger)", None, "Écrite et préenregistrée (pairs_v1), NON exécutée : données Coinbase à récupérer (le terminal les synchronise sur ton PC)."),
     ("alpha_miner", "Extraction rétrospective d'alpha (alpha_miner_v1)", "alpha_miner_v1", "Exécutée : RIEN d'exploitable. Outil d'analyse, pas une stratégie."),
     ("portfolio", "Portefeuille de toutes les stratégies (portfolio_v1)", "portfolio_v1", "Exécuté : 2 FAIL. Outil de combinaison, pas une stratégie."),
-    ("statarb_tips", "Stat-arb or / taux réels TIPS", None, "NON faite : exige les taux TIPS de la FRED (clé gratuite à fournir) ; à tester quand les données existent."),
-    ("cot", "Positionnement COT (Managed Money)", None, "Collecteur fait (data/external/cot_gold.csv) ; signal à tester quand l'historique est collecté. Faible puissance statistique (hebdomadaire)."),
-    ("ofi_lob", "OFI / carnet / icebergs / file d'attente", None, "NON faisable en l'état : exige le carnet d'ordres réel (tailles bid/ask). La collecte de profondeur est active si le courtier l'expose."),
-    ("avellaneda", "Market making Avellaneda-Stoikov", None, "NON applicable : modèle de teneur de marché ; quantbot est preneur de liquidité."),
-    ("vol_arb", "Arbitrage de volatilité implicite/réalisée", None, "NON faisable : exige les options (chaîne COMEX)."),
-    ("rl", "Apprentissage par renforcement (TensorTrade)", None, "NON fait : sur-ajustement quasi certain sur ~80 000 barres ; environnement séparé non installé (oss_quant_stack)."),
-    ("fixings", "Saisonnalité / fixings LBMA", None, "Non testée : effet non établi ; un essai à dépenser plus tard si tu le veux."),
+    ("avellaneda", "Market making Avellaneda-Stoikov (stat/avellaneda.py)", None, "Outil de recherche testé (cotations, simulation) : borne optimiste, sans file d'attente ni sélection adverse ; quantbot est preneur de liquidité, donc non exécuté."),
+    ("vol_arb", "Prime de variance implicite/réalisée (stat/vol_arb.py)", None, "Outil de recherche : calcule vol réalisée et prime sur une chaîne d'options RÉELLE ; sans chaîne COMEX, aucun signal."),
+    ("tail_dependence", "Dépendance de queue (risk/tail_dependence.py)", None, "Outil de risque : mesure empirique de co-chutes ; ne trade pas."),
+    ("rl", "Q-learning walk-forward (ml/rl_agent.py, scripts/run_rl.py)", "rl_v1", "Agent tabulaire minimal en walk-forward strict, 1 essai ; sur-ajustement probable, verdict dans reports/rl_v1."),
 ]
 
 
@@ -60,7 +58,7 @@ def build_catalog(root: Path) -> dict:
                 m = d["evaluation"].get("metrics", {}); res.append({"instrument": inst, "verdict": d["evaluation"].get("verdict"), "expectancy_R": m.get("expectancy_R"), "profit_factor": m.get("profit_factor"),
                                                                     "n_trades": m.get("n_trades"), "gates_failed": [g["name"] for g in d["evaluation"].get("gates", []) if not g.get("ok")]})
         code = strategy_code(s["id"]); runners = run_by_id.get(s["id"], []); tr = by_code.get(code)
-        rows.append({"id": s["id"], "code": code, "label": s["label"], "family": _family(s["id"]), "instruments": s["instruments"], "spec": s["spec"], "note": s.get("note", ""), "research": res,
+        rows.append({"id": s["id"], "code": code, "label": s["label"], "family": _family(s["id"]), "instruments": s["instruments"], "spec": s["spec"], "note": s.get("note", ""), "research": res, "data_missing": missing(s["id"], root),
                      "paper": {"runners": len(runners), "running": any(r.get("running") for r in runners), "trades": (tr or {}).get("n", 0), "open": (tr or {}).get("open", 0), "pnl": (tr or {}).get("pnl", 0.0)}})
     extras = []
     for sid, label, spec, status in NOT_EXECUTABLE:
