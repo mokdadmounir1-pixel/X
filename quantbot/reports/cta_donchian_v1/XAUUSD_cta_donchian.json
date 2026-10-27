@@ -1,0 +1,124 @@
+{
+ "instrument": "XAUUSD",
+ "strategy": "cta_donchian",
+ "label": "CTA Donchian H4 + tendance D1",
+ "n_events": 81,
+ "by_side": {
+  "long": {
+   "n": 57,
+   "E_R": 0.2409
+  },
+  "short": {
+   "n": 4,
+   "E_R": -0.0241
+  }
+ },
+ "buy_hold_research_pct": 112.1,
+ "rejections": {},
+ "evaluation": {
+  "verdict": "FAIL",
+  "reason": "\u00e9choue : null_test | \u00e9liminatoire(s) : null_test",
+  "n_trials": 114,
+  "spec_hash": "8e0735cb94aa22783c9bd16adced8294ec3a1e734371b2a29c881df60ffd2e1e",
+  "data_hash": "a4dd3476e40a365f0e8ed0d6d075aa641da35b4489127d4b4a05f521030fd224",
+  "metrics": {
+   "n_trades": 61,
+   "expectancy_R": 0.2234768627140983,
+   "profit_factor": 1.862708194565223,
+   "years": 2.403832991101985,
+   "sharpe_per_trade": 0.2621268119634146,
+   "worst_trade_R": -1.004652214467722,
+   "median_R": 0.21811107125278129,
+   "total_return": 0.0699143129822184,
+   "max_drawdown": 0.015801530580403025
+  },
+  "gates": [
+   {
+    "name": "n_trades",
+    "ok": true,
+    "value": 61,
+    "threshold": 60,
+    "eliminatory": true
+   },
+   {
+    "name": "expectancy",
+    "ok": true,
+    "value": 0.2235,
+    "threshold": 0.15,
+    "eliminatory": false
+   },
+   {
+    "name": "profit_factor",
+    "ok": true,
+    "value": 1.863,
+    "threshold": 1.2,
+    "eliminatory": false
+   },
+   {
+    "name": "null_test",
+    "ok": false,
+    "value": 0.02363,
+    "threshold": 0.00092,
+    "eliminatory": true
+   },
+   {
+    "name": "costs_x2",
+    "ok": true,
+    "value": 0.2199,
+    "threshold": 0.0,
+    "eliminatory": true
+   },
+   {
+    "name": "monte_carlo_p5",
+    "ok": true,
+    "value": 1.0133,
+    "threshold": 1.0,
+    "eliminatory": true
+   },
+   {
+    "name": "top3_share",
+    "ok": true,
+    "value": 0.382,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "folds_positive",
+    "ok": true,
+    "value": 1.0,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "risk_envelope",
+    "ok": true,
+    "value": {
+     "dd95_pct": 2.72,
+     "streak95": 7.0
+    },
+    "threshold": {
+     "max_pct": 6.0
+    },
+    "eliminatory": true
+   },
+   {
+    "name": "worst_trade",
+    "ok": true,
+    "value": -1.005,
+    "threshold": -5.0,
+    "eliminatory": true
+   },
+   {
+    "name": "deflated_sharpe",
+    "ok": true,
+    "value": 0.6509,
+    "threshold": 0.5,
+    "eliminatory": true
+   }
+  ]
+ },
+ "costs_used": {
+  "spread": 2.5565977486733276e-05,
+  "max_leverage": 1.5025909330454783
+ }
+}
