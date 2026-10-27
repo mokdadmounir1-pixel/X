@@ -36,3 +36,10 @@ def test_variants_are_distinct_sell_only_has_no_buys_and_flip_turns_buys_into_la
     for e in flip:
         px = df.close[e.ts]; assert e.stop > px > e.target and abs(px - e.target) / abs(e.stop - px) == pytest.approx(3.0)
     assert strategy_code("stop_hunt__sell") == "XAU_STOP_HUNT_SELL" and strategy_code("stop_hunt__flip") == "XAU_STOP_HUNT_FLIP" and strategy_code("stop_hunt") == "XAU_STOP_HUNT"
+
+
+def test_buy_only_variant_has_no_sells_and_equals_the_buys_of_the_base_when_no_cooldown_interference():
+    df = _walk(3); buy = events_for("stop_hunt__buy", {"params": {"mode": "buy_only"}}, df)
+    assert buy and all(e.direction == "bullish" and e.meta["origin"] == "buy" for e in buy) and strategy_code("stop_hunt__buy") == "XAU_STOP_HUNT_BUY"
+    import json, pathlib
+    spec = json.loads((pathlib.Path(__file__).resolve().parents[1] / "specs" / "stop_hunt_v3.json").read_text(encoding="utf-8")); assert spec["trials"] == 0 and "PAPER" in spec["preregistered"]
