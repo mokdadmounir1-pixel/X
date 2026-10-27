@@ -77,6 +77,8 @@ def main(argv=None, mt5=None, sleep=time.sleep, max_cycles=None, coinbase_client
                 rs, es = build_runners(mt5, spec_path, out_dir, combos(spec, args.symbols, args.strategies), feed_factory=feed_factory); runners += rs; errors += es
             (out_dir / "STATUS.json").write_text(json.dumps({"runners": [f"{r.symbol}_{r.strategy_id}" for r in runners], "errors": errors, "started": time.time(), "source": args.source}, indent=1), encoding="utf-8")
             print(json.dumps({"runners": len(runners), "errors": errors}, ensure_ascii=False), flush=True)
+            if not runners:                     # rien n'a pu démarrer (MT5/réseau) : on sort en erreur, le superviseur relance avec un délai croissant
+                return 2
             while max_cycles is None or n < max_cycles:
                 n += 1
                 for r in runners:

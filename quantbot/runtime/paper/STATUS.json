@@ -1,0 +1,47 @@
+{
+ "runners": [],
+ "errors": [
+  {
+   "instrument": "BTC-USD",
+   "strategy": "vwap",
+   "error": "DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+   "instrument": "ETH-USD",
+   "strategy": "vwap",
+   "error": "DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+   "instrument": "BTC-USD",
+   "strategy": "fvg_h1",
+   "error": "DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+   "instrument": "ETH-USD",
+   "strategy": "fvg_h1",
+   "error": "DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+   "instrument": "BTC-USD",
+   "strategy": "fvg_h4",
+   "error": "DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+   "instrument": "ETH-USD",
+   "strategy": "fvg_h4",
+   "error": "DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+   "instrument": "BTC-USD",
+   "strategy": "amd",
+   "error": "DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>"
+  },
+  {
+   "instrument": "ETH-USD",
+   "strategy": "amd",
+   "error": "DataFetchError: Coinbase injoignable : <urlopen error Tunnel connection failed: 403 Forbidden>"
+  }
+ ],
+ "started": 1793059849.6820264,
+ "source": "coinbase"
+}

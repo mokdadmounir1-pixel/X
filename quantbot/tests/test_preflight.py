@@ -44,6 +44,6 @@ def test_preflight_never_sends_orders(tmp_path):
 
 def test_one_click_launcher_runs_preflight_first_and_never_touches_orders():
     root = Path(__file__).resolve().parents[1]; bat = (root / "lancer_tout.bat").read_text(encoding="utf-8"); allb = bat + (root / "scripts" / "start_all.bat").read_text(encoding="utf-8")
-    assert bat.index("preflight.py") < bat.index("start_all.bat") and "errorlevel 1" in bat
+    assert bat.index("preflight.py") < bat.index("quantbot ui") and "errorlevel 1" in bat
     for forbidden in ("order_send", "run_live", "--live", "DEMO_ACTIF", "approve"):
         assert forbidden not in allb
