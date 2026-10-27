@@ -59,6 +59,11 @@ def create_app(root: Path = ROOT) -> FastAPI:
         except (OSError, ValueError):
             return {"available": False, "note": "synchronisation jamais exécutée (lancez le terminal avec `python -m quantbot ui`, sans --no-sync)"}
 
+    @app.get("/api/catalog")
+    def catalog():
+        from ..ui.catalog import build_catalog
+        return build_catalog(root)
+
     @app.get("/api/ledger")
     def ledger():
         from ..risk.ledger import evaluate
