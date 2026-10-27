@@ -51,7 +51,8 @@ def run(root: Path = ROOT, terminal: str | None = None, symbol: str = "XAUUSD", 
                     if getattr(info, "trade_mode", 4) == 0: add(WARN, f"{symbol} : trade_mode = 0 (désactivé chez ce courtier)", "les données arrivent mais aucun ordre ne serait accepté ; sans effet sur la simulation PAPER")
                     if tick is None: add(BLOCK, f"aucune cotation reçue pour {symbol}", "afficher le symbole dans la Surveillance du marché de MT5")
                     else:
-                        age = now() - getattr(tick, "time", now()); sp = tick.ask - tick.bid
+                        import pandas as pd; from quantbot.data.mt5 import broker_clock_to_utc
+                        tt = getattr(tick, "time", None); age = now() - (pd.Timestamp(broker_clock_to_utc(pd.DatetimeIndex([pd.Timestamp(tt, unit="s")]))[0]).timestamp() if tt else now()); sp = tick.ask - tick.bid
                         add(OK if age < 300 else WARN, f"cotation {symbol} : bid {tick.bid} ask {tick.ask} (spread {sp:.2f}), âge {age:.0f} s", "" if age < 300 else "cotation figée : marché fermé (week-end / pause) ou flux coupé ; la simulation reprendra à la réouverture")
             finally:
                 mt5.shutdown()

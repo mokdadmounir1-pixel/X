@@ -58,10 +58,13 @@ def test_toxicity_proxy_and_continuous_pause_factor():
     f = [of.toxicity_pause(r) for r in (0.5, 0.8, 0.85, 0.9, 1.0)]; assert f[0] == 1.0 and f == sorted(f, reverse=True) and f[-1] == 0.0 and 0 < f[2] < 1
 
 
-def test_live_store_manifest_append_is_not_quadratic_and_chain_stays_valid(tmp_path):
+def test_live_store_manifest_append_is_linear_not_quadratic_and_chain_stays_valid(tmp_path):
     import time
     from quantbot.data.live_store import LiveBarStore
-    st = LiveBarStore(tmp_path); t0 = time.time()
-    for i in range(3000):
-        st._log({"kind": "x", "i": i})
-    assert st.verify() and time.time() - t0 < 5.0
+    def run(n, sub):
+        st = LiveBarStore(tmp_path / sub); t0 = time.perf_counter()
+        for i in range(n):
+            st._log({"kind": "x", "i": i})
+        return st, time.perf_counter() - t0
+    _, t_small = run(400, "a"); st, t_big = run(1600, "b")             # x4 écritures : ~x4 si linéaire, ~x16 si quadratique (mesure relative : indépendante de la vitesse du disque)
+    assert st.verify() and t_big < 9.0 * max(t_small, 1e-3)
