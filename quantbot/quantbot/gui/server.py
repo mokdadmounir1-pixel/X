@@ -73,6 +73,9 @@ def serve(port: int | None = None, root: Path = ROOT, open_browser: bool = False
 def _start_workers(root: Path):
     from ..supervisor import start_default
     sup = start_default(root)
+    if sup is not None:
+        from ..risk.ledger import LedgerMonitor
+        LedgerMonitor(root).start()          # registre de portefeuille FTMO simulé + coupe-circuit global (fichier KILL, jamais levé automatiquement)
     print("Processus automatiques : simulation PAPER (MT5 + crypto) lancée et surveillée ; journaux dans runtime/logs/" if sup else "Processus automatiques non disponibles dans l'exécutable : utiliser lancer_tout.bat")
     return sup
 

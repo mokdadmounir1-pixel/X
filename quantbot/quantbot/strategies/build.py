@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from . import amd, apex, fvg, goldq, level_proximity, mtf_confluence, stop_hunt_engine, orb, smc, vwap
+from . import amd, apex, fvg, goldq, il_svr, level_proximity, mtf_confluence, stop_hunt_engine, orb, smc, vwap
 
 
 def events_for(name: str, scfg: dict, df: pd.DataFrame) -> list:
@@ -13,6 +13,8 @@ def events_for(name: str, scfg: dict, df: pd.DataFrame) -> list:
         return vwap.events(df, scfg["params"])
     if name == "orb":
         return orb.events(df, scfg["params"])
+    if name == "il_svr":
+        return il_svr.events(df, scfg.get("params"))
     if name == "mtf_confluence":
         return mtf_confluence.events(df, scfg.get("params"))
     if name == "apex_levels":
@@ -31,7 +33,7 @@ def events_for(name: str, scfg: dict, df: pd.DataFrame) -> list:
 # Identifiant lisible et STABLE de chaque stratégie (affiché dans l'attribution des trades)
 STRATEGY_CODES = {"amd": "AMD_PO3_M15", "vwap": "VWAP_BAND_M15", "orb": "ORB_15M_PULLBACK", "fvg_h1": "FVG_MIT_1H", "fvg_h4": "FVG_MIT_4H",
                   "smc_h1": "SMC_OB_FVG_1H", "smc_h4": "SMC_OB_FVG_4H",
-                  "apex_pullback": "APEX_PULLBACK_ALPHA", "stop_hunt": "XAU_STOP_HUNT", "apex_levels": "APEX_LEVELS_ALPHA", "mtf_confluence": "MTF_TOPDOWN_CONFLUENCE", "gq_sweep": "XAU_LIQ_SWEEP", "gq_asia_break": "XAU_ASIA_BREAK", "gq_ema_pull": "XAU_EMA_PULL", "gq_squeeze": "XAU_SQUEEZE", "gq_zrev": "XAU_ZREV"}
+                  "apex_pullback": "APEX_PULLBACK_ALPHA", "stop_hunt": "XAU_STOP_HUNT", "apex_levels": "APEX_LEVELS_ALPHA", "mtf_confluence": "MTF_TOPDOWN_CONFLUENCE", "il_svr": "IL_SVR_INDEX", "gq_sweep": "XAU_LIQ_SWEEP", "gq_asia_break": "XAU_ASIA_BREAK", "gq_ema_pull": "XAU_EMA_PULL", "gq_squeeze": "XAU_SQUEEZE", "gq_zrev": "XAU_ZREV"}
 
 
 def strategy_code(strategy_id: str) -> str:

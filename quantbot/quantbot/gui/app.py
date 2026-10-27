@@ -59,6 +59,17 @@ def create_app(root: Path = ROOT) -> FastAPI:
         except (OSError, ValueError):
             return {"available": False, "note": "synchronisation jamais exécutée (lancez le terminal avec `python -m quantbot ui`, sans --no-sync)"}
 
+    @app.get("/api/ledger")
+    def ledger():
+        from ..risk.ledger import evaluate
+        st = evaluate(build_book(root, "all")["rows"]); st["kill_file_present"] = (root / "runtime" / "paper" / "KILL").exists(); return st
+
+    @app.get("/metrics")
+    def metrics():
+        from fastapi.responses import PlainTextResponse
+        from ..risk.ledger import evaluate, prometheus
+        return PlainTextResponse(prometheus(evaluate(build_book(root, "all")["rows"])), media_type="text/plain; version=0.0.4")
+
     @app.get("/api/state")
     def state():
         return data.collect_state(root)
