@@ -170,6 +170,7 @@
   "omega": {
    "label": "OMEGA : FVG H1 + AMD + VWAP",
    "params": {
+    "mode": "union",
     "cooldown": 4
    },
    "members": {
@@ -239,5 +240,6 @@
    "note": "max_hold 48 barres (le plus long des trois membres : 48/40/32) ; fusion : même sens à < 4 barres = une idée, sens opposés sur la même barre = écartés"
   }
  },
- "frequency_note": "Aucun backtest préenregistré : le budget d'essais (118/120) est réservé ; la décision se prend sur l'échantillon PAPER."
+ "frequency_note": "Aucun backtest préenregistré : le budget d'essais (118/120) est réservé ; la décision se prend sur l'échantillon PAPER.",
+ "note": "Remplacée par omega_v2 (confluence) ; jamais lancée."
 }
