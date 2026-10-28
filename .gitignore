@@ -5,3 +5,4 @@ __pycache__/
 # etat d execution propre a chaque PC (ne jamais versionner)
 quantbot/data/sync_status.json
 quantbot/runtime/
+quantbot/backup/
