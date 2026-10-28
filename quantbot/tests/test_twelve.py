@@ -75,20 +75,35 @@ def test_rl_walk_forward_runs_and_is_deterministic():
     assert a["n_windows"] >= 2 and a == b
 
 
-def test_omega_merges_members_dedupes_same_direction_and_drops_opposite_conflicts():
+def _omega_cfg():
     import json, pathlib
+    return json.loads((pathlib.Path(__file__).parents[1] / "specs" / "omega_v2.json").read_text(encoding="utf-8"))["strategies"]["omega"]
+
+
+def test_omega_real_members_valid_confidence_levels_and_causal():
+    from quantbot.strategies import build
+    cfg = _omega_cfg(); assert set(cfg["members"]) == {"fvg_h1", "amd", "vwap"} and cfg["params"]["mode"] == "confluence"
+    df = _long(9000); ev = build.events_for("omega", cfg, df)
+    assert ev and all((e.stop < df.close[e.ts]) == (e.direction == "bullish") for e in ev) and strategy_code("omega") == "OMEGA_TRIO"
+    assert {round(e.meta["confidence"], 2) for e in ev} <= {0.55, 0.75, 0.95} and [e.ts for e in ev] == sorted(e.ts for e in ev)
+    cut = 6500; part = build.events_for("omega", cfg, df.iloc[:cut]); lim = df.index[cut - 400]
+    k = lambda x: [(e.ts, e.direction, round(e.meta["confidence"], 2)) for e in x if e.ts < lim]
+    assert k(ev) == k(part)
+
+
+def test_omega_confluence_logic_agreement_raises_confidence_and_contradiction_is_skipped():
     from quantbot.strategies import build
     from quantbot.strategies.events import Event
-    spec = json.loads((pathlib.Path(__file__).parents[1] / "specs" / "omega_v1.json").read_text(encoding="utf-8")); cfg = spec["strategies"]["omega"]
-    assert set(cfg["members"]) == {"fvg_h1", "amd", "vwap"} and spec["trials"] == 0
-    df = _long(6000); ev = build.events_for("omega", cfg, df); assert ev and all((e.stop < df.close[e.ts]) == (e.direction == "bullish") for e in ev)
-    assert {e.meta["member"] for e in ev} <= {"fvg_h1", "amd", "vwap"} and strategy_code("omega") == "OMEGA_TRIO"
-    assert [e.ts for e in ev] == sorted(e.ts for e in ev)
-    n_members = sum(len(build.events_for(m, c, df)) for m, c in cfg["members"].items()); assert len(ev) <= n_members
-    t0 = df.index[10]; fake = {"a": [Event(t0, "bullish", 1.0), Event(df.index[11], "bullish", 1.0), Event(df.index[30], "bullish", 1.0), Event(df.index[50], "bullish", 1.0)], "b": [Event(df.index[50], "bearish", 1.0)]}
-    orig = build.events_for; build.events_for = lambda n, c, d: fake[n]
+    df = _long(300); ix = df.index; E = lambda i, d: Event(ix[i], d, 1.0)
+    fake = {"a": [E(10, "bullish"), E(100, "bullish"), E(150, "bullish")], "b": [E(12, "bullish"), E(101, "bearish"), E(200, "bullish")], "c": [E(14, "bullish"), E(151, "bearish")]}
+    orig = build.events_for; build.events_for = lambda n, c, d: list(fake[n])
     try:
-        out = build.omega_events(df, {"members": {"a": {}, "b": {}}, "params": {"cooldown": 4}})
+        cfg = {"members": {"a": {}, "b": {}, "c": {}}, "params": {"mode": "confluence", "window": 8, "cooldown": 4, "conf_base": 0.55, "conf_step": 0.2}}
+        out = build.omega_events(df, cfg); got = {e.ts: round(e.meta["confidence"], 2) for e in out}; fake = {k: [Event(e.ts, e.direction, 1.0) for e in v] for k, v in fake.items()}
+        u = build.omega_events(df, {**cfg, "params": {"mode": "union", "cooldown": 4}})
     finally:
         build.events_for = orig
-    assert [e.ts for e in out] == [t0, df.index[30]]                    # 11 = même idée que 10 ; 50 = conflit de sens, écarté
+    assert got[ix[10]] == 0.55 and ix[12] not in got and got[ix[14]] == 0.95          # 12 : même idée (cooldown 4 barres) ; 14 : les 3 membres sont d'accord => pleine confiance
+    assert got[ix[100]] == 0.55 and ix[101] not in got                                 # à 100 a est seul (causal : 101 est inconnu) ; à 101 b baissier contredit a (net 0) : écarté
+    assert got[ix[150]] == 0.55 and ix[151] not in got                                 # a seul à l'instant 150 ; c baissier à 151 contredit a (net 0) : écarté
+    assert got[ix[200]] == 0.55 and all(e.meta["confidence"] == 0.55 for e in u)

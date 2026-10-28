@@ -39,26 +39,40 @@ def events_for(name: str, scfg: dict, df: pd.DataFrame) -> list:
 
 
 def omega_events(df: pd.DataFrame, scfg: dict) -> list:
-    """OMEGA : panier FIGÉ de stratégies membres (définies dans la spec, paramètres identiques à leurs specs d'origine). Les événements des membres sont fusionnés dans l'ordre du temps ;
-    deux événements de même sens à moins de `cooldown` barres = une seule idée (le premier est gardé) ; deux sens opposés sur la même barre = conflit, les deux sont écartés.
-    Aucune pondération apprise, aucune sélection a posteriori des paramètres : un membre ne change que par une nouvelle spec préenregistrée."""
-    p = scfg.get("params") or {}; cooldown = int(p.get("cooldown", 4)); step = df.index.to_series().diff().median() or pd.Timedelta(minutes=15)
+    """OMEGA : algorithme de CONFLUENCE de trois stratégies membres FIGÉES (définies dans la spec, paramètres identiques à leurs specs d'origine). Rien n'est appris.
+
+    À chaque événement d'un membre, à l'instant t (jamais d'information postérieure) : accord = nombre de membres DISTINCTS ayant émis le même sens dans les `window` dernières barres (t compris),
+    opposition = nombre de membres distincts ayant émis le sens contraire dans la même fenêtre ; net = accord - opposition. net < 1 : écarté (les membres se contredisent).
+    Confiance = base + pas x (net - 1) : 1 membre = prudent (petite taille), 2 d'accord = standard, 3 d'accord = pleine taille ; la confiance pilote la taille via le dimensionnement par score existant.
+    Même sens à moins de `cooldown` barres du dernier événement retenu : une seule idée. Stop et cible = ceux du membre qui déclenche. mode « union » : fusion simple sans confluence (version 1)."""
+    p = scfg.get("params") or {}; cooldown = int(p.get("cooldown", 4)); window = int(p.get("window", 8)); mode = p.get("mode", "confluence")
+    base, step_c = float(p.get("conf_base", 0.55)), float(p.get("conf_step", 0.20))
+    bar = df.index.to_series().diff().median(); bar = bar if pd.notna(bar) else pd.Timedelta(minutes=15)
     ev = []
     for mname, mcfg in scfg["members"].items():
         for e in events_for(mname, mcfg, df):
             e.meta = {**e.meta, "member": mname}; ev.append(e)
-    ev.sort(key=lambda e: (e.ts, e.direction))
+    ev.sort(key=lambda e: (e.ts, e.meta["member"]))
     by_ts: dict = {}
     for e in ev:
         by_ts.setdefault(e.ts, set()).add(e.direction)
-    out, last = [], {}
+    out, last, seen = [], {}, []
     for e in ev:
-        if len(by_ts[e.ts]) > 1:
-            continue
+        seen.append(e); lo = e.ts - bar * window
+        if mode == "union":
+            if len(by_ts[e.ts]) > 1:
+                continue
+            net = 1
+        else:
+            recent = [x for x in seen if x.ts > lo]
+            net = len({x.meta["member"] for x in recent if x.direction == e.direction}) - len({x.meta["member"] for x in recent if x.direction != e.direction})
+            if net < 1:
+                continue
         prev = last.get(e.direction)
-        if prev is not None and e.ts - prev < step * cooldown:
+        if prev is not None and e.ts - prev < bar * cooldown:
             continue
-        last[e.direction] = e.ts; out.append(e)
+        last[e.direction] = e.ts
+        e.meta = {**e.meta, "confidence": min(0.95, base + step_c * (net - 1)), "omega_net": net}; out.append(e)
     return out
 
 
