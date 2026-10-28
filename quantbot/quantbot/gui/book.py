@@ -135,13 +135,14 @@ def metrics(rows: list, n_runners: int) -> dict:
     realized = float(sum(r["pnl"] for r in closed))
     unreal = float(sum(r["pnl"] or 0.0 for r in openr))
     rs = [r["r"] for r in closed if r["r"] is not None]
-    cap = CAPITAL_PER_RUNNER * n_runners
+    cap = CAPITAL_PER_RUNNER                       # UN SEUL compte FTMO simulé de 100 000 $ (comme le registre de risque) : tous les lanceurs trades sur ce même compte, jamais 100 000 $ chacun
+    open_risk = float(sum(abs((r.get("entry") or 0.0) - (r.get("sl") or 0.0)) * (r.get("size") or 0.0) for r in openr))
     seq = sorted(closed, key=lambda r: (str(r["exit_time"]), r["recorded_ms"]))
     eq = np.cumsum([0.0] + [r["pnl"] for r in seq]) if seq else np.array([0.0])
     peak = float(eq.max()); cur = float(eq[-1] + unreal)
     dd_money = max(0.0, peak - cur)
     out = {"n_closed": len(closed), "n_open": len(openr), "pnl_realized": realized, "pnl_unrealized": unreal, "pnl_total": realized + unreal, "r_total": float(sum(rs)),
-           "drawdown_money": dd_money, "drawdown_pct": dd_money / cap if cap else 0.0, "capital": cap, "win_rate": (sum(1 for r in closed if r["pnl"] > 0) / len(closed)) if closed else None,
+           "drawdown_money": dd_money, "drawdown_pct": dd_money / cap if cap else 0.0, "capital": cap, "equity": cap + realized + unreal, "n_runners": n_runners, "capital_if_independent": cap * n_runners, "open_risk": open_risk, "open_risk_pct": open_risk / cap, "win_rate": (sum(1 for r in closed if r["pnl"] > 0) / len(closed)) if closed else None,
            "avg_r": float(np.mean(rs)) if rs else None, "sharpe": None, "sharpe_days": 0,
            **win_profile(rs), "sharpe_note": "Sharpe annualisé sur les PnL journaliers (jours ouvrés, jours sans trade = 0) ; non affiché sous 20 jours."}
     if closed:
