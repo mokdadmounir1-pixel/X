@@ -1,3 +1,4 @@
+import pytest
 import json
 import time
 
@@ -34,3 +35,12 @@ def test_monitor_reads_the_real_book_and_endpoints_expose_ledger_and_prometheus_
     m = c.get("/metrics"); assert m.status_code == 200 and "quantbot_equity 100000.00" in m.text and "quantbot_halt_new 0" in m.text
     st = LedgerMonitor(tmp_path).tick(); assert (tmp_path / "runtime" / "ledger.json").exists() and st["kill_file"] is False
     text = prometheus(evaluate([_row(120.0, NOW * 1000, "A")], NOW)); assert 'quantbot_strategy_pnl{strategy="A"} 120.00' in text
+
+
+def test_book_metrics_use_one_100k_account_whatever_the_number_of_runners_and_report_open_risk():
+    from quantbot.gui.book import metrics
+    rows = [{"open": False, "pnl": 500.0, "r": 1.0, "exit_time": "2026-10-27 10:00", "recorded_ms": 1},
+            {"open": True, "pnl": -50.0, "r": -0.1, "entry": 2000.0, "sl": 1980.0, "size": 25.0, "exit_time": None, "recorded_ms": 2}]
+    m = metrics(rows, 27)
+    assert m["capital"] == 100_000.0 and m["equity"] == pytest.approx(100_450.0) and m["capital_if_independent"] == 2_700_000.0
+    assert m["open_risk"] == pytest.approx(500.0) and m["open_risk_pct"] == pytest.approx(0.005)

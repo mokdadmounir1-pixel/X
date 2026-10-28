@@ -45,7 +45,7 @@ export function mount(root, ctx) {
     const m = book.metrics, cap = m.capital;
     clear(metrics).append(
       metric("PnL total (session)", sgn(m.pnl_total, 2), pnlClass(m.pnl_total), `réalisé ${sgn(m.pnl_realized, 2)} · latent ${sgn(m.pnl_unrealized, 2)} · ${sgn(m.r_total, 2)} R`),
-      metric("Drawdown en cours", m.drawdown_money > 0 ? "−" + num(m.drawdown_money, 2) : "0.00", m.drawdown_money > 0 ? "dn" : "mute", pct(m.drawdown_pct, 2) + " du capital simulé " + num(cap, 0)),
+      metric("Drawdown en cours", m.drawdown_money > 0 ? "−" + num(m.drawdown_money, 2) : "0.00", m.drawdown_money > 0 ? "dn" : "mute", pct(m.drawdown_pct, 2) + " du compte FTMO simulé " + num(cap, 0) + " · risque ouvert " + pct(m.open_risk_pct, 2)),
       metric("Winrate global", m.win_rate == null ? "—" : pct(m.win_rate, 1), m.win_rate == null ? "mute" : m.wr_edge == null ? "amb" : m.wr_edge > 0 ? "up" : "dn", m.breakeven_wr == null ? `${m.n_closed} trades clos` : `seuil d'équilibre ${pct(m.breakeven_wr, 0)} (R:R réalisé ${m.realised_rr.toFixed(2)}) · ${m.n_closed} clos`),
       metric("Sharpe (annualisé)", m.sharpe == null ? "n/a" : m.sharpe.toFixed(2), m.sharpe == null ? "mute" : pnlClass(m.sharpe), m.sharpe == null ? `${m.sharpe_days} j ouvrés < 20 : non significatif` : `${m.sharpe_days} jours ouvrés`),
       metric("Positions ouvertes", String(m.n_open), m.n_open ? "acc" : "mute", "en simulation PAPER"),
