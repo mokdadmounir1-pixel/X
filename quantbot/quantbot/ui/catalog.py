@@ -14,7 +14,7 @@ from ..strategies.external_data import missing
 from .replay import list_strategies
 
 FAMILIES = [("amd", "Session / manipulation"), ("vwap", "Réversion VWAP"), ("orb", "Ouverture (ORB)"), ("fvg", "Fair Value Gap"), ("smc", "SMC order block"), ("gq_", "Scalping or"),
-            ("apex_pullback", "Repli APEX"), ("apex_levels", "Repli APEX x niveaux"), ("stop_hunt", "Stop-hunt"), ("mtf", "Multi-temporel descendant"), ("il_svr", "Indices (IL-SVR)"), ("cta", "Suivi de tendance"), ("kalman", "Kalman / Ornstein-Uhlenbeck"), ("orderflow", "Flux d'ordres (proxy)"), ("fixing", "Saisonnalité fixings"), ("cot", "Positionnement COT"), ("macro", "Macro taux réels"), ("ofi_depth", "Carnet réel (OFI)")]
+            ("apex_pullback", "Repli APEX"), ("apex_levels", "Repli APEX x niveaux"), ("stop_hunt", "Stop-hunt"), ("mtf", "Multi-temporel descendant"), ("il_svr", "Indices (IL-SVR)"), ("cta", "Suivi de tendance"), ("omega", "OMEGA (panier de 3)"), ("kalman", "Kalman / Ornstein-Uhlenbeck"), ("orderflow", "Flux d'ordres (proxy)"), ("fixing", "Saisonnalité fixings"), ("cot", "Positionnement COT"), ("macro", "Macro taux réels"), ("ofi_depth", "Carnet réel (OFI)")]
 
 
 def _family(sid: str) -> str:

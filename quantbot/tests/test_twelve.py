@@ -73,3 +73,22 @@ def test_vol_arb_and_tail_dependence():
 def test_rl_walk_forward_runs_and_is_deterministic():
     df = _long(6000); a = rl_agent.walk_forward(df, train_bars=2000, test_bars=800, episodes=2); b = rl_agent.walk_forward(df, train_bars=2000, test_bars=800, episodes=2)
     assert a["n_windows"] >= 2 and a == b
+
+
+def test_omega_merges_members_dedupes_same_direction_and_drops_opposite_conflicts():
+    import json, pathlib
+    from quantbot.strategies import build
+    from quantbot.strategies.events import Event
+    spec = json.loads((pathlib.Path(__file__).parents[1] / "specs" / "omega_v1.json").read_text(encoding="utf-8")); cfg = spec["strategies"]["omega"]
+    assert set(cfg["members"]) == {"fvg_h1", "amd", "vwap"} and spec["trials"] == 0
+    df = _long(6000); ev = build.events_for("omega", cfg, df); assert ev and all((e.stop < df.close[e.ts]) == (e.direction == "bullish") for e in ev)
+    assert {e.meta["member"] for e in ev} <= {"fvg_h1", "amd", "vwap"} and strategy_code("omega") == "OMEGA_TRIO"
+    assert [e.ts for e in ev] == sorted(e.ts for e in ev)
+    n_members = sum(len(build.events_for(m, c, df)) for m, c in cfg["members"].items()); assert len(ev) <= n_members
+    t0 = df.index[10]; fake = {"a": [Event(t0, "bullish", 1.0), Event(df.index[11], "bullish", 1.0), Event(df.index[30], "bullish", 1.0), Event(df.index[50], "bullish", 1.0)], "b": [Event(df.index[50], "bearish", 1.0)]}
+    orig = build.events_for; build.events_for = lambda n, c, d: fake[n]
+    try:
+        out = build.omega_events(df, {"members": {"a": {}, "b": {}}, "params": {"cooldown": 4}})
+    finally:
+        build.events_for = orig
+    assert [e.ts for e in out] == [t0, df.index[30]]                    # 11 = même idée que 10 ; 50 = conflit de sens, écarté
