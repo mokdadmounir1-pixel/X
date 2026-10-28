@@ -17,6 +17,8 @@ def events_for(name: str, scfg: dict, df: pd.DataFrame) -> list:
         return orb.events(df, scfg["params"])
     if name == "cta_donchian":
         return cta_donchian.events(df, scfg.get("params"))
+    if name == "omega":
+        return omega_events(df, scfg)
     if name in _TWELVE:
         return _TWELVE[name].events(df, scfg.get("params"))
     if name == "il_svr":
@@ -36,10 +38,34 @@ def events_for(name: str, scfg: dict, df: pd.DataFrame) -> list:
     return fvg.events(df, scfg["rule"], scfg["params"])
 
 
+def omega_events(df: pd.DataFrame, scfg: dict) -> list:
+    """OMEGA : panier FIGÉ de stratégies membres (définies dans la spec, paramètres identiques à leurs specs d'origine). Les événements des membres sont fusionnés dans l'ordre du temps ;
+    deux événements de même sens à moins de `cooldown` barres = une seule idée (le premier est gardé) ; deux sens opposés sur la même barre = conflit, les deux sont écartés.
+    Aucune pondération apprise, aucune sélection a posteriori des paramètres : un membre ne change que par une nouvelle spec préenregistrée."""
+    p = scfg.get("params") or {}; cooldown = int(p.get("cooldown", 4)); step = df.index.to_series().diff().median() or pd.Timedelta(minutes=15)
+    ev = []
+    for mname, mcfg in scfg["members"].items():
+        for e in events_for(mname, mcfg, df):
+            e.meta = {**e.meta, "member": mname}; ev.append(e)
+    ev.sort(key=lambda e: (e.ts, e.direction))
+    by_ts: dict = {}
+    for e in ev:
+        by_ts.setdefault(e.ts, set()).add(e.direction)
+    out, last = [], {}
+    for e in ev:
+        if len(by_ts[e.ts]) > 1:
+            continue
+        prev = last.get(e.direction)
+        if prev is not None and e.ts - prev < step * cooldown:
+            continue
+        last[e.direction] = e.ts; out.append(e)
+    return out
+
+
 # Identifiant lisible et STABLE de chaque stratégie (affiché dans l'attribution des trades)
 STRATEGY_CODES = {"amd": "AMD_PO3_M15", "vwap": "VWAP_BAND_M15", "orb": "ORB_15M_PULLBACK", "fvg_h1": "FVG_MIT_1H", "fvg_h4": "FVG_MIT_4H",
                   "smc_h1": "SMC_OB_FVG_1H", "smc_h4": "SMC_OB_FVG_4H",
-                  "apex_pullback": "APEX_PULLBACK_ALPHA", "stop_hunt": "XAU_STOP_HUNT", "apex_levels": "APEX_LEVELS_ALPHA", "mtf_confluence": "MTF_TOPDOWN_CONFLUENCE", "il_svr": "IL_SVR_INDEX", "cta_donchian": "CTA_DONCHIAN_H4", "kalman_ou": "KALMAN_OU_REVERT", "orderflow_iceberg": "ICEBERG_ABSORPTION", "fixing_seasonality": "LONDON_FIX_SEASONAL", "cot_extremes": "COT_EXTREMES", "macro_tips": "MACRO_TIPS_GOLD", "ofi_depth": "OFI_DEPTH_L2", "gq_sweep": "XAU_LIQ_SWEEP", "gq_asia_break": "XAU_ASIA_BREAK", "gq_ema_pull": "XAU_EMA_PULL", "gq_squeeze": "XAU_SQUEEZE", "gq_zrev": "XAU_ZREV"}
+                  "apex_pullback": "APEX_PULLBACK_ALPHA", "stop_hunt": "XAU_STOP_HUNT", "apex_levels": "APEX_LEVELS_ALPHA", "mtf_confluence": "MTF_TOPDOWN_CONFLUENCE", "il_svr": "IL_SVR_INDEX", "cta_donchian": "CTA_DONCHIAN_H4", "omega": "OMEGA_TRIO", "kalman_ou": "KALMAN_OU_REVERT", "orderflow_iceberg": "ICEBERG_ABSORPTION", "fixing_seasonality": "LONDON_FIX_SEASONAL", "cot_extremes": "COT_EXTREMES", "macro_tips": "MACRO_TIPS_GOLD", "ofi_depth": "OFI_DEPTH_L2", "gq_sweep": "XAU_LIQ_SWEEP", "gq_asia_break": "XAU_ASIA_BREAK", "gq_ema_pull": "XAU_EMA_PULL", "gq_squeeze": "XAU_SQUEEZE", "gq_zrev": "XAU_ZREV"}
 
 
 def strategy_code(strategy_id: str) -> str:
