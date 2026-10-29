@@ -11,10 +11,11 @@ from typing import Optional
 from ..gui.book import build_book
 from ..strategies.build import strategy_code
 from ..strategies.external_data import missing
+from .institutional60 import institutional60
 from .replay import list_strategies
 
 FAMILIES = [("amd", "Session / manipulation"), ("vwap", "Réversion VWAP"), ("orb", "Ouverture (ORB)"), ("fvg", "Fair Value Gap"), ("smc", "SMC order block"), ("gq_", "Scalping or"),
-            ("apex_pullback", "Repli APEX"), ("apex_levels", "Repli APEX x niveaux"), ("stop_hunt", "Stop-hunt"), ("mtf", "Multi-temporel descendant"), ("il_svr", "Indices (IL-SVR)"), ("cta", "Suivi de tendance"), ("omega", "OMEGA (panier de 3)"), ("kalman", "Kalman / Ornstein-Uhlenbeck"), ("orderflow", "Flux d'ordres (proxy)"), ("fixing", "Saisonnalité fixings"), ("cot", "Positionnement COT"), ("macro", "Macro taux réels"), ("ofi_depth", "Carnet réel (OFI)")]
+            ("apex_pullback", "Repli APEX"), ("apex_levels", "Repli APEX x niveaux"), ("stop_hunt", "Stop-hunt"), ("mtf", "Multi-temporel descendant"), ("il_svr", "Indices (IL-SVR)"), ("cta", "Suivi de tendance"), ("omega", "OMEGA (panier de 3)"), ("overnight", "Prime overnight"), ("intraday_mom", "Momentum intrajournalier"), ("kalman", "Kalman / Ornstein-Uhlenbeck"), ("orderflow", "Flux d'ordres (proxy)"), ("fixing", "Saisonnalité fixings"), ("cot", "Positionnement COT"), ("macro", "Macro taux réels"), ("ofi_depth", "Carnet réel (OFI)")]
 
 
 def _family(sid: str) -> str:
@@ -64,5 +65,5 @@ def build_catalog(root: Path) -> dict:
     for sid, label, spec, status in NOT_EXECUTABLE:
         d = _read(Path(root) / "reports" / spec / "result.json") if spec else None
         extras.append({"id": sid, "label": label, "status": status, "has_report": d is not None})
-    return {"strategies": rows, "other_modules": extras, "n_strategies": len(rows), "n_paper_running": sum(1 for r in rows if r["paper"]["running"]),
+    return {"strategies": rows, "institutional60": institutional60(Path(root)), "other_modules": extras, "n_strategies": len(rows), "n_paper_running": sum(1 for r in rows if r["paper"]["running"]),
             "note": "Verdicts = portes de validation préenregistrées sur la période de RECHERCHE (tranche verrouillée jamais lue). Aucune stratégie n'est validée : 0 PASS. La simulation PAPER sur prix réels est le juge du futur."}
