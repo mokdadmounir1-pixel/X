@@ -20,6 +20,12 @@ export function mount(root, ctx) {
             h("td", null, h("button", { class: "btn", onclick: () => { ctx.store.bt = { ...(ctx.store.bt || {}), strategy: r.id, instrument: r.instruments[0], segment: "recherche", bars: 6000 }; ctx.go("backtest"); } }, "Backtest")))))))),
       h("div", { class: "panel" }, h("div", { class: "ph" }, h("h2", { text: "Autres modules (pas rejouables dans le banc d'essai) et ce qui manque" })),
         h("div", { class: "pb" }, h("table", { class: "plain" }, h("tbody", null, C.other_modules.map((m) => h("tr", null, h("td", { text: m.label }), h("td", { class: "dim", text: m.status }))))))),
+      h("div", { class: "panel" }, h("div", { class: "ph" }, h("h2", { text: "Les 60 stratégies institutionnelles : état réel" }), h("span", { class: "dim", text: Object.entries(C.institutional60.counts).map(([k, v]) => `${k} ${v}`).join(" · ") })),
+        h("div", { class: "pb flush" }, h("table", { class: "plain" }, h("thead", null, h("tr", null, ...["#", "Stratégie", "Famille", "Statut", "Module", "Données requises / remarque"].map((x) => h("th", { text: x })))),
+          h("tbody", null, C.institutional60.rows.map((r) => h("tr", null, h("td", { text: String(r.n) }), h("td", { text: r.name }), h("td", { text: r.family }),
+            h("td", null, h("span", { class: r.status === "CODEE" ? "up" : r.status === "DONNEES" || r.status === "HORS_PORTEE" ? "dn" : "amb", text: r.status })),
+            h("td", { text: r.module || "—" }), h("td", { class: "dim", text: r.note + (r.data_missing && r.data_missing.length ? " · MANQUE : " + r.data_missing.join(", ") : "") })))))),
+        h("div", { class: "note", text: C.institutional60.note })),
       h("div", { class: "note", text: C.note }));
   }
   async function load() { try { C = await api("/api/catalog", { quiet: true }); paint(); } catch (e) { /* déjà signalé */ } }
