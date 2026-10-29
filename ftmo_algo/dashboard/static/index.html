@@ -73,8 +73,8 @@ button.go{background:#143a2a;color:var(--g);border-color:#1f5a40;font-weight:700
 <section class="card c4"><h2>VORTEX — ÉTAT DU MARCHÉ ET DES AGENTS</h2><canvas id="vortex" width="520" height="400"></canvas>
 <div class="legend"><b>rotation</b> = volatilité courte/longue · <b>étirement axial</b> = force de tendance (ADX H1) · <b>cohérence</b> = accord entre agents (bras alignés) · <b>couleur</b> = direction (vert haussier, rouge baissier) · <b>nœuds orbitaux</b> = agents (allumés en position ou signal) · <b>pulsation</b> = trade ouvert/fermé</div>
 <div class="legend" id="vinfo"></div></section>
-<section class="card c8"><h2 id="ctitle">GRAPHIQUE</h2><canvas id="chart" width="1000" height="400"></canvas>
-<div class="legend" id="linfo">entrée / stop / cible et RR net des positions ouvertes sur ce symbole</div></section>
+<section class="card c8"><h2 id="ctitle">GRAPHIQUE</h2><div class="row"><label class="f">stratégie<select id="cag"><option value="">toutes</option></select></label><span class="dim" id="cstat"></span></div><canvas id="chart" width="1000" height="400"></canvas>
+<div class="legend" id="tlist" style="max-height:120px;overflow:auto"></div><div class="legend" id="linfo">entrée / stop / cible et RR net des positions ouvertes sur ce symbole</div></section>
 <section class="card c12"><h2>AGENTS</h2><div class="agents" id="agents"></div></section>
 <section class="card c5"><h2>CIBLE MENSUELLE — R CUMULÉS VS CIBLE (+5 %)</h2><canvas id="tgt" width="640" height="260"></canvas><div class="legend" id="tinfo"></div></section>
 <section class="card c4"><h2>PROFIL PROP FIRM — JAUGES SUR L'ÉQUITÉ</h2><div id="gauges"></div><h2>PROCHAINES ANNONCES</h2><div id="news"></div></section>
@@ -156,12 +156,19 @@ function spark(v){if(!v.length)return '<svg width="190" height="26"></svg>';cons
  const p=v.map((y,i)=>(i/(Math.max(1,v.length-1))*w).toFixed(1)+","+(h-(y-mn)/(mx-mn)*h).toFixed(1)).join(" ");
  return `<svg width="${w}" height="${h}"><polyline fill="none" stroke="${v[v.length-1]>=0?"#2ecc8f":"#ff5a6a"}" stroke-width="1.3" points="${p}"/></svg>`}
 function chart(){const c=$("chart"),x=c.getContext("2d"),W=c.width,H=c.height;x.clearRect(0,0,W,H);x.fillStyle="#05070a";x.fillRect(0,0,W,H);
- $("ctitle").textContent="GRAPHIQUE M15 — "+S.symbol;const cs=S.candles;if(!cs.length){x.fillStyle="#6b7a8c";x.fillText("en attente de données (échauffement)…",20,30);return}
+ $("ctitle").textContent="GRAPHIQUE M15 — "+S.symbol;{const g=$("cag");if(g.options.length<2){S.agents.forEach(a=>{const o=document.createElement("option");o.textContent=a.name;g.appendChild(o)})}}const cs=S.candles;if(!cs.length){x.fillStyle="#6b7a8c";x.fillText("en attente de données (échauffement)…",20,30);return}
  let hi=-1e18,lo=1e18;cs.forEach(k=>{hi=Math.max(hi,k[2]);lo=Math.min(lo,k[3])});S.levels.forEach(l=>{[l.entry,l.stop,l.target].forEach(v=>{hi=Math.max(hi,v);lo=Math.min(lo,v)})});
  const pad=(hi-lo)*.05;hi+=pad;lo-=pad;const Y=v=>H-(v-lo)/(hi-lo)*(H-20)-10,bw=(W-70)/cs.length;
  cs.forEach((k,i)=>{const xx=i*bw+4,up=k[4]>=k[1];x.strokeStyle=x.fillStyle=up?"#2ecc8f":"#ff5a6a";x.beginPath();x.moveTo(xx+bw/2,Y(k[2]));x.lineTo(xx+bw/2,Y(k[3]));x.stroke();
   x.fillRect(xx+1,Math.min(Y(k[1]),Y(k[4])),Math.max(1,bw-2),Math.max(1,Math.abs(Y(k[1])-Y(k[4]))))});
  S.levels.forEach(l=>{[["entrée",l.entry,"#4aa8ff"],["stop",l.stop,"#ff5a6a"],["cible",l.target,"#2ecc8f"]].forEach(([n,v,col])=>{x.strokeStyle=col;x.setLineDash([5,4]);x.beginPath();x.moveTo(0,Y(v));x.lineTo(W-62,Y(v));x.stroke();x.setLineDash([]);x.fillStyle=col;x.fillText(n+" "+fmt(v,v<10?5:2),W-130,Y(v)-2)})});
+ const t0=cs[0][0],dt=cs.length>1?cs[1][0]-cs[0][0]:900,XT=t=>{let a=0,b=cs.length-1;while(a<b){const m=(a+b+1)>>1;if(cs[m][0]<=t)a=m;else b=m-1}return a*bw+4+bw/2},fa=$("cag").value,TR=(S.mtrades||[]).filter(t=>!fa||t.agent==fa);
+ TR.forEach(t=>{if(t.t0<t0)return;const xe=XT(t.t0),col=t.r==null?"#4aa8ff":(t.r>=0?"#2ecc8f":"#ff5a6a");
+  x.fillStyle="#4aa8ff";x.beginPath();if(t.side>0){x.moveTo(xe,Y(t.entry)-2);x.lineTo(xe-5,Y(t.entry)+8);x.lineTo(xe+5,Y(t.entry)+8)}else{x.moveTo(xe,Y(t.entry)+2);x.lineTo(xe-5,Y(t.entry)-8);x.lineTo(xe+5,Y(t.entry)-8)}x.fill();
+  if(t.t1!=null&&t.exit!=null){const xs=XT(t.t1);x.strokeStyle=col;x.setLineDash([3,3]);x.beginPath();x.moveTo(xe,Y(t.entry));x.lineTo(xs,Y(t.exit));x.stroke();x.setLineDash([]);x.fillStyle=col;x.fillRect(xs-3,Y(t.exit)-3,6,6);
+   if(TR.length<40){x.font="9px monospace";x.fillText((t.r>=0?"+":"")+t.r+"R",xs+5,Y(t.exit)-4)}}});
+ const done=TR.filter(t=>t.r!=null),sum=done.reduce((a,t)=>a+t.r,0);$("cstat").textContent=`${TR.length} trades sur la fenêtre · ${done.length} clos · ${fmt(sum)}R · ▲▼ entrée (bleu), ■ sortie (vert gagnant / rouge perdant)`;
+ $("tlist").innerHTML=TR.slice(-12).reverse().map(t=>`<div class="${t.r==null?"dim":t.r>=0?"up":"dn"}">${new Date(t.t0*1000).toISOString().slice(5,16).replace("T"," ")} <b>${t.agent}</b> ${t.side>0?"LONG":"SHORT"} ${fmt(t.entry,t.entry<10?5:2)} → ${t.exit==null?"en cours":fmt(t.exit,t.exit<10?5:2)+" ("+t.reason+") "+(t.r>=0?"+":"")+t.r+"R"}</div>`).join("")||"aucun trade sur ce symbole dans la fenêtre";
  x.fillStyle="#6b7a8c";for(let i=0;i<5;i++){const v=lo+(hi-lo)*i/4;x.fillText(fmt(v,v<10?5:1),W-60,Y(v)+3)}
  $("linfo").innerHTML=S.levels.length?S.levels.map(l=>`<b>${l.agent}</b> ${l.side>0?"LONG":"SHORT"} entrée ${fmt(l.entry,5)} stop ${fmt(l.stop,5)} cible ${fmt(l.target,5)} · <b>RR net ≈ ${l.rr}</b>`).join("<br>"):"aucune position ouverte sur ce symbole";}
 let ang=0,pulses=[],lastEv=0,P=null;

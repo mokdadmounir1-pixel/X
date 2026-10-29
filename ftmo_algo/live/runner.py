@@ -170,7 +170,7 @@ class Runner:
             vortex = self._vortex(sym)
             if a0 is not None:
                 c = a0.ctx[sym]
-                k = max(0, c.n - 120)
+                k = max(0, c.n - 400)
                 idx = c.df.index[k:]
                 candles = [[int(t.timestamp()), float(o), float(h), float(l), float(cl)] for t, o, h, l, cl in
                            zip(idx, c.o[k:], c.h[k:], c.l[k:], c.c[k:])]
@@ -180,6 +180,19 @@ class Runner:
                         rr = abs(p.target - p.entry) / max(p.r_dist, 1e-12)
                         levels.append({"agent": a.name, "side": p.side, "entry": p.entry, "stop": p.stop, "target": p.target,
                                        "rr": round(rr, 2)})
+            t_lo = candles[0][0] if candles else 0
+            mtrades = []
+            for a in self.agents:
+                for t in a.sim.trades:
+                    if t["sym"] == sym and t["exit_t"] // 10**9 >= t_lo:
+                        mtrades.append({"agent": a.name, "side": int(t["side"]), "t0": int(t["entry_t"]) // 10**9,
+                                        "t1": int(t["exit_t"]) // 10**9, "entry": float(t["entry"]), "exit": float(t["exit"]),
+                                        "r": round(float(t["r"]), 2), "reason": t["reason"]})
+                for p in a.sim.pos:
+                    if p.sym == sym and int(p.entry_t) // 10**9 >= t_lo:
+                        mtrades.append({"agent": a.name, "side": int(p.side), "t0": int(p.entry_t) // 10**9, "t1": None,
+                                        "entry": float(p.entry), "exit": None, "r": None, "reason": "ouvert"})
+            mtrades.sort(key=lambda x: x["t0"])
             tinfo = {}
             ti = self.target_info
             if ti and ti.get("risk_pct"):
@@ -198,7 +211,7 @@ class Runner:
             nxt = self.news.next_events(now, 4) if (self.news is not None and now) else []
             return {"label": self.label, "flux_ok": self.flux_ok, "paused": self.paused, "speed": self.speed, "bars": self.bars,
                     "now": now // 10**9 if now else 0, "symbol": sym, "agents": agents, "tape": list(self.tape)[:40],
-                    "candles": candles, "levels": levels, "vortex": vortex, "news": [{"t": t // 10**9, "name": n} for t, n in nxt],
+                    "candles": candles, "levels": levels, "mtrades": mtrades[-300:], "vortex": vortex, "news": [{"t": t // 10**9, "name": n} for t, n in nxt],
                     "symbols": sorted({x for a in self.agents for x in a.symbols}), "notifications": list(self.notifier.items)[-30:], "verdicts": self.verdicts,
                     "data_quality": self.data_quality, "tools": self.tools_status, "target": tinfo,
                     "profit_lock": dict(getattr(self.profile, "profit_lock", {}) or {}),
