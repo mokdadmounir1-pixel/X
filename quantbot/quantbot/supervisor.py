@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-PAPER_SPECS = ["specs/inst_strategies_v1.json", "specs/smc_v1b.json", "specs/gold_quant_v1.json", "specs/apex_pullback_v1.json", "specs/stop_hunt_v2.json", "specs/stop_hunt_v3.json", "specs/mtf_confluence_v1.json", "specs/il_svr_v1.json", "specs/cta_donchian_v1.json", "specs/twelve_v1.json", "specs/twelve_data_v1.json", "specs/omega_v2.json", "specs/institutional60_v1.json"]
+PAPER_SPECS = ["specs/inst_strategies_v1.json", "specs/smc_v1b.json", "specs/gold_quant_v1.json", "specs/apex_pullback_v1.json", "specs/stop_hunt_v2.json", "specs/stop_hunt_v3.json", "specs/mtf_confluence_v1.json", "specs/il_svr_v1.json", "specs/cta_donchian_v1.json", "specs/twelve_v1.json", "specs/twelve_data_v1.json", "specs/omega_v2.json", "specs/institutional60_v1.json", "specs/candidates_v1.json", "specs/london_breakout_v1.json"]
 
 
 @dataclass

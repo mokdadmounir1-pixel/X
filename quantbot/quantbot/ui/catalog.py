@@ -15,7 +15,7 @@ from .institutional60 import institutional60
 from .replay import list_strategies
 
 FAMILIES = [("amd", "Session / manipulation"), ("vwap", "Réversion VWAP"), ("orb", "Ouverture (ORB)"), ("fvg", "Fair Value Gap"), ("smc", "SMC order block"), ("gq_", "Scalping or"),
-            ("apex_pullback", "Repli APEX"), ("apex_levels", "Repli APEX x niveaux"), ("stop_hunt", "Stop-hunt"), ("mtf", "Multi-temporel descendant"), ("il_svr", "Indices (IL-SVR)"), ("cta", "Suivi de tendance"), ("omega", "OMEGA (panier de 3)"), ("overnight", "Prime overnight"), ("intraday_mom", "Momentum intrajournalier"), ("kalman", "Kalman / Ornstein-Uhlenbeck"), ("orderflow", "Flux d'ordres (proxy)"), ("fixing", "Saisonnalité fixings"), ("cot", "Positionnement COT"), ("macro", "Macro taux réels"), ("ofi_depth", "Carnet réel (OFI)")]
+            ("apex_pullback", "Repli APEX"), ("apex_levels", "Repli APEX x niveaux"), ("stop_hunt", "Stop-hunt"), ("mtf", "Multi-temporel descendant"), ("il_svr", "Indices (IL-SVR)"), ("cta", "Suivi de tendance"), ("omega", "OMEGA (panier de 3)"), ("gap_fade", "Gap d'ouverture"), ("ibs_", "IBS / RSI(2)"), ("rsi2", "IBS / RSI(2)"), ("turn_of", "Changement de mois"), ("london", "Cassure de Londres"), ("orb_stocks", "ORB actions"), ("overnight", "Prime overnight"), ("intraday_mom", "Momentum intrajournalier"), ("kalman", "Kalman / Ornstein-Uhlenbeck"), ("orderflow", "Flux d'ordres (proxy)"), ("fixing", "Saisonnalité fixings"), ("cot", "Positionnement COT"), ("macro", "Macro taux réels"), ("ofi_depth", "Carnet réel (OFI)")]
 
 
 def _family(sid: str) -> str:
