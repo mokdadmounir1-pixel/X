@@ -90,3 +90,13 @@ def test_causal_prefix_and_dispatch(mod, mk):
 def test_specs_are_paper_only_with_zero_trials_and_budget_500():
     for n in ("candidates_v1", "london_breakout_v1", "stocks_orb_v1"):
         s = json.loads((ROOT / "specs" / f"{n}.json").read_text(encoding="utf-8")); assert s["trials"] == 0 and s["max_trials_budget"] == 500 and s["strategies"]
+
+
+def test_every_paper_spec_instrument_with_an_unmeasurable_spread_declares_one():
+    """Un spread nul/inconnu ne doit jamais empêcher une spec de démarrer (SystemExit) : FX et indices autres que l'or et USTEC déclarent une hypothèse explicite."""
+    for n in ("candidates_v1", "london_breakout_v1", "institutional60_v1"):
+        s = json.loads((ROOT / "specs" / f"{n}.json").read_text(encoding="utf-8"))
+        for inst, c in s["costs"].items():
+            if inst in ("_note", "XAUUSD", "USTEC"):
+                continue
+            assert c["spread_frac"] is not None and "HYPOTHÈSE" in c["basis"], (n, inst)

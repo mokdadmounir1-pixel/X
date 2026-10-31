@@ -13,22 +13,22 @@
    "basis": "spread mesuré ; commission 0 = HYPOTHÈSE"
   },
   "US500": {
-   "spread_frac": null,
+   "spread_frac": 0.0001,
    "fee_rate": 0.0,
    "slippage": 1e-05,
-   "basis": "spread mesuré ; commission 0 = HYPOTHÈSE"
+   "basis": "HYPOTHÈSE prudente d'après broker_profile (médiane 0,5 point mesurée hors séance) ; commission NON CONNUE (0 = hypothèse) ; à remesurer en séance"
   },
   "US30": {
-   "spread_frac": null,
+   "spread_frac": 5e-05,
    "fee_rate": 0.0,
    "slippage": 1e-05,
-   "basis": "spread mesuré ; commission 0 = HYPOTHÈSE"
+   "basis": "HYPOTHÈSE prudente d'après broker_profile (médiane 0,7 point hors séance) ; commission NON CONNUE (0 = hypothèse) ; à remesurer en séance"
   },
   "DE40": {
-   "spread_frac": null,
+   "spread_frac": 5e-05,
    "fee_rate": 0.0,
    "slippage": 1e-05,
-   "basis": "spread mesuré ; commission 0 = HYPOTHÈSE"
+   "basis": "HYPOTHÈSE prudente d'après broker_profile (médiane 0,8 point hors séance) ; commission NON CONNUE (0 = hypothèse) ; à remesurer en séance"
   }
  },
  "settings": {

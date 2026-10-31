@@ -94,3 +94,14 @@ def test_coinbase_source_paper_runs_without_mt5_and_never_builds_an_order_broker
     finally:
         del os.environ["QUANTBOT_PAPER"]
     assert all(r["mode"] == "OBSERVATION" and r["source"] == "Coinbase" for r in out["runners"])
+
+
+def test_systemexit_from_one_runner_setup_is_reported_and_the_others_still_start(tmp_path, monkeypatch):
+    class R:
+        def __init__(self, mt5, inst, name, *a, **k): self.symbol, self.mode = inst, "OBSERVATION"
+        def setup(self):
+            if self.symbol == "USTEC":
+                raise SystemExit("USTEC: aucun spread fiable ni hypothèse déclarée : refus")
+    monkeypatch.setattr(pa, "LiveRunner", R)
+    runners, errors = pa.build_runners(None, SPEC, tmp_path, [("XAUUSD", "vwap"), ("USTEC", "orb"), ("EURUSD", "vwap")])
+    assert [r.symbol for r in runners] == ["XAUUSD", "EURUSD"] and len(errors) == 1 and errors[0]["instrument"] == "USTEC" and "spread fiable" in errors[0]["error"]

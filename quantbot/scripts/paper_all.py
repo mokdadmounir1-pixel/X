@@ -34,7 +34,7 @@ def build_runners(mt5, spec_path, out_dir, pairs, timeframe="M15", clock=time.ti
             r.setup()
             assert r.mode == "OBSERVATION"
             runners.append(r)
-        except Exception as exc:   # un couple en échec n'arrête pas les autres, et l'échec est visible
+        except (Exception, SystemExit) as exc:   # un couple en échec n'arrête pas les autres, et l'échec est visible (SystemExit : « aucun spread fiable » d'une spec ne doit JAMAIS tuer toute la simulation)
             errors.append({"instrument": inst, "strategy": name, "error": f"{type(exc).__name__}: {exc}"})
     return runners, errors
 
