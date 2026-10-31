@@ -38,8 +38,13 @@ class LiveRunner:
         self.force_observation = force_observation; self.overlay = overlay
         self.spec_path, self.approvals_path = Path(spec_path), Path(approvals_path)
         self.state = StateStore(state_path)
+        self.state_dir = Path(state_path).parent
+        try:
+            self.group = load_spec(spec_path)["strategies"][strategy_id].get("exclusive_group")
+        except (OSError, KeyError, ValueError):
+            self.group = None
         self.kill = KillSwitch(self.state, kill_file)
-        self.feed = feed if feed is not None else BarFeed(mt5, symbol, timeframe, HISTORY_BARS, clock=clock)
+        self.feed = feed if feed is not None else BarFeed(mt5, symbol, timeframe, int(load_spec(spec_path)["strategies"][strategy_id].get("history_bars", HISTORY_BARS)), clock=clock)
         self.allowed_servers, self.clock, self.sleep = allowed_servers, clock, sleep
         self.engine: Optional[TradingEngine] = None
         self.mode = "NON_DEMARRE"
@@ -82,6 +87,34 @@ class LiveRunner:
         self.state.set("mode", self.mode); self.state.set("why", why); self.state.set("strategy", self.strategy_id); self.state.set("symbol", self.symbol); self.state.set("spec", self.spec_path.name)
         self.state.log("INFO", "demarrage", f"mode={self.mode} ; {why}")
         return self.mode
+
+    def _group_blocked(self) -> Optional[str]:
+        """Bloc corrélé (ex. US500 + US100 + US30 = UN seul pari) : si un autre lanceur du même `exclusive_group` a une position ou un ordre en attente, aucune nouvelle entrée ici. Fichiers-témoins dans le dossier de l'état ; un témoin périmé (> 30 min) est ignoré."""
+        group = self.group
+        if not group:
+            return None
+        d = self.state_dir
+        try:
+            now = time.time()
+            for f in d.glob(f"GROUP_{group}__*.json"):
+                if f.name == self._group_file().name or now - f.stat().st_mtime > 1800:
+                    continue
+                m = json.loads(f.read_text(encoding="utf-8"))
+                if m.get("open") or m.get("pending"):
+                    return "bloc_correle"
+        except (OSError, ValueError):
+            return None
+        return None
+
+    def _group_file(self) -> Path:
+        return self.state_dir / f"GROUP_{self.group}__{self.symbol}_{self.strategy_id}.json"
+
+    def _write_group_marker(self) -> None:
+        if self.group and self.engine is not None:
+            try:
+                self._group_file().write_text(json.dumps({"open": self.engine.broker.position is not None, "pending": self.engine.pending is not None, "ts": time.time()}), encoding="utf-8")
+            except OSError:
+                pass
 
     def _on_ignored(self, rec: dict) -> None:
         self.state.log("INFO", "ignored", json.dumps({**rec, "strategy": self.strategy_id, "symbol": self.symbol, "paper": self.mode == "OBSERVATION", "recorded_ms": int(self.clock() * 1000)}))
@@ -130,8 +163,9 @@ class LiveRunner:
             if df is None:
                 return "idle"
             for ts in self.feed.new_bars(df):
+                self.engine.external_halt = self._group_blocked()
                 self.engine.on_bar(df.loc[:ts])
-                self._publish()
+                self._publish(); self._write_group_marker()
             self._publish(df)
             self.state.set("last_bar", str(df.index[-1]))
             return "bar"

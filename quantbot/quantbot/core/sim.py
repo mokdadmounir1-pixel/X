@@ -77,6 +77,7 @@ class TradingEngine:
         self._n = 0
         self._seg_start = 0  # indice (dans df) du début du segment de données continu courant
         self.holes: list = []
+        self.external_halt: Optional[str] = None   # raison d'un blocage venu de l'extérieur (ex. « bloc corrélé » : un autre instrument du même groupe a déjà une position) ; aucune entrée tant qu'il est posé
         self.ghosts = None                 # GhostBook facultatif : suit les signaux IGNORÉS (lecture seule, aucune influence sur les décisions)
 
     # --- helpers ---------------------------------------------------------
@@ -169,6 +170,11 @@ class TradingEngine:
             else:
                 info = check_exit(pos, o, h, l, c, held, bt.max_hold_bars)
                 closed = self.broker.close_position(info[0], ts, info[1], self._n, info[2]) if info else None
+                rule = getattr(self.signals, "exit_rule", None)          # règle de sortie de la stratégie (ex. « clôture de séance supérieure à celle de la veille ») : causale, appelée sur le passé uniquement
+                if closed is None and rule is not None:
+                    why_exit = rule(df, pos)
+                    if why_exit:
+                        closed = self._safe_close(c, ts, str(why_exit))
             if closed is not None:
                 self._closed(closed, ts)
 
@@ -201,11 +207,11 @@ class TradingEngine:
                 self.pending = None
                 self._reject("active_risk_halt")
         in_session = s.risk.session_utc_start <= ts.hour < s.risk.session_utc_end
-        halted = weekend or not in_session or (status is not None and status.halt_new) or (decision is not None and decision.halt_new)
+        halted = weekend or not in_session or (status is not None and status.halt_new) or (decision is not None and decision.halt_new) or self.external_halt is not None
         in_warmup = (len(df) - self._seg_start) <= bt.warmup_bars
         if self.ghosts is not None and not in_warmup and (self.broker.position is not None or self.pending is not None or halted):
             self._ghost("position_ouverte" if (self.broker.position is not None or self.pending is not None) and not halted else
-                        "week_end" if weekend else "hors_session" if not in_session else "arret_ftmo" if (status is not None and status.halt_new) else "arret_risque_actif", df, c)
+                        "week_end" if weekend else "hors_session" if not in_session else "arret_ftmo" if (status is not None and status.halt_new) else "arret_risque_actif" if (decision is not None and decision.halt_new) else (self.external_halt or "arret_externe"), df, c)
         if self.broker.position is None and self.pending is None and not halted and not in_warmup:
             ok, why = self.risk.can_trade(ts, self.broker.equity(c))
             if not ok:

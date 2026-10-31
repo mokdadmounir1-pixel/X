@@ -35,8 +35,9 @@ def atr_series(df: pd.DataFrame, period: int = 14) -> np.ndarray:
 class EventSignalEngine:
     """Sert les événements pré-calculés au moteur ; `evaluate` ne regarde que la dernière barre de la fenêtre."""
 
-    def __init__(self, settings: Settings, events: list[Event]) -> None:
+    def __init__(self, settings: Settings, events: list[Event], exit_rule=None) -> None:
         self.settings = settings
+        self.exit_rule = exit_rule          # callable (df, position) -> raison de sortie ou None ; None = aucune règle propre à la stratégie
         self.by_ts: dict = {}
         for e in events:
             self.by_ts.setdefault(e.ts, e)  # un seul événement par barre (le premier)

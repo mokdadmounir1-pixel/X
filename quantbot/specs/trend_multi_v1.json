@@ -1,0 +1,196 @@
+{
+ "name": "trend_multi_v1",
+ "preregistered": "2026-11-01 : commitée AVANT toute exécution",
+ "lock_months": 12,
+ "min_days": 1500,
+ "min_markets": 8,
+ "hypothesis": "Suivi de tendance multi-actifs (stratégie 3 du cahier) : vote de signe sur 21/63/252 jours, risque égal par marché (volatilité 60 jours), rebalancement hebdomadaire, stop de sécurité 4 ATR. Compte financé seulement. Comparateur : panier long seulement au même risque (bêta).",
+ "params": {
+  "horizons": [
+   21,
+   63,
+   252
+  ],
+  "vol_window": 60,
+  "daily_risk": 0.00125,
+  "max_pos": 3.0,
+  "max_gross": 6.0,
+  "stop_atr": 4.0,
+  "atr_period": 14
+ },
+ "markets": {
+  "US500": {
+   "files": [
+    "data/live/US500_H1.csv",
+    "data/real/US500_M15.csv"
+   ],
+   "cost": {
+    "spread_frac": 5e-05,
+    "fee_rate": 0.0,
+    "slippage": 1e-05,
+    "basis": "HYPOTHÈSE prudente (broker_profile hors séance) ; commission NON CONNUE ; swaps NON CONNUS"
+   }
+  },
+  "DE40": {
+   "files": [
+    "data/live/DE40_H1.csv",
+    "data/real/DE40_M15.csv"
+   ],
+   "cost": {
+    "spread_frac": 5e-05,
+    "fee_rate": 0.0,
+    "slippage": 1e-05,
+    "basis": "HYPOTHÈSE prudente (broker_profile hors séance) ; commission NON CONNUE ; swaps NON CONNUS"
+   }
+  },
+  "JP225": {
+   "files": [
+    "data/live/JP225_H1.csv",
+    "data/real/JP225_M15.csv"
+   ],
+   "cost": {
+    "spread_frac": 0.0001,
+    "fee_rate": 0.0,
+    "slippage": 1e-05,
+    "basis": "HYPOTHÈSE prudente (broker_profile hors séance) ; commission NON CONNUE ; swaps NON CONNUS"
+   }
+  },
+  "UK100": {
+   "files": [
+    "data/live/UK100_H1.csv",
+    "data/real/UK100_M15.csv"
+   ],
+   "cost": {
+    "spread_frac": 5e-05,
+    "fee_rate": 0.0,
+    "slippage": 1e-05,
+    "basis": "HYPOTHÈSE prudente (broker_profile hors séance) ; commission NON CONNUE ; swaps NON CONNUS"
+   }
+  },
+  "US30": {
+   "files": [
+    "data/live/US30_H1.csv",
+    "data/real/US30_M15.csv"
+   ],
+   "cost": {
+    "spread_frac": 5e-05,
+    "fee_rate": 0.0,
+    "slippage": 1e-05,
+    "basis": "HYPOTHÈSE prudente (broker_profile hors séance) ; commission NON CONNUE ; swaps NON CONNUS"
+   }
+  },
+  "USTEC": {
+   "files": [
+    "data/live/USTEC_H1.csv",
+    "data/real/USTEC_M15.csv"
+   ],
+   "cost": {
+    "spread_frac": 5e-05,
+    "fee_rate": 0.0,
+    "slippage": 1e-05,
+    "basis": "HYPOTHÈSE prudente (broker_profile hors séance) ; commission NON CONNUE ; swaps NON CONNUS"
+   }
+  },
+  "XAUUSD": {
+   "files": [
+    "data/live/XAUUSD_H1.csv",
+    "data/real/XAUUSD_M15.csv"
+   ],
+   "cost": {
+    "spread_frac": 5e-05,
+    "fee_rate": 0.0,
+    "slippage": 1e-05,
+    "basis": "HYPOTHÈSE ; commission NON CONNUE ; swaps NON CONNUS"
+   }
+  },
+  "XAGUSD": {
+   "files": [
+    "data/live/XAGUSD_H1.csv",
+    "data/real/XAGUSD_M15.csv"
+   ],
+   "cost": {
+    "spread_frac": 5e-05,
+    "fee_rate": 0.0,
+    "slippage": 1e-05,
+    "basis": "HYPOTHÈSE ; commission NON CONNUE ; swaps NON CONNUS"
+   }
+  },
+  "USOIL": {
+   "files": [
+    "data/live/USOIL_H1.csv"
+   ],
+   "cost": {
+    "spread_frac": 0.00015,
+    "fee_rate": 0.0,
+    "slippage": 1e-05,
+    "basis": "HYPOTHÈSE ; commission NON CONNUE ; swaps NON CONNUS"
+   }
+  },
+  "EURUSD": {
+   "files": [
+    "data/live/EURUSD_H1.csv",
+    "data/real/EURUSD_M15.csv"
+   ],
+   "cost": {
+    "spread_frac": 0.0001,
+    "fee_rate": 2.5e-05,
+    "slippage": 1e-05,
+    "basis": "HYPOTHÈSE : spread ~1 pip, commission ~2,5 $/lot/côté ; swaps NON CONNUS"
+   }
+  },
+  "USDJPY": {
+   "files": [
+    "data/live/USDJPY_H1.csv",
+    "data/real/USDJPY_M15.csv"
+   ],
+   "cost": {
+    "spread_frac": 0.0001,
+    "fee_rate": 2.5e-05,
+    "slippage": 1e-05,
+    "basis": "HYPOTHÈSE : spread ~1 pip, commission ~2,5 $/lot/côté ; swaps NON CONNUS"
+   }
+  },
+  "GBPUSD": {
+   "files": [
+    "data/live/GBPUSD_H1.csv",
+    "data/real/GBPUSD_M15.csv"
+   ],
+   "cost": {
+    "spread_frac": 0.0001,
+    "fee_rate": 2.5e-05,
+    "slippage": 1e-05,
+    "basis": "HYPOTHÈSE : spread ~1 pip, commission ~2,5 $/lot/côté ; swaps NON CONNUS"
+   }
+  },
+  "AUDUSD": {
+   "files": [
+    "data/live/AUDUSD_H1.csv",
+    "data/real/AUDUSD_M15.csv"
+   ],
+   "cost": {
+    "spread_frac": 0.0001,
+    "fee_rate": 2.5e-05,
+    "slippage": 1e-05,
+    "basis": "HYPOTHÈSE : spread ~1 pip, commission ~2,5 $/lot/côté ; swaps NON CONNUS"
+   }
+  }
+ },
+ "gates": {
+  "min_days": 1500,
+  "sign_flip_alpha": 0.1,
+  "dsr_min": 0.5
+ },
+ "trials": 1,
+ "max_trials_budget": 500,
+ "not_tested": [
+  "swaps quotidiens du courtier (NON CONNUS)",
+  "commission réelle (hypothèse)",
+  "jours fériés et gaps de week-end hors données"
+ ],
+ "rules": [
+  "Paramètres figés.",
+  "Un essai : le script enregistre dans reports/registry.jsonl.",
+  "FAIL si le Sharpe n'excède pas celui du panier long seulement, ou espérance négative, ou p > 0,10, ou DSR < 0,5.",
+  "Un CANDIDAT n'est pas une approbation."
+ ]
+}

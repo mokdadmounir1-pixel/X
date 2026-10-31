@@ -1,0 +1,209 @@
+{
+ "name": "ibs_rsi2_v1",
+ "preregistered": "2026-11-01 : commitée AVANT toute exécution ; PAPER uniquement, 0 essai consommé",
+ "lock_months": 12,
+ "lock_min_frac": 0.2,
+ "clock": "eu_dst (défaut)",
+ "gates": {
+  "min_trades": 60,
+  "min_expectancy": 0.15,
+  "min_profit_factor": 1.2,
+  "null_alpha": 0.1,
+  "top3_max": 0.5,
+  "min_positive_folds": 0.5,
+  "mc_paths": 2000,
+  "dd_frac": 0.6,
+  "dsr_min": 0.5,
+  "min_years": 2.0,
+  "base_B": 999,
+  "worst_trade_r": 5.0
+ },
+ "leverage_rule": {
+  "loss_budget": 0.01,
+  "quantile": 0.9999,
+  "min": 0.25,
+  "max": 5.0,
+  "doc": "levier max tel qu'un gap au quantile 99,99 % (gaps de reprise, hors trous de données) coûte <= 1 % du capital"
+ },
+ "max_trials_budget": 500,
+ "not_tested": [
+  "M1/M3/M5 (export dédié requis)",
+  "delta de volume / carnet (absents des exports MT5)",
+  "calendrier économique (annonces)",
+  "swaps, commissions réelles (hypothèses)"
+ ],
+ "rules": [
+  "Paramètres figés (cahier des charges de l'utilisateur).",
+  "Aucun essai consommé tant qu'aucun backtest n'est lancé.",
+  "Jugement : >= 4 semaines ET >= 60 trades PAPER ; espérance > 0,15 R ; comparaison à l'achat-conservation."
+ ],
+ "data_sha256": {},
+ "trials": 0,
+ "frequency_note": "Seuils fixés en comptant le NOMBRE d'événements seulement, jamais leur performance.",
+ "settings": {
+  "tolerance": {
+   "tolerance_percentage": 0.15,
+   "deviation_threshold": 0.35,
+   "min_score": 0.6
+  },
+  "detection": {
+   "pivot_order": 3,
+   "atr_period": 14,
+   "max_pivot_age": 12,
+   "context_bars": 5,
+   "context_weight": 0.25,
+   "context_move_atr": 2.0,
+   "min_height_atr": 1.5,
+   "min_bars_between": 4,
+   "enabled": null
+  },
+  "signals": {
+   "min_confidence": 0.55,
+   "category_weights": {
+    "candle": 0.8,
+    "chart": 1.0,
+    "harmonic": 0.9
+   },
+   "unconfirmed_penalty": 0.8,
+   "require_confirmation": false,
+   "min_edge": 0.1,
+   "confluence_bonus": 0.05,
+   "trend_filter": "none",
+   "ema_fast": 20,
+   "ema_slow": 50,
+   "counter_trend_penalty": 0.6,
+   "htf_rule": "4h",
+   "atr_floor_frac": 0.5
+  },
+  "risk": {
+   "risk_per_trade": 0.0075,
+   "atr_stop_mult": 1.5,
+   "reward_risk": 5.0,
+   "min_reward_risk": 1.0,
+   "max_leverage": 3.0,
+   "max_daily_loss": 0.02,
+   "max_trades_per_day": 3,
+   "flat_before_weekend": true,
+   "weekend_cutoff_hour": 21,
+   "session_tz": "Europe/Prague",
+   "min_stop_atr": 0.5,
+   "score_sizing_floor": 0.5,
+   "score_min_mult": 0.1
+  },
+  "backtest": {
+   "initial_equity": 100000.0,
+   "warmup_bars": 100,
+   "window_bars": 300,
+   "max_hold_bars": 100,
+   "max_gap_hours": 120.0
+  },
+  "execution": {
+   "mode": "paper",
+   "allow_live": false,
+   "fee_rate": 0.0005,
+   "slippage": 0.0002,
+   "spread": 0.0,
+   "exchange": "binance",
+   "symbol": "BTC/USDT",
+   "timeframe": "1h",
+   "live_auto_adopt": false,
+   "mt5_symbol": "EURUSD",
+   "mt5_timeframe": "H1",
+   "mt5_server_utc_offset_hours": 0,
+   "mt5_magic": 20260101,
+   "mt5_deviation_points": 20
+  },
+  "ftmo": {
+   "enabled": false,
+   "phase": "challenge",
+   "initial_balance": 100000.0,
+   "profit_target_challenge": 0.1,
+   "profit_target_verification": 0.05,
+   "max_daily_loss": 0.05,
+   "max_total_loss": 0.1,
+   "daily_loss_buffer": 0.01,
+   "total_loss_buffer": 0.02,
+   "min_trading_days": 4,
+   "timezone": "Europe/Prague",
+   "flat_before_weekend": true,
+   "weekend_cutoff_hour": 20,
+   "news_blackouts": [],
+   "stop_after_target": true,
+   "max_risk_per_trade": 0.005,
+   "expected_login": null
+  },
+  "active_risk": {
+   "enabled": true,
+   "daily_loss_halt": 0.02,
+   "daily_loss_flatten": false,
+   "dd_throttle_start": 0.05,
+   "max_drawdown_halt": 0.08,
+   "min_risk_multiplier": 0.5
+  }
+ },
+ "hypothesis": "Stratégie 1 du cahier de l'utilisateur : IBS < 0,20 ou RSI(2) < 10 au-dessus de la MM200 sur la séance cash, long seulement, sortie à la première clôture de séance supérieure à celle de la veille (3 séances max), stop catastrophe 2 ATR, ciblage de volatilité et filtre de fin de mois. Hypothèse publique, aucune valeur démontrée ; PAPER uniquement.",
+ "strategies": {
+  "ibs_rsi2_trend": {
+   "label": "IBS + RSI(2) + MM200 (indices US, séance cash NY)",
+   "params": {},
+   "instruments": [
+    "USTEC",
+    "US500",
+    "US30"
+   ],
+   "max_hold_bars": 300,
+   "history_bars": 24000,
+   "exclusive_group": "US_BLOCK",
+   "note": "décision à la clôture de la dernière barre M15 de la séance (16:00 NY) ; long seulement ; US500/US100/US30 = un seul pari (bloc)",
+   "min_bars": 36000
+  },
+  "ibs_rsi2_trend__de": {
+   "label": "IBS + RSI(2) + MM200 (GER40, séance cash Paris)",
+   "params": {
+    "tz": "Europe/Paris",
+    "open_min": 540,
+    "last_min": 1035
+   },
+   "instruments": [
+    "DE40"
+   ],
+   "max_hold_bars": 300,
+   "history_bars": 24000,
+   "note": "séance 09:00-17:30 Paris ; GER40 = DE40 chez ce courtier",
+   "min_bars": 36000
+  }
+ },
+ "instruments": {
+  "USTEC": "USTEC_M15.csv",
+  "US500": "US500_M15.csv",
+  "US30": "US30_M15.csv",
+  "DE40": "DE40_M15.csv"
+ },
+ "costs": {
+  "_note": "spread_frac mesuré par le terminal sur l'historique réel si disponible ; commission/slippage = HYPOTHÈSES (commission du courtier NON CONNUE).",
+  "USTEC": {
+   "spread_frac": null,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "spread mesuré ; commission 0 = HYPOTHÈSE"
+  },
+  "US500": {
+   "spread_frac": 0.0001,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "HYPOTHÈSE prudente d'après broker_profile (médiane 0,5 point mesurée hors séance) ; commission NON CONNUE (0 = hypothèse) ; à remesurer en séance"
+  },
+  "US30": {
+   "spread_frac": 5e-05,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "HYPOTHÈSE prudente d'après broker_profile (médiane 0,7 point hors séance) ; commission NON CONNUE (0 = hypothèse) ; à remesurer en séance"
+  },
+  "DE40": {
+   "spread_frac": 5e-05,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "HYPOTHÈSE prudente d'après broker_profile (médiane 0,8 point hors séance) ; commission NON CONNUE (0 = hypothèse) ; à remesurer en séance"
+  }
+ }
+}
