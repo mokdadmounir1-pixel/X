@@ -47,6 +47,9 @@ def collect_state(root: Path = ROOT) -> dict:
         b = (_read_json(f) or {}).get("max_trials_budget")
         if isinstance(b, (int, float)):
             budget = max(budget or 0, int(b))
+    b = (_read_json(root / "config" / "trial_budget.json") or {}).get("max_trials_budget")      # décision explicite de l'utilisateur : fait foi
+    if isinstance(b, (int, float)):
+        budget = max(budget or 0, int(b))
     for name in SPEC_ORDER:
         spec = _read_json(root / "specs" / f"{name}.json")
         if spec is None:

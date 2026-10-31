@@ -49,3 +49,8 @@ def test_crypto_instrument_replays_with_declared_crypto_costs_and_patterns_refus
 
 def test_displayed_trial_budget_is_the_highest_declared_not_a_stale_one(tmp_path):
     r = _root(tmp_path, with_real=False); s = TestClient(create_app(r), base_url="http://127.0.0.1").get("/api/state").json(); assert s["status"]["trials_budget"] >= 120
+
+
+def test_user_decided_trial_budget_file_sets_the_displayed_ceiling(tmp_path):
+    r = _root(tmp_path, with_real=False); (r / "config").mkdir(); shutil.copy(ROOT / "config" / "trial_budget.json", r / "config")
+    s = TestClient(create_app(r), base_url="http://127.0.0.1").get("/api/state").json(); assert s["status"]["trials_budget"] == 500

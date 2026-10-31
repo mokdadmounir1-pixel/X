@@ -15,7 +15,7 @@ from .institutional60 import institutional60
 from .replay import list_strategies
 
 FAMILIES = [("amd", "Session / manipulation"), ("vwap", "Réversion VWAP"), ("orb", "Ouverture (ORB)"), ("fvg", "Fair Value Gap"), ("smc", "SMC order block"), ("gq_", "Scalping or"),
-            ("apex_pullback", "Repli APEX"), ("apex_levels", "Repli APEX x niveaux"), ("stop_hunt", "Stop-hunt"), ("mtf", "Multi-temporel descendant"), ("il_svr", "Indices (IL-SVR)"), ("cta", "Suivi de tendance"), ("omega", "OMEGA (panier de 3)"), ("overnight", "Prime overnight"), ("intraday_mom", "Momentum intrajournalier"), ("kalman", "Kalman / Ornstein-Uhlenbeck"), ("orderflow", "Flux d'ordres (proxy)"), ("fixing", "Saisonnalité fixings"), ("cot", "Positionnement COT"), ("macro", "Macro taux réels"), ("ofi_depth", "Carnet réel (OFI)")]
+            ("apex_pullback", "Repli APEX"), ("apex_levels", "Repli APEX x niveaux"), ("stop_hunt", "Stop-hunt"), ("mtf", "Multi-temporel descendant"), ("il_svr", "Indices (IL-SVR)"), ("cta", "Suivi de tendance"), ("omega", "OMEGA (panier de 3)"), ("gap_fade", "Gap d'ouverture"), ("ibs_", "IBS / RSI(2)"), ("rsi2", "IBS / RSI(2)"), ("turn_of", "Changement de mois"), ("london", "Cassure de Londres"), ("orb_stocks", "ORB actions"), ("overnight", "Prime overnight"), ("intraday_mom", "Momentum intrajournalier"), ("kalman", "Kalman / Ornstein-Uhlenbeck"), ("orderflow", "Flux d'ordres (proxy)"), ("fixing", "Saisonnalité fixings"), ("cot", "Positionnement COT"), ("macro", "Macro taux réels"), ("ofi_depth", "Carnet réel (OFI)")]
 
 
 def _family(sid: str) -> str:
@@ -37,6 +37,8 @@ NOT_EXECUTABLE = [
     ("pairs_kalman", "Stat-arb de paires BTC/ETH (Kalman + Engle-Granger)", None, "Écrite et préenregistrée (pairs_v1), NON exécutée : données Coinbase à récupérer (le terminal les synchronise sur ton PC)."),
     ("alpha_miner", "Extraction rétrospective d'alpha (alpha_miner_v1)", "alpha_miner_v1", "Exécutée : RIEN d'exploitable. Outil d'analyse, pas une stratégie."),
     ("portfolio", "Portefeuille de toutes les stratégies (portfolio_v1)", "portfolio_v1", "Exécuté : 2 FAIL. Outil de combinaison, pas une stratégie."),
+    ("attention_factors", "Attention Factors (arbitrage statistique, 500 actions US)", None, "NON faite : exige les 500 plus grosses actions américaines (anciennes incluses), facteurs et apprentissage profond (LongConv, réentraînement annuel). Formules de coût et de résidu disponibles et testées (stat/equity_formulas.py). Résultats publiés (Sharpe 2,28 net) = simulation d'auteurs, code original non vérifié, impact de marché absent."),
+    ("orb_stocks_in_play", "ORB cinq minutes sur actions à volume inhabituel", None, "NON faite : exige des barres de 5 minutes d'actions américaines avec volume réel d'ouverture sur 14 séances, pour tout l'univers. Formules testées (RVOL, filtres, stop 10 % ATR, coût en R). Un stop à 10 % de l'ATR rend les frais très lourds en R ; aucun protocole hors échantillon ni glissement publié."),
     ("avellaneda", "Market making Avellaneda-Stoikov (stat/avellaneda.py)", None, "Outil de recherche testé (cotations, simulation) : borne optimiste, sans file d'attente ni sélection adverse ; quantbot est preneur de liquidité, donc non exécuté."),
     ("vol_arb", "Prime de variance implicite/réalisée (stat/vol_arb.py)", None, "Outil de recherche : calcule vol réalisée et prime sur une chaîne d'options RÉELLE ; sans chaîne COMEX, aucun signal."),
     ("tail_dependence", "Dépendance de queue (risk/tail_dependence.py)", None, "Outil de risque : mesure empirique de co-chutes ; ne trade pas."),

@@ -3,9 +3,9 @@ from __future__ import annotations
 
 import pandas as pd
 
-from . import amd, apex, intraday_momentum, overnight_premium, cot_extremes, cta_donchian, fixing_seasonality, fvg, goldq, il_svr, kalman_ou, level_proximity, macro_tips, mtf_confluence, ofi_depth, orderflow_iceberg, stop_hunt_engine, orb, smc, vwap
+from . import amd, apex, gap_fade, ibs_reversion, london_breakout, orb_stocks_in_play, rsi2_reversion, turn_of_month, intraday_momentum, overnight_premium, cot_extremes, cta_donchian, fixing_seasonality, fvg, goldq, il_svr, kalman_ou, level_proximity, macro_tips, mtf_confluence, ofi_depth, orderflow_iceberg, stop_hunt_engine, orb, smc, vwap
 
-_TWELVE = {"overnight_premium": overnight_premium, "intraday_momentum": intraday_momentum, "kalman_ou": kalman_ou, "orderflow_iceberg": orderflow_iceberg, "fixing_seasonality": fixing_seasonality, "cot_extremes": cot_extremes, "macro_tips": macro_tips, "ofi_depth": ofi_depth}
+_TWELVE = {"gap_fade": gap_fade, "ibs_reversion": ibs_reversion, "rsi2_reversion": rsi2_reversion, "turn_of_month": turn_of_month, "london_breakout": london_breakout, "orb_stocks_in_play": orb_stocks_in_play, "overnight_premium": overnight_premium, "intraday_momentum": intraday_momentum, "kalman_ou": kalman_ou, "orderflow_iceberg": orderflow_iceberg, "fixing_seasonality": fixing_seasonality, "cot_extremes": cot_extremes, "macro_tips": macro_tips, "ofi_depth": ofi_depth}
 
 
 def events_for(name: str, scfg: dict, df: pd.DataFrame) -> list:
@@ -79,7 +79,7 @@ def omega_events(df: pd.DataFrame, scfg: dict) -> list:
 # Identifiant lisible et STABLE de chaque stratégie (affiché dans l'attribution des trades)
 STRATEGY_CODES = {"amd": "AMD_PO3_M15", "vwap": "VWAP_BAND_M15", "orb": "ORB_15M_PULLBACK", "fvg_h1": "FVG_MIT_1H", "fvg_h4": "FVG_MIT_4H",
                   "smc_h1": "SMC_OB_FVG_1H", "smc_h4": "SMC_OB_FVG_4H",
-                  "apex_pullback": "APEX_PULLBACK_ALPHA", "stop_hunt": "XAU_STOP_HUNT", "apex_levels": "APEX_LEVELS_ALPHA", "mtf_confluence": "MTF_TOPDOWN_CONFLUENCE", "il_svr": "IL_SVR_INDEX", "cta_donchian": "CTA_DONCHIAN_H4", "omega": "OMEGA_TRIO", "overnight_premium": "OVERNIGHT_PREMIUM", "intraday_momentum": "INTRADAY_MOMENTUM", "kalman_ou": "KALMAN_OU_REVERT", "orderflow_iceberg": "ICEBERG_ABSORPTION", "fixing_seasonality": "LONDON_FIX_SEASONAL", "cot_extremes": "COT_EXTREMES", "macro_tips": "MACRO_TIPS_GOLD", "ofi_depth": "OFI_DEPTH_L2", "gq_sweep": "XAU_LIQ_SWEEP", "gq_asia_break": "XAU_ASIA_BREAK", "gq_ema_pull": "XAU_EMA_PULL", "gq_squeeze": "XAU_SQUEEZE", "gq_zrev": "XAU_ZREV"}
+                  "apex_pullback": "APEX_PULLBACK_ALPHA", "stop_hunt": "XAU_STOP_HUNT", "apex_levels": "APEX_LEVELS_ALPHA", "mtf_confluence": "MTF_TOPDOWN_CONFLUENCE", "il_svr": "IL_SVR_INDEX", "cta_donchian": "CTA_DONCHIAN_H4", "omega": "OMEGA_TRIO", "gap_fade": "GAP_FADE_INDEX", "ibs_reversion": "IBS_REVERSION_INDEX", "rsi2_reversion": "RSI2_REVERSION_INDEX", "turn_of_month": "TURN_OF_MONTH_INDEX", "london_breakout": "LONDON_BREAKOUT", "orb_stocks_in_play": "ORB_STOCKS_IN_PLAY", "overnight_premium": "OVERNIGHT_PREMIUM", "intraday_momentum": "INTRADAY_MOMENTUM", "kalman_ou": "KALMAN_OU_REVERT", "orderflow_iceberg": "ICEBERG_ABSORPTION", "fixing_seasonality": "LONDON_FIX_SEASONAL", "cot_extremes": "COT_EXTREMES", "macro_tips": "MACRO_TIPS_GOLD", "ofi_depth": "OFI_DEPTH_L2", "gq_sweep": "XAU_LIQ_SWEEP", "gq_asia_break": "XAU_ASIA_BREAK", "gq_ema_pull": "XAU_EMA_PULL", "gq_squeeze": "XAU_SQUEEZE", "gq_zrev": "XAU_ZREV"}
 
 
 def strategy_code(strategy_id: str) -> str:
