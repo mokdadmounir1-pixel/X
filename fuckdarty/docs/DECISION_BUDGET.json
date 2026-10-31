@@ -1,0 +1,15 @@
+{
+ "max_trials_budget": 500,
+ "decided_by": "l'utilisateur, par écrit (« oui 500 »)",
+ "decided_on": "2026-10-31",
+ "previous_budget": 120,
+ "trials_used_at_decision": 118,
+ "rules": [
+  "Le budget est un plafond de discipline : il ne rend aucun résultat meilleur et le calcul du DSR continue de compter TOUS les essais.",
+  "Chaque essai exige une hypothèse écrite et une spec commitée AVANT l'exécution.",
+  "Les anciennes specs gardent leur ancien chiffre (identité historique) ; ce fichier fait foi pour le plafond actuel.",
+  "À 500 essais consommés : arrêt, relecture complète des résultats, nouvelle décision écrite."
+ ],
+ "applies_to": "quantbot (décision de l'utilisateur : « 500 », « c'est que pour quantbot »). Le fichier de configuration de quantbot N'A PAS été modifié (consigne « sans modifier quantbot ») : le plafond de 500 est tenu ici, par discipline, jusqu'à ce que l'utilisateur demande de l'écrire dans quantbot.",
+ "fuckdarty_budget": "À décider séparément par l'utilisateur : FUCKDARTY ne dépense aucun essai de recherche tant qu'un budget propre n'est pas accordé par écrit."
+}
