@@ -8,6 +8,8 @@ Aucune exception ne peut tuer la boucle sans être journalisée et sans déclenc
 from __future__ import annotations
 
 import json
+
+from ..core.ignored import GhostBook
 import time
 from pathlib import Path
 from typing import Any, Optional
@@ -67,6 +69,8 @@ class LiveRunner:
             self.state.set("source", getattr(self.feed, "source", "MT5"))
             broker = PaperBroker(settings.backtest.initial_equity, settings.execution)
         self.engine = TradingEngine(settings, broker=broker, signal_engine=sig, on_close=self._on_close, overlay=self.overlay)
+        ex = settings.execution
+        self.engine.ghosts = GhostBook(settings.backtest.max_hold_bars, ex.spread + 2.0 * (ex.fee_rate + ex.slippage), settings.risk.reward_risk, on_done=self._on_ignored)      # contrefactuel des signaux ignorés (lecture seule)
         if self.mode == "DEMO_ACTIF":
             try:
                 broker.restore(self.engine._n)
@@ -78,6 +82,9 @@ class LiveRunner:
         self.state.set("mode", self.mode); self.state.set("why", why); self.state.set("strategy", self.strategy_id); self.state.set("symbol", self.symbol); self.state.set("spec", self.spec_path.name)
         self.state.log("INFO", "demarrage", f"mode={self.mode} ; {why}")
         return self.mode
+
+    def _on_ignored(self, rec: dict) -> None:
+        self.state.log("INFO", "ignored", json.dumps({**rec, "strategy": self.strategy_id, "symbol": self.symbol, "paper": self.mode == "OBSERVATION", "recorded_ms": int(self.clock() * 1000)}))
 
     def _on_close(self, trade, ts) -> None:
         snap = getattr(self, "_pos_snap", None)

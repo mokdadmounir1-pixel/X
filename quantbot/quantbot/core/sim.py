@@ -77,10 +77,34 @@ class TradingEngine:
         self._n = 0
         self._seg_start = 0  # indice (dans df) du début du segment de données continu courant
         self.holes: list = []
+        self.ghosts = None                 # GhostBook facultatif : suit les signaux IGNORÉS (lecture seule, aucune influence sur les décisions)
 
     # --- helpers ---------------------------------------------------------
     def _reject(self, why: str) -> None:
         self.rejections[why] = self.rejections.get(why, 0) + 1
+
+    def _ghost(self, reason: str, df: pd.DataFrame, c: float) -> None:
+        """Évalue le signal courant SANS rien décider (fonction pure) et le confie au registre fantôme avec la raison de l'ignorance."""
+        bt = self.settings.backtest
+        try:
+            window = df.iloc[self._seg_start:].tail(bt.window_bars)
+            htf = resample_ohlcv(window, self.settings.signals.htf_rule) if self.settings.signals.trend_filter == "htf" else None
+            signal = self.signals.evaluate(window, htf)
+        except Exception:                       # jamais d'impact sur le moteur
+            return
+        if signal is not None:
+            self._ghost_signal(signal, reason, c)
+
+    def _ghost_signal(self, signal: Any, reason: str, c: float) -> None:
+        r = self.settings.risk; long = signal.direction == "bullish"; entry = float(signal.price)
+        if signal.stop_price is not None:
+            dist = max((entry - signal.stop_price) if long else (signal.stop_price - entry), r.min_stop_atr * signal.atr)
+        else:
+            dist = r.atr_stop_mult * signal.atr
+        if not (dist > 0) or dist != dist:
+            return
+        stop = entry - dist if long else entry + dist
+        self.ghosts.add(signal.timestamp if hasattr(signal, "timestamp") else self._last_ts, "long" if long else "short", stop, signal.take_profit_price, reason, entry)
 
     def _closed(self, trade: Trade, ts: Any) -> None:
         self.risk.register_close(ts, trade.pnl, self.broker.equity())
@@ -105,6 +129,8 @@ class TradingEngine:
         self._last_ts = ts
         s, bt = self.settings, self.settings.backtest
         o, h, l, c = (float(df[k].iloc[-1]) for k in ("open", "high", "low", "close"))
+        if self.ghosts is not None:
+            self.ghosts.step(ts, o, h, l, c)
 
         # trou de données (ex. 55 jours manquants) : jamais de position à cheval, contexte réinitialisé
         if len(df) >= 2:
@@ -177,10 +203,15 @@ class TradingEngine:
         in_session = s.risk.session_utc_start <= ts.hour < s.risk.session_utc_end
         halted = weekend or not in_session or (status is not None and status.halt_new) or (decision is not None and decision.halt_new)
         in_warmup = (len(df) - self._seg_start) <= bt.warmup_bars
+        if self.ghosts is not None and not in_warmup and (self.broker.position is not None or self.pending is not None or halted):
+            self._ghost("position_ouverte" if (self.broker.position is not None or self.pending is not None) and not halted else
+                        "week_end" if weekend else "hors_session" if not in_session else "arret_ftmo" if (status is not None and status.halt_new) else "arret_risque_actif", df, c)
         if self.broker.position is None and self.pending is None and not halted and not in_warmup:
             ok, why = self.risk.can_trade(ts, self.broker.equity(c))
             if not ok:
                 self._reject(why)
+                if self.ghosts is not None:
+                    self._ghost(why, df, c)
             else:
                 window = df.iloc[self._seg_start:].tail(bt.window_bars)
                 htf = resample_ohlcv(window, s.signals.htf_rule) if s.signals.trend_filter == "htf" else None
@@ -202,6 +233,8 @@ class TradingEngine:
                     self.pending = self.risk.build_plan(signal, self.broker.equity(c), max_risk=cap, cost_frac=cost_frac, spread_frac_now=sp_now if sp_now and sp_now > 0 else None)
                     if self.pending is None:
                         self._reject(self.risk.last_rejection or "plan")
+                        if self.ghosts is not None:
+                            self._ghost_signal(signal, self.risk.last_rejection or "plan", c)
 
         self.equity_ts.append(ts)
         self.equity_v.append(self.broker.equity(c))
