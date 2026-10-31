@@ -10,7 +10,7 @@ import pandas as pd
 from ..config import Settings
 from ..data.mt5 import costs_from_frame
 from ..lab.specs import build_settings
-from ..strategies.build import events_for
+from ..strategies.build import events_for, exit_rule_for
 from ..strategies.events import EventSignalEngine
 
 HISTORY_BARS = 3000  # fenêtre : couvre l'expiration des zones FVG H4 (50 barres H4 ~ 800 barres M15) avec marge
@@ -26,6 +26,7 @@ class LiveEventSignalEngine:
 
     def __init__(self, settings: Settings, strategy_id: str, scfg: dict) -> None:
         self.settings, self.strategy_id, self.scfg = settings, strategy_id, scfg
+        self.exit_rule = exit_rule_for(strategy_id, scfg)
 
     def evaluate(self, window: pd.DataFrame, htf: Optional[pd.DataFrame] = None):
         last = window.index[-1]
@@ -42,7 +43,7 @@ def strategy_settings(spec: dict, strategy_id: str, instrument: str, history: pd
     if instrument not in scfg["instruments"]:
         raise KeyError(f"{strategy_id} n'est pas préenregistrée pour {instrument}")
     s = build_settings(spec, instrument, costs_from_frame(history), history)
-    return s.with_overrides({"backtest.max_hold_bars": scfg["max_hold_bars"], "backtest.window_bars": HISTORY_BARS,
+    return s.with_overrides({"backtest.max_hold_bars": scfg["max_hold_bars"], "backtest.window_bars": int(scfg.get("history_bars", HISTORY_BARS)),
                              "execution.mt5_symbol": instrument})
 
 

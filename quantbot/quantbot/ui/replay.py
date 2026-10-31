@@ -33,7 +33,7 @@ def objective(root: Path) -> dict:
     return {"target_r_per_day": float(o.get("target_r_per_day", 0.33)), "note": o.get("note", ""), "beta_flags": o.get("beta_flags", {}), "target_monthly_net": float(o.get("target_monthly_net", 0.02)), "risk_per_trade": float(risk)}
 
 
-SPEC_FILES = ["inst_strategies_v1", "smc_v1b", "gold_quant_v1", "gold_winrate_v1b", "apex_pullback_v1", "stop_hunt_v2", "stop_hunt_v3", "apex_levels_v1", "mtf_confluence_v1", "il_svr_v1", "cta_donchian_v1", "twelve_v1", "twelve_data_v1", "omega_v2", "institutional60_v1", "candidates_v1", "london_breakout_v1", "stocks_orb_v1"]      # specs préenregistrées dont les stratégies sont rejouables
+SPEC_FILES = ["inst_strategies_v1", "smc_v1b", "gold_quant_v1", "gold_winrate_v1b", "apex_pullback_v1", "stop_hunt_v2", "stop_hunt_v3", "apex_levels_v1", "mtf_confluence_v1", "il_svr_v1", "cta_donchian_v1", "twelve_v1", "twelve_data_v1", "omega_v2", "institutional60_v1", "candidates_v1", "london_breakout_v1", "stocks_orb_v1", "ibs_rsi2_v1", "noise_area_v1"]      # specs préenregistrées dont les stratégies sont rejouables
 
 
 def spec_for(strategy: str, root: Path) -> Optional[dict]:
@@ -121,7 +121,7 @@ def run_strategy_replay(instrument: str, bars: int, strategy: str, segment: str 
     from ..data.mt5 import costs_from_frame, load_mt5_csv
     from ..lab.locked import LockedSliceError, split_locked
     from ..lab.specs import build_settings
-    from ..strategies.build import events_for
+    from ..strategies.build import events_for, exit_rule_for
     from ..strategies.events import EventSignalEngine
     from .server import run_replay as legacy_replay  # noqa: F401  (même moteur pour les figures floues)
 
@@ -134,6 +134,9 @@ def run_strategy_replay(instrument: str, bars: int, strategy: str, segment: str 
     if base is None:
         raise ValueError("stratégie inconnue")
     scfg0 = None if strategy == "patterns" else base["strategies"].get(strategy)
+    need = int((scfg0 or {}).get("min_bars", 0))                 # stratégie à long historique (ex. MM200 de séances) : fenêtre élargie, sinon aucun signal
+    if need:
+        bars = max(bars, min(need, 60000))
     in_spec = instrument in base["instruments"] and (scfg0 is None or instrument in scfg0["instruments"])
     fname = base["instruments"].get(instrument) or f"{instrument}{TF_SUFFIX}"
     full, src = load_prices(root, instrument, fname if in_spec else None)
@@ -169,7 +172,7 @@ def run_strategy_replay(instrument: str, bars: int, strategy: str, segment: str 
         if scfg is None:
             raise ValueError("stratégie inconnue")
         settings = build_settings(base, instrument, measured, basis).with_overrides({"backtest.max_hold_bars": scfg["max_hold_bars"]})
-        eng, label = EventSignalEngine(settings, events_for(strategy, scfg, seg)), scfg["label"]
+        eng, label = EventSignalEngine(settings, events_for(strategy, scfg, seg), exit_rule=exit_rule_for(strategy, scfg)), scfg["label"]
     res = Backtester(settings, 1.0, eng).run(seg) if eng is not None else Backtester(settings).run(seg)
     trades = res.trades[-MAX_TRADES:]
     idx = seg.index

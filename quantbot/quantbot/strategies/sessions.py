@@ -10,23 +10,23 @@ import pandas as pd
 OPEN_MIN, LAST_MIN = 9 * 60 + 30, 15 * 60 + 45
 
 
-def ny_minutes(df: pd.DataFrame):
-    ny = df.index.tz_localize("UTC").tz_convert("America/New_York")
+def ny_minutes(df: pd.DataFrame, tz: str = "America/New_York"):
+    ny = df.index.tz_localize("UTC").tz_convert(tz)
     return ny.hour * 60 + ny.minute, ny.dayofweek, ny.normalize()
 
 
-def cash_sessions(df: pd.DataFrame) -> list[dict]:
+def cash_sessions(df: pd.DataFrame, tz: str = "America/New_York", open_min: int = OPEN_MIN, last_min: int = LAST_MIN) -> list[dict]:
     """Liste ordonnée de séances : {day, first, last, open, high, low, close, first_vol, complete}. `complete` = la barre 15:45 est présente (séance finie)."""
-    hm, _, day = ny_minutes(df)
+    hm, _, day = ny_minutes(df, tz)
     o, h, l, c = (df[k].to_numpy(float) for k in ("open", "high", "low", "close")); v = df["volume"].to_numpy(float) if "volume" in df else np.zeros(len(df))
     out: list[dict] = []; cur = None
     for i in range(len(df)):
-        if not (OPEN_MIN <= hm[i] <= LAST_MIN):
+        if not (open_min <= hm[i] <= last_min):
             continue
         if cur is None or cur["day"] != day[i]:
-            cur = {"day": day[i], "first": i, "last": i, "open": o[i], "high": h[i], "low": l[i], "close": c[i], "first_vol": v[i] if hm[i] == OPEN_MIN else float("nan"), "complete": False}; out.append(cur)
+            cur = {"day": day[i], "first": i, "last": i, "open": o[i], "high": h[i], "low": l[i], "close": c[i], "first_vol": v[i] if hm[i] == open_min else float("nan"), "complete": False}; out.append(cur)
         cur["last"] = i; cur["high"] = max(cur["high"], h[i]); cur["low"] = min(cur["low"], l[i]); cur["close"] = c[i]
-        if hm[i] == LAST_MIN:
+        if hm[i] == last_min:
             cur["complete"] = True
     return out
 
