@@ -1,0 +1,13 @@
+{
+ "max_trials_budget": 500,
+ "decided_by": "l'utilisateur, par écrit (« oui 500 »)",
+ "decided_on": "2026-10-31",
+ "previous_budget": 120,
+ "trials_used_at_decision": 118,
+ "rules": [
+  "Le budget est un plafond de discipline : il ne rend aucun résultat meilleur et le calcul du DSR continue de compter TOUS les essais.",
+  "Chaque essai exige une hypothèse écrite et une spec commitée AVANT l'exécution.",
+  "Les anciennes specs gardent leur ancien chiffre (identité historique) ; ce fichier fait foi pour le plafond actuel.",
+  "À 500 essais consommés : arrêt, relecture complète des résultats, nouvelle décision écrite."
+ ]
+}
