@@ -27,7 +27,7 @@ Algorithme de **confluence** de trois stratégies membres FIGÉES : FVG mitigati
 - Non fait, à décider par l'utilisateur : plafond global de risque ouvert (ex. 2 %).
 
 ## 5. Validation (préenregistrée, aucun essai consommé)
-- Budget d'essais : plafond relevé à 500 par décision écrite de l'utilisateur le 2026-10-31 (config/trial_budget.json) ; 118 consommés à cette date. Aucun backtest d'OMEGA sans accord explicite de l'utilisateur.
+- Budget d'essais : 118/120 consommés. Aucun backtest d'OMEGA sans accord explicite de l'utilisateur.
 - Jugement sur l'échantillon PAPER avant-coup : **≥ 4 semaines ET ≥ 60 trades**, paramètres inchangés, espérance > 0,15 R.
 - OMEGA doit battre (a) la moyenne des trois membres pris séparément et (b) sa propre version `union` rejouée sur les mêmes barres. Sinon, la confluence n'apporte rien et OMEGA est abandonné.
 - Comparateur obligatoire : achat-conservation de l'actif (bêta).
