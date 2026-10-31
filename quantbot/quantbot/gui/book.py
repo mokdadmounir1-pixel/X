@@ -44,7 +44,8 @@ def read_db(path: Path) -> Optional[dict]:
         conn.execute("PRAGMA query_only=ON")
         kv = {r["key"]: json.loads(r["value"]) for r in conn.execute("SELECT key,value FROM kv")}
         ev = [dict(r) for r in conn.execute("SELECT id,ts,detail FROM events WHERE kind='trade' ORDER BY id")]
-        return {"kv": kv, "trades": ev}
+        ign = [dict(r) for r in conn.execute("SELECT id,ts,detail FROM events WHERE kind='ignored' ORDER BY id")]
+        return {"kv": kv, "trades": ev, "ignored": ign}
     except sqlite3.Error:
         return None
     finally:
@@ -83,7 +84,7 @@ def _row_open(runner: str, kind: str, kv: dict) -> Optional[dict]:
 
 def build_book(root: Path, period: str = "all", now: Optional[float] = None) -> dict:
     now = now or time.time()
-    rows, runners, started = [], [], []
+    rows, runners, started, ignored = [], [], [], []
     for rid, path, kind in runner_dbs(root):
         db = read_db(path)
         if db is None:
@@ -92,6 +93,11 @@ def build_book(root: Path, period: str = "all", now: Optional[float] = None) -> 
         runners.append({"id": rid, "kind": kind, "symbol": kv.get("symbol"), "strategy": kv.get("strategy"), "strategy_code": strategy_code(kv.get("strategy") or "?"), "mode": kv.get("mode"),
                         "source": kv.get("source") or "MT5", "last_bar": kv.get("last_bar"), "risk": kv.get("risk"), "heartbeat": kv.get("heartbeat"),
                         "running": bool(kv.get("launcher_running")) or (kv.get("heartbeat") is not None and now - float(kv["heartbeat"]) < 90)})
+        for e in db.get("ignored", []):
+            try:
+                d = json.loads(e["detail"]); d["runner"] = rid; d["id"] = f"{rid}!{e['id']}"; ignored.append(d)
+            except (json.JSONDecodeError, TypeError):
+                pass
         for e in db["trades"]:
             r = _row_closed(rid, kind, e, kv)
             if r:
@@ -113,9 +119,22 @@ def build_book(root: Path, period: str = "all", now: Optional[float] = None) -> 
     elif period == "session":
         rows = [r for r in rows if r["open"] or (r["recorded_ms"] / 1000.0) >= session_start]
     rows.sort(key=lambda r: (r["recorded_ms"], r["id"]), reverse=True)
-    return {"rows": rows, "runners": runners, "metrics": metrics(rows, max(len(runners), 1)), "by_strategy": by_strategy(rows), "curve": curve(rows),
+    return {"rows": rows, "runners": runners, "metrics": metrics(rows, max(len(runners), 1)), "ignored": ignored_summary(ignored), "by_strategy": by_strategy(rows), "curve": curve(rows),
             "period": period, "session_start": session_start, "now": now,
             "note": "PnL latent = dernière clôture publiée. Heures d'entrée/sortie = barres ; « enregistré » = horloge du programme (ms). Trades PAPER : exécutions simulées."}
+
+
+def ignored_summary(rows: list) -> dict:
+    """Signaux IGNORÉS (position déjà ouverte, arrêt de risque, hors séance...) et ce qu'ils auraient donné (contrefactuel indicatif, coûts déduits, positions superposées)."""
+    def agg(rs):
+        r = np.array([float(x["r"]) for x in rs], dtype=float)
+        return {"n": int(len(r)), "sum_r": float(r.sum()) if len(r) else 0.0, "mean_r": float(r.mean()) if len(r) else None, "win_rate": float((r > 0).mean()) if len(r) else None}
+    by_reason, by_strategy = {}, {}
+    for x in rows:
+        by_reason.setdefault(x.get("reason") or "?", []).append(x); by_strategy.setdefault(strategy_code(x.get("strategy") or "?"), []).append(x)
+    return {"total": agg(rows), "by_reason": {k: agg(v) for k, v in sorted(by_reason.items())}, "by_strategy": {k: agg(v) for k, v in sorted(by_strategy.items())},
+            "rows": sorted(rows, key=lambda x: x.get("recorded_ms", 0), reverse=True)[:200],
+            "note": "Contrefactuel : chaque signal ignoré est suivi sur les barres suivantes (entrée à l'ouverture suivante, stop prioritaire, coûts déduits). Indicatif : positions superposées, taille non simulée, aucune influence sur les décisions."}
 
 
 def win_profile(rs) -> dict:
