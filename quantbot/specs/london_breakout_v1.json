@@ -169,16 +169,16 @@
  "costs": {
   "_note": "spread_frac mesuré par le terminal sur l'historique réel si disponible ; commission/slippage = HYPOTHÈSES (commission du courtier NON CONNUE).",
   "EURUSD": {
-   "spread_frac": null,
-   "fee_rate": 0.0,
+   "spread_frac": 0.0001,
+   "fee_rate": 2.5e-05,
    "slippage": 1e-05,
-   "basis": "spread mesuré ; commission 0 = HYPOTHÈSE"
+   "basis": "HYPOTHÈSE : spread ~1 pip (colonne spread de l'export inutilisable : zéros), commission ~2,5 $/lot/côté ; à remesurer en séance"
   },
   "GBPUSD": {
-   "spread_frac": null,
-   "fee_rate": 0.0,
+   "spread_frac": 0.0001,
+   "fee_rate": 2.5e-05,
    "slippage": 1e-05,
-   "basis": "spread mesuré ; commission 0 = HYPOTHÈSE"
+   "basis": "HYPOTHÈSE : spread ~1 pip (colonne spread inutilisable), commission ~2,5 $/lot/côté ; à remesurer en séance"
   },
   "XAUUSD": {
    "spread_frac": null,
@@ -187,10 +187,10 @@
    "basis": "spread mesuré ; commission 0 = HYPOTHÈSE"
   },
   "USDJPY": {
-   "spread_frac": null,
-   "fee_rate": 0.0,
+   "spread_frac": 0.0001,
+   "fee_rate": 2.5e-05,
    "slippage": 1e-05,
-   "basis": "spread mesuré ; commission 0 = HYPOTHÈSE"
+   "basis": "HYPOTHÈSE : spread ~1 pip (colonne spread inutilisable), commission ~2,5 $/lot/côté ; à remesurer en séance"
   }
  }
 }
