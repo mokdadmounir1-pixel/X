@@ -84,7 +84,7 @@ def exit_rule_for(name: str, scfg: dict):
 
 # Identifiant lisible et STABLE de chaque stratégie (affiché dans l'attribution des trades)
 STRATEGY_CODES = {"amd": "AMD_PO3_M15", "vwap": "VWAP_BAND_M15", "orb": "ORB_15M_PULLBACK", "fvg_h1": "FVG_MIT_1H", "fvg_h4": "FVG_MIT_4H",
-                  "smc_h1": "SMC_OB_FVG_1H", "smc_h4": "SMC_OB_FVG_4H",
+                  "smc_h1": "SMC_OB_FVG_1H", "smc_h4": "SMC_OB_FVG_4H", "smc_m15": "SMC_OB_FVG_15M", "smc_h1_free": "SMC_OB_FVG_1H_FREE", "smc_h4_free": "SMC_OB_FVG_4H_FREE", "smc_m15_free": "SMC_OB_FVG_15M_FREE",
                   "apex_pullback": "APEX_PULLBACK_ALPHA", "stop_hunt": "XAU_STOP_HUNT", "apex_levels": "APEX_LEVELS_ALPHA", "mtf_confluence": "MTF_TOPDOWN_CONFLUENCE", "il_svr": "IL_SVR_INDEX", "cta_donchian": "CTA_DONCHIAN_H4", "omega": "OMEGA_TRIO", "ibs_rsi2_trend": "IBS_RSI2_TREND", "noise_area": "NOISE_AREA", "gap_fade": "GAP_FADE_INDEX", "ibs_reversion": "IBS_REVERSION_INDEX", "rsi2_reversion": "RSI2_REVERSION_INDEX", "turn_of_month": "TURN_OF_MONTH_INDEX", "london_breakout": "LONDON_BREAKOUT", "orb_stocks_in_play": "ORB_STOCKS_IN_PLAY", "overnight_premium": "OVERNIGHT_PREMIUM", "intraday_momentum": "INTRADAY_MOMENTUM", "kalman_ou": "KALMAN_OU_REVERT", "orderflow_iceberg": "ICEBERG_ABSORPTION", "fixing_seasonality": "LONDON_FIX_SEASONAL", "cot_extremes": "COT_EXTREMES", "macro_tips": "MACRO_TIPS_GOLD", "ofi_depth": "OFI_DEPTH_L2", "gq_sweep": "XAU_LIQ_SWEEP", "gq_asia_break": "XAU_ASIA_BREAK", "gq_ema_pull": "XAU_EMA_PULL", "gq_squeeze": "XAU_SQUEEZE", "gq_zrev": "XAU_ZREV"}
 
 

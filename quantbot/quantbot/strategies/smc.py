@@ -10,6 +10,8 @@ Sur les barres HTF TERMINÉES (H1 ou H4 ; groupes New York, jamais de fuite) :
 Zone d'entrée = Consequent Encroachment (50 %) du FVG. Déclenchement quand une barre de BASE (M15) touche le CE sans clôturer au-delà du bord lointain de l'OB.
 Stop = bord lointain de l'OB -/+ buf x ATR(HTF). CIBLE = le premier pivot structurel confirmé (swing_n barres de chaque côté, sur target_lookback barres HTF) donnant au moins min_rr x le risque,
 plafonnée à max_rr x le risque ; SANS pivot qualifiant le setup est IGNORÉ : peu de trades, mais seulement ceux à fort rapport gain/risque.
+Version « FREE » (`take_all` = True) : IDENTIQUE (mêmes zones, mêmes entrées, mêmes stops) ; quand aucun pivot ne donne `min_rr`, le setup n'est plus ignoré : cible fixe à `fallback_rr` x le risque (2 R, déclaré).
+Règles HTF : "15min", "1h", "4h".
 Entrée MARCHÉ à l'ouverture suivante (aucun avantage de fill supposé). Une zone invalidée par une clôture HTF au-delà de son bord lointain, expirée (`expiry` barres) ou déjà déclenchée ne sert plus.
 """
 from __future__ import annotations
@@ -23,7 +25,8 @@ from ..data.mtf import group_keys, htf_state
 from .events import Event
 
 PARAMS = {"body_atr": 1.2, "clv": 0.70, "vol_mult": 1.2, "gap_atr": 0.25, "bos_n": 10, "swing_n": 2, "target_lookback": 80,
-          "min_rr": 3.0, "max_rr": 8.0, "buf": 0.2, "expiry": 24, "atr_period": 14, "vol_n": 20, "bias": "1D"}
+          "min_rr": 3.0, "max_rr": 8.0, "buf": 0.2, "expiry": 24, "atr_period": 14, "vol_n": 20, "bias": "1D",
+          "take_all": False, "fallback_rr": 2.0}
 
 
 def htf_arrays(df: pd.DataFrame, rule: str) -> dict:
@@ -153,6 +156,8 @@ def _run(df: pd.DataFrame, rule: str, p: dict, want_zones: bool):
             if z["dir"] == "bullish" and l[i] <= z["ce"] and c[i] >= z["far"]:
                 risk = c[i] - z["stop"]
                 tgt = swing_target(a, k, "bullish", float(c[i]), float(risk), p) if risk > 0 else None
+                if tgt is None and p.get("take_all") and risk > 0:
+                    tgt = float(c[i]) + p["fallback_rr"] * float(risk)
                 z["used"] = True; z["end"] = df.index[i]; z["why"] = "déclenchée" if tgt else "ignorée (R:R < %.1f)" % p["min_rr"]
                 if tgt:
                     events.append(Event(df.index[i], "bullish", z["stop"], tgt, f"smc_long_{rule}", {"ce": z["ce"], "ob": (z["ob_lo"], z["ob_hi"]), "rr": (tgt - c[i]) / risk}))
@@ -160,6 +165,8 @@ def _run(df: pd.DataFrame, rule: str, p: dict, want_zones: bool):
             elif z["dir"] == "bearish" and h[i] >= z["ce"] and c[i] <= z["far"]:
                 risk = z["stop"] - c[i]
                 tgt = swing_target(a, k, "bearish", float(c[i]), float(risk), p) if risk > 0 else None
+                if tgt is None and p.get("take_all") and risk > 0:
+                    tgt = float(c[i]) - p["fallback_rr"] * float(risk)
                 z["used"] = True; z["end"] = df.index[i]; z["why"] = "déclenchée" if tgt else "ignorée (R:R < %.1f)" % p["min_rr"]
                 if tgt:
                     events.append(Event(df.index[i], "bearish", z["stop"], tgt, f"smc_short_{rule}", {"ce": z["ce"], "ob": (z["ob_lo"], z["ob_hi"]), "rr": (c[i] - tgt) / risk}))
