@@ -49,6 +49,7 @@ def perm_p(r, mask, n=4000, seed=0):
 
 
 def main():
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]
     out = {"split": "première moitié chronologique de la période de recherche de chaque instrument", "strategies": {}}
     for name, spn in SPECS.items():
         spec = json.loads((ROOT / "specs" / f"{spn}.json").read_text(encoding="utf-8")); sc = spec["strategies"][name]; R, F = [], []

@@ -33,6 +33,7 @@ def stats(r):
 
 
 def main():
+    [getattr(_s, "reconfigure", lambda **k: None)(encoding="utf-8", errors="replace") for _s in (sys.stdout, sys.stderr)]
     reg = TrialRegistry(ROOT / "reports" / "registry.jsonl"); out = {"note": "seconde moitié chronologique de la période de recherche (non vue lors du choix du filtre)", "variants": {}}
     for fspec, fname, ospec, oname in PAIRS:
         sf = json.loads((ROOT / "specs" / f"{fspec}.json").read_text(encoding="utf-8")); so = json.loads((ROOT / "specs" / f"{ospec}.json").read_text(encoding="utf-8")); rf, ro, dh = [], [], hashlib.sha256()

@@ -1,0 +1,52 @@
+{
+ "note": "seconde moiti\u00e9 chronologique de la p\u00e9riode de recherche (non vue lors du choix du filtre)",
+ "variants": {
+  "smc_m15_f": {
+   "filter": {
+    "name": "session",
+    "threshold": null
+   },
+   "filtered": {
+    "n": 242,
+    "E_R": -0.04192992706392134,
+    "sum_R": -10.147042349468965,
+    "win_rate": 0.24793388429752067,
+    "PF": 0.8429606389026228
+   },
+   "unfiltered": {
+    "n": 404,
+    "E_R": -0.038017042797019084,
+    "sum_R": -15.35888528999571,
+    "win_rate": 0.24752475247524752,
+    "PF": 0.860575473425376
+   },
+   "uplift_E_R": -0.003912884266902256,
+   "sign_flip_p_filtered": 0.855,
+   "verdict": "NON_CONFIRME"
+  },
+  "smc_m15_free_f": {
+   "filter": {
+    "name": "stop_wide",
+    "threshold": 1.3675398562406702
+   },
+   "filtered": {
+    "n": 474,
+    "E_R": -0.05432253835636547,
+    "sum_R": -25.748883180917232,
+    "win_rate": 0.3438818565400844,
+    "PF": 0.8569646000432166
+   },
+   "unfiltered": {
+    "n": 930,
+    "E_R": -0.0579044319325956,
+    "sum_R": -53.85112169731391,
+    "win_rate": 0.2956989247311828,
+    "PF": 0.8184208396439225
+   },
+   "uplift_E_R": 0.0035818935762301288,
+   "sign_flip_p_filtered": 0.889,
+   "verdict": "NON_CONFIRME"
+  }
+ },
+ "n_trials": 120
+}
