@@ -27,6 +27,8 @@ def group_keys(index: pd.DatetimeIndex, rule: str) -> np.ndarray:
         key = day + pd.to_timedelta((shifted.hour // 4) * 4, unit="h")
     elif rule == "1h":
         key = shifted.floor("h")
+    elif rule == "15min":
+        key = shifted.floor("15min")
     else:
         raise ValueError(f"règle HTF inconnue : {rule}")
     return pd.factorize(key, sort=True)[0]
