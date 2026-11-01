@@ -1,0 +1,192 @@
+{
+ "name": "smc_filt_orig_v1",
+ "parent": "smc_orig_v1",
+ "preregistered": "2026-11-01 : commitée AVANT toute exécution de la seconde moitié ; 1 essai à l'exécution du test (reports/smc_filters_v1)",
+ "origin": "Stratégie SMC_OB_FVG (quantbot/strategies/smc.py) : Order Block + Fair Value Gap, déplacement avec filtre de volume et cassure de structure, cible = pivot structurel donnant >= 3 R. Voir le module pour les définitions mathématiques.",
+ "frequency_calibration": "Échelle fixe de 6 réglages du plus strict au plus souple (strict, sans biais D1, volume/corps 1.0, relax_A, relax_B, relax_C). Seuls les NOMBRES d'événements par instrument ont été comptés (aucun rendement calculé). Le premier réglage donnant >= 60 événements sur les TROIS instruments en H1 est relax_C (80 / 93 / 75 sur la période de recherche) ; H4 donne 41 / 21 / 27 : trop peu, écarté. Conséquence à lire : les réglages plus stricts (le 'peu de trades très précis') produisent 4 à 8 trades en 2,5 ans par instrument et ne sont PAS testables statistiquement avec cet historique.",
+ "instruments": {
+  "EURUSD": "EURUSD_M15.csv",
+  "XAUUSD": "XAUUSD_M15.csv",
+  "USTEC": "USTEC_M15.csv"
+ },
+ "data_sha256": {
+  "EURUSD_M15.csv": "e5584ad82650f1640e41f9597e237821e47189b4b9022e7562d1df0e0f3abece",
+  "XAUUSD_M15.csv": "d1a156e2894a868686457c8d71a6ff874a49511a5dae059c24c795ff5aeb08b9",
+  "USTEC_M15.csv": "63279b4e0082b35f8312e8b5a5c90107127538c44690b78b13cec4d8a228dc65"
+ },
+ "lock_months": 12,
+ "lock_min_frac": 0.2,
+ "clock": "eu_dst (défaut)",
+ "costs": {
+  "_note": "spread_frac = spread médian mesuré (fraction du prix) si fiable ; sinon HYPOTHÈSE déclarée. Commission/slippage = HYPOTHÈSES (non fournis par l'export). Démo MetaQuotes != FTMO : à re-mesurer sur le compte cible.",
+  "EURUSD": {
+   "spread_frac": 9e-05,
+   "fee_rate": 2.5e-05,
+   "slippage": 1e-05,
+   "basis": "HYPOTHÈSE : spread ~1 pip (colonne spread inutilisable : 44-83 % de zéros), commission ~2,5 $/lot/côté"
+  },
+  "XAUUSD": {
+   "spread_frac": null,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "spread mesuré (médiane du fichier) ; commission 0 = HYPOTHÈSE"
+  },
+  "USTEC": {
+   "spread_frac": null,
+   "fee_rate": 0.0,
+   "slippage": 1e-05,
+   "basis": "spread mesuré (médiane du fichier) ; commission 0 = HYPOTHÈSE"
+  }
+ },
+ "settings": {
+  "tolerance": {
+   "tolerance_percentage": 0.15,
+   "deviation_threshold": 0.35,
+   "min_score": 0.6
+  },
+  "detection": {
+   "pivot_order": 3,
+   "atr_period": 14,
+   "max_pivot_age": 12,
+   "context_bars": 5,
+   "context_weight": 0.25,
+   "context_move_atr": 2.0,
+   "min_height_atr": 1.5,
+   "min_bars_between": 4,
+   "enabled": null
+  },
+  "signals": {
+   "min_confidence": 0.55,
+   "category_weights": {
+    "candle": 0.8,
+    "chart": 1.0,
+    "harmonic": 0.9
+   },
+   "unconfirmed_penalty": 0.8,
+   "require_confirmation": false,
+   "min_edge": 0.1,
+   "confluence_bonus": 0.05,
+   "trend_filter": "none",
+   "ema_fast": 20,
+   "ema_slow": 50,
+   "counter_trend_penalty": 0.6,
+   "htf_rule": "4h",
+   "atr_floor_frac": 0.5
+  },
+  "risk": {
+   "risk_per_trade": 0.005,
+   "atr_stop_mult": 1.5,
+   "reward_risk": 3.0,
+   "min_reward_risk": 3.0,
+   "max_leverage": 3.0,
+   "max_daily_loss": 0.03,
+   "max_trades_per_day": 5,
+   "flat_before_weekend": true,
+   "weekend_cutoff_hour": 20,
+   "session_tz": "Europe/Prague",
+   "min_stop_atr": 0.5
+  },
+  "backtest": {
+   "initial_equity": 100000.0,
+   "warmup_bars": 100,
+   "window_bars": 300,
+   "max_hold_bars": 100,
+   "max_gap_hours": 120.0
+  },
+  "execution": {
+   "mode": "paper",
+   "allow_live": false,
+   "fee_rate": 0.0005,
+   "slippage": 0.0002,
+   "spread": 0.0,
+   "exchange": "binance",
+   "symbol": "BTC/USDT",
+   "timeframe": "1h",
+   "live_auto_adopt": false,
+   "mt5_symbol": "EURUSD",
+   "mt5_timeframe": "H1",
+   "mt5_server_utc_offset_hours": 0,
+   "mt5_magic": 20260101,
+   "mt5_deviation_points": 20
+  },
+  "ftmo": {
+   "enabled": false,
+   "phase": "challenge",
+   "initial_balance": 100000.0,
+   "profit_target_challenge": 0.1,
+   "profit_target_verification": 0.05,
+   "max_daily_loss": 0.05,
+   "max_total_loss": 0.1,
+   "daily_loss_buffer": 0.01,
+   "total_loss_buffer": 0.02,
+   "min_trading_days": 4,
+   "timezone": "Europe/Prague",
+   "flat_before_weekend": true,
+   "weekend_cutoff_hour": 20,
+   "news_blackouts": [],
+   "stop_after_target": true,
+   "max_risk_per_trade": 0.005,
+   "expected_login": null
+  }
+ },
+ "gates": {
+  "min_trades": 60,
+  "min_expectancy": 0.15,
+  "min_profit_factor": 1.2,
+  "null_alpha": 0.1,
+  "top3_max": 0.5,
+  "min_positive_folds": 0.5,
+  "mc_paths": 2000,
+  "dd_frac": 0.6,
+  "dsr_min": 0.5,
+  "min_years": 2.0,
+  "base_B": 999,
+  "worst_trade_r": 5.0
+ },
+ "leverage_rule": {
+  "loss_budget": 0.01,
+  "quantile": 0.9999,
+  "min": 0.25,
+  "max": 5.0,
+  "doc": "levier max tel qu'un gap au quantile 99,99 % (gaps de reprise, hors trous de données) coûte <= 1 % du capital"
+ },
+ "max_trials_budget": 500,
+ "rules": [
+  "Un seul filtre, un seul seuil, figés.",
+  "La seconde moitié chronologique n'a servi ni au choix du filtre ni à son seuil.",
+  "Verdict : l'amélioration doit se confirmer sur la seconde moitié ET ne pas se réduire à moins de trades ; sinon « non confirmé ».",
+  "Aucune valeur démontrée tant que >= 60 trades PAPER avant-coup."
+ ],
+ "amendment": "smc_v1 a été exécutée AVEC ce bug : ses résultats pour les VENTES (et donc ses trois verdicts) sont invalides et sont remplacés par ceux de cette spec. Les paramètres sont IDENTIQUES ; seul 'impl_rev' change pour que les essais soient comptés comme NOUVEAUX au registre (3 essais de plus : 73 sur 80). Aucun paramètre n'est ajusté après avoir vu un résultat.",
+ "hypothesis": "Le filtre session (seuil None), choisi sur la première moitié des données par comparaison gagnants/perdants et test de permutation, améliore smc_m15 sur la seconde moitié, jamais vue. Comparaison obligatoire avec smc_m15 non filtrée sur la même moitié.",
+ "strategies": {
+  "smc_m15_f": {
+   "label": "SMC OB+FVG M15 (R:R >= 3) + filtre session 07-20 UTC",
+   "rule": "15min",
+   "params": {
+    "bias": "none",
+    "vol_mult": 0.8,
+    "body_atr": 0.8,
+    "gap_atr": 0.1,
+    "clv": 0.6,
+    "bos_n": 5,
+    "expiry": 48,
+    "min_rr": 3.0,
+    "max_rr": 8.0,
+    "impl_rev": 2
+   },
+   "instruments": [
+    "EURUSD",
+    "XAUUSD",
+    "USTEC"
+   ],
+   "max_hold_bars": 48,
+   "note": "Filtre d'entrée choisi sur la PREMIÈRE moitié des données de recherche seulement (reports/smc_filters_v1/TRAIN.json), test de permutation p<0,10 et >= 60 trades gardés, sans lire la seconde moitié. session None. Paramètres identiques à SMC H1. maintien 48 barres de l'échelle (équivalent du 192 barres M15 du H1) ; entrée MARCHÉ à l'ouverture suivante ; volume = ticks",
+   "entry_filter": {
+    "name": "session",
+    "threshold": null
+   }
+  }
+ },
+ "trials": 1
+}

@@ -52,3 +52,14 @@ def test_free_events_are_causal_and_dispatch_and_codes_exist():
     assert full and k(full) == k(part)
     for n in ("smc_h4", "smc_m15", "smc_h1_free", "smc_h4_free", "smc_m15_free"):
         assert n in STRATEGY_CODES and strategy_code(n).startswith("SMC_OB_FVG")
+
+
+def test_entry_filter_keeps_a_subset_and_unfiltered_is_untouched():
+    from quantbot.strategies import smc_filters as sf
+    df = _long(30000, seed=4); sc = S("smc_free_v1")["strategies"]["smc_m15_free"]; base = events_for("smc_m15_free", sc, df); assert base
+    for spec in ({"name": "session"}, {"name": "stop_wide", "threshold": 1.0}, {"name": "trend_aligned"}, {"name": "vol_high", "threshold": 1.0}):
+        kept = sf.apply(df, base, spec); assert len(kept) <= len(base) and {e.ts for e in kept} <= {e.ts for e in base}
+    assert all(7 <= e.ts.hour < 20 for e in sf.apply(df, base, {"name": "session"})) and sf.apply(df, base, None) == base
+    f = S("smc_filt_free_v1")["strategies"]["smc_m15_free_f"]; assert {e.ts for e in events_for("smc_m15_free_f", f, df)} <= {e.ts for e in base} and f["entry_filter"]["name"] == "stop_wide"
+    with pytest.raises(ValueError):
+        sf.keep_mask([{"hour": 1}], {"name": "inconnu"})
