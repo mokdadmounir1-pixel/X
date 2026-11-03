@@ -10,7 +10,7 @@ import pandas as pd
 
 from ..gui.paths import app_root
 
-REQUIRES = {"cot_extremes": ["data/external/cot_gold.csv"], "macro_tips": ["data/external/fred_DFII10.csv"], "ofi_depth": ["data/live/depth/XAUUSD_*.jsonl"]}
+REQUIRES = {"cot_extremes": ["data/external/cot_gold.csv"], "macro_tips": ["data/external/fred_DFII10.csv"], "ofi_depth": ["data/live/depth/XAUUSD_*.jsonl"], "hawk_tox": ["data/live/ticks/XAUUSD_*.csv"], "leadlag_k": ["data/live/DXY_M1.csv", "data/live/USDJPY_M1.csv"]}
 
 
 def missing(strategy: str, root: Optional[Path] = None) -> list[str]:
@@ -54,3 +54,25 @@ def load_depth_imbalance(root: Optional[Path] = None, symbol: str = "XAUUSD", le
     if not t:
         return None
     s = pd.Series(v, index=pd.to_datetime(t, unit="s")); return s.resample(bucket).mean().dropna()
+
+
+def load_ticks(symbol: str, root: Optional[Path] = None, rule: str = "eu_dst") -> Optional[pd.DataFrame]:
+    """Ticks RÉELS collectés par le terminal (data/live/ticks/<SYMBOLE>_<AAAAMMJJ>.csv) : index = UTC naïf reconstruit depuis l'horloge courtier (time_msc), colonnes bid, ask, mid. None si aucun fichier."""
+    from ..data.mt5 import broker_clock_to_utc
+    files = sorted((Path(root or app_root()) / "data" / "live" / "ticks").glob(f"{symbol}_*.csv"))
+    if not files:
+        return None
+    d = pd.concat([pd.read_csv(f, usecols=["time_msc", "bid", "ask"]) for f in files], ignore_index=True).drop_duplicates("time_msc").sort_values("time_msc")
+    d = d[(d["bid"] > 0) & (d["ask"] >= d["bid"])]
+    if d.empty:
+        return None
+    clock = pd.DatetimeIndex(pd.to_datetime(d["time_msc"], unit="ms")); idx = broker_clock_to_utc(clock, rule)
+    out = pd.DataFrame({"bid": d["bid"].to_numpy(float), "ask": d["ask"].to_numpy(float)}, index=idx); out["mid"] = (out["bid"] + out["ask"]) / 2.0
+    return out[~out.index.duplicated(keep="last")].sort_index()
+
+
+def load_bars(symbol: str, tf: str = "M1", root: Optional[Path] = None) -> Optional[pd.DataFrame]:
+    """Barres synchronisées d'un autre instrument (data/live/<SYMBOLE>_<TF>.csv, horloge courtier -> UTC) ; None si absent."""
+    from ..data.mt5 import load_mt5_csv
+    f = Path(root or app_root()) / "data" / "live" / f"{symbol}_{tf}.csv"
+    return load_mt5_csv(f) if f.exists() else None

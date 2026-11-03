@@ -28,8 +28,12 @@ def build_runners(mt5, spec_path, out_dir, pairs, timeframe="M15", clock=time.ti
     runners, errors = [], []
     for inst, name in pairs:
         try:
+            try:                                           # échelle propre à la stratégie (ex. M1 pour HAWK-TOX / LEADLAG-K), sinon celle de l'appelant
+                tf = json.loads(Path(spec_path).read_text(encoding="utf-8"))["strategies"][name].get("timeframe", timeframe)
+            except (OSError, KeyError, ValueError):
+                tf = timeframe
             r = LiveRunner(mt5, inst, name, spec_path, approvals_path=out_dir / "NO_APPROVALS_READ.json", state_path=out_dir / f"{inst}_{name}.db",
-                           kill_file=out_dir / "KILL", timeframe=timeframe, clock=clock, force_observation=True,
+                           kill_file=out_dir / "KILL", timeframe=tf, clock=clock, force_observation=True,
                            feed=feed_factory(inst) if feed_factory else None, overlay=overlay)
             r.setup()
             assert r.mode == "OBSERVATION"

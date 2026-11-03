@@ -17,7 +17,7 @@ from quantbot.strategies.events import EventSignalEngine
 
 
 def gen(name, scfg, df):
-    if name.startswith("gq_") or name in ("apex_pullback", "stop_hunt", "apex_levels", "mtf_confluence", "il_svr", "cta_donchian", "omega", "ibs_rsi2_trend", "noise_area", "gap_fade", "ibs_reversion", "rsi2_reversion", "turn_of_month", "london_breakout", "orb_stocks_in_play", "overnight_premium", "intraday_momentum", "kalman_ou", "orderflow_iceberg", "fixing_seasonality", "cot_extremes", "macro_tips", "ofi_depth") or name.startswith("stop_hunt__") or name.split("__")[0] in ("ibs_rsi2_trend", "noise_area"): return events_for(name, scfg, df)
+    if name.startswith("gq_") or name in ("apex_pullback", "stop_hunt", "apex_levels", "mtf_confluence", "il_svr", "cta_donchian", "omega", "ibs_rsi2_trend", "noise_area", "hawk_tox", "leadlag_k", "sig_tda", "gap_fade", "ibs_reversion", "rsi2_reversion", "turn_of_month", "london_breakout", "orb_stocks_in_play", "overnight_premium", "intraday_momentum", "kalman_ou", "orderflow_iceberg", "fixing_seasonality", "cot_extremes", "macro_tips", "ofi_depth") or name.startswith("stop_hunt__") or name.split("__")[0] in ("ibs_rsi2_trend", "noise_area"): return events_for(name, scfg, df)
     if name == "amd": return amd.events(df, {**amd.PARAMS, **{k: tuple(v) if isinstance(v, list) else v for k, v in scfg["params"].items()}})
     if name == "vwap": return vwap.events(df, scfg["params"])
     if name == "orb": return orb.events(df, scfg["params"])

@@ -21,7 +21,8 @@ from .coinbase import GRANULARITY, CoinbaseClient, load_utc_csv
 DEFAULTS = {"coinbase": {"products": ["BTC-USD", "ETH-USD"], "timeframes": ["M15"], "initial_days": 800},
             "mt5": {"symbols": ["XAUUSD", "XAGUSD", "EURUSD", "USTEC", "DXY"], "timeframes": ["M1", "M5", "M15", "H1"],
                     "extra_symbols": ["GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD", "US500", "US30", "DE40", "UK100", "JP225", "USOIL"], "extra_timeframes": ["M15", "H1"], "bars": 1000, "bootstrap_bars": 50000,
-                    "terminal": r"C:\Program Files\MetaTrader 5\terminal64.exe", "depth_symbol": "XAUUSD", "depth_levels": 5, "depth_interval_s": 2.0},
+                    "terminal": r"C:\Program Files\MetaTrader 5\terminal64.exe", "depth_symbol": "XAUUSD", "depth_levels": 5, "depth_interval_s": 2.0,
+                    "tick_symbols": ["XAUUSD"], "m1_symbols": ["USDJPY", "US500", "DE40"]},
             "interval_s": 300}
 
 
@@ -92,7 +93,10 @@ def sync_mt5(root: Path, cfg: dict, mt5=None, shutdown: bool = True) -> dict:
 def _sync_series(mt5, store, cfg) -> dict:
     series = []
     plan = [(s, cfg["timeframes"]) for s in cfg["symbols"]] + [(s, cfg.get("extra_timeframes", cfg["timeframes"])) for s in cfg.get("extra_symbols", [])]
+    have = {s for s, _ in plan}
     for s, tfs in plan:
+        if s in cfg.get("m1_symbols", []):                 # symboles dont les drivers/lead-lag exigent M1 (en plus de leurs autres échelles)
+            tfs = list(tfs) + [x for x in ("M1",) if x not in tfs]
         if not mt5.symbol_select(s, True):
             series.append({"symbol": s, "status": "symbole_indisponible"}); continue
         for tf in tfs:
@@ -187,7 +191,9 @@ class AutoSync:
                 m = self.cfg["mt5"]; mt5m = self.mt5
                 if mt5m is None:
                     import MetaTrader5 as mt5m  # type: ignore
-                self.tick_status = sample_ticks(mt5m, self.root, m["depth_symbol"])
+                self.tick_status = {sym: sample_ticks(mt5m, self.root, sym) for sym in dict.fromkeys(list(m.get("tick_symbols", [])) + [m["depth_symbol"]])}
+                if len(self.tick_status) == 1:                  # compatibilité : un seul symbole -> même forme qu'avant
+                    self.tick_status = next(iter(self.tick_status.values()))
         if time.time() - self._clock_at > 3600:       # contrôle NTP au plus une fois par heure
             from ..clock import clock_health, clock_offset
             self.clock = clock_offset(); self.clock["health"] = clock_health(self.clock); self._clock_at = time.time()
