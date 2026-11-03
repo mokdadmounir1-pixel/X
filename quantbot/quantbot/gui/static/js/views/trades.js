@@ -105,7 +105,7 @@ export function mount(root, ctx) {
   paintSegs();
   root.append(h("div", { class: "stack", style: { height: "100%" } }, metrics,
     h("div", { class: "panel" }, h("div", { class: "ph" }, h("h2", { text: "Live trades & strategy attribution" }), h("span", { class: "sp" }), count),
-      h("div", { class: "pb", style: { flex: "none", display: "flex", flexDirection: "column", gap: "8px" } }, h("div", { class: "bar" }, statusSeg, periodSeg, symSel, search), chips)),
+      h("div", { class: "pb", style: { flex: "none", display: "flex", flexDirection: "column", gap: "8px" } }, h("div", { class: "bar" }, statusSeg, periodSeg, symSel, search, h("a", { class: "btn", href: "/api/trades_mfe.csv", download: "trades_mfe.csv", title: "Tous les trades avec leur plus haut atteint (MFE), perdants inclus, pour analyse" }, "Exporter CSV (MFE)")), chips)),
     h("div", { class: "cols", style: { gridTemplateColumns: "minmax(0,1fr) 380px", flex: 1, minHeight: 0 } },
       h("div", { class: "panel", style: { minHeight: "320px" } }, h("div", { class: "ph" }, h("h2", { text: "Grille des trades" }), h("span", { class: "sp" }), h("span", { class: "meta", text: "tri : clic sur l'en-tête · ↑↓ pour naviguer" })), grid.el),
       h("div", { class: "stack", style: { overflow: "auto" } },

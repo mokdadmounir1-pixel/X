@@ -91,6 +91,17 @@ def create_app(root: Path = ROOT) -> FastAPI:
     def book(period: str = Query("all", pattern="^(all|session|today)$")):
         return build_book(root, period)
 
+    @app.get("/api/trades_mfe")
+    def trades_mfe(period: str = Query("all", pattern="^(all|session|today)$")):
+        from ..ui.mfe_export import build_export
+        return build_export(root, period)
+
+    @app.get("/api/trades_mfe.csv")
+    def trades_mfe_csv(period: str = Query("all", pattern="^(all|session|today)$")):
+        from fastapi.responses import Response
+        from ..ui.mfe_export import build_export, to_csv
+        return Response("\ufeff" + to_csv(build_export(root, period)["rows"]), media_type="text/csv; charset=utf-8", headers={"Content-Disposition": 'attachment; filename="trades_mfe.csv"'})
+
     @app.get("/api/chart")
     def chart(runner: Optional[str] = None):
         return chart_payload(root, runner)
