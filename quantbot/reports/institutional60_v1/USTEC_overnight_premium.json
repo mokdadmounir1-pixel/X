@@ -1,0 +1,124 @@
+{
+ "instrument": "USTEC",
+ "strategy": "overnight_premium",
+ "label": "Prime overnight (achat 16:00 NY, sortie par le temps)",
+ "n_events": 478,
+ "by_side": {
+  "long": {
+   "n": 476,
+   "E_R": 0.0061
+  },
+  "short": {
+   "n": 0,
+   "E_R": null
+  }
+ },
+ "buy_hold_research_pct": 94.1,
+ "rejections": {},
+ "evaluation": {
+  "verdict": "FAIL",
+  "reason": "\u00e9choue : expectancy,profit_factor,null_test,monte_carlo_p5,top3_share,deflated_sharpe | \u00e9liminatoire(s) : null_test,monte_carlo_p5,deflated_sharpe",
+  "n_trials": 126,
+  "spec_hash": "b68c20ec16d5b9283c25735692df82d40ebdac4435d34840f22c89e020e39ebb",
+  "data_hash": "21a8299ea2729b11846e61f6bdba3dcae61edd3e8741549a3b060c37c3d3d488",
+  "metrics": {
+   "n_trades": 476,
+   "expectancy_R": 0.006077271662981989,
+   "profit_factor": 1.0477902748504124,
+   "years": 2.565366187542779,
+   "sharpe_per_trade": 0.017158403939191054,
+   "worst_trade_R": -1.942085969856413,
+   "median_R": 0.01734497000717807,
+   "total_return": 0.013813062977603208,
+   "max_drawdown": 0.03725379587053763
+  },
+  "gates": [
+   {
+    "name": "n_trades",
+    "ok": true,
+    "value": 476,
+    "threshold": 60,
+    "eliminatory": true
+   },
+   {
+    "name": "expectancy",
+    "ok": false,
+    "value": 0.0061,
+    "threshold": 0.15,
+    "eliminatory": false
+   },
+   {
+    "name": "profit_factor",
+    "ok": false,
+    "value": 1.048,
+    "threshold": 1.2,
+    "eliminatory": false
+   },
+   {
+    "name": "null_test",
+    "ok": false,
+    "value": 0.3389,
+    "threshold": 0.00084,
+    "eliminatory": true
+   },
+   {
+    "name": "costs_x2",
+    "ok": true,
+    "value": 0.0029,
+    "threshold": 0.0,
+    "eliminatory": true
+   },
+   {
+    "name": "monte_carlo_p5",
+    "ok": false,
+    "value": 0.95,
+    "threshold": 1.0,
+    "eliminatory": true
+   },
+   {
+    "name": "top3_share",
+    "ok": false,
+    "value": 1.344,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "folds_positive",
+    "ok": true,
+    "value": 0.5,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "risk_envelope",
+    "ok": true,
+    "value": {
+     "dd95_pct": 4.64,
+     "streak95": 9.0
+    },
+    "threshold": {
+     "max_pct": 6.0
+    },
+    "eliminatory": true
+   },
+   {
+    "name": "worst_trade",
+    "ok": true,
+    "value": -1.942,
+    "threshold": -5.0,
+    "eliminatory": true
+   },
+   {
+    "name": "deflated_sharpe",
+    "ok": false,
+    "value": 0.0,
+    "threshold": 0.5,
+    "eliminatory": true
+   }
+  ]
+ },
+ "costs_used": {
+  "spread": 4.30898329465817e-05,
+  "max_leverage": 0.613653953079184
+ }
+}
