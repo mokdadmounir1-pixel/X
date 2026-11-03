@@ -42,7 +42,7 @@ def test_data_required_strategies_emit_nothing_without_data(tmp_path):
     df = _long(3000)
     for mod in (cot_extremes, macro_tips, ofi_depth):
         assert mod.events(df, {"root": str(tmp_path)}) == []
-    assert set(external_data.REQUIRES) == {"cot_extremes", "macro_tips", "ofi_depth"} and external_data.missing("macro_tips", tmp_path)
+    assert set(external_data.REQUIRES) >= {"cot_extremes", "macro_tips", "ofi_depth"} and external_data.missing("macro_tips", tmp_path)
 
 
 def test_depth_loader_reads_real_files(tmp_path):

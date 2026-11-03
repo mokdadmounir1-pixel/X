@@ -6,3 +6,5 @@ fastapi>=0.110
 uvicorn>=0.29
 MetaTrader5>=5.0.45; platform_system == "Windows"
 lightgbm>=4.0          # ML (scripts/run_ml.py, alpha_miner) : sans lui ces scripts échouent
+ripser>=0.6           # TDA (stratégie SIG-TDA) : sans lui la porte topologique est INCONNUE et la stratégie ne prend AUCUN trade
+scipy>=1.10           # maximum de vraisemblance de Hawkes (HAWK-TOX)
