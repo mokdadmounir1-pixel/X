@@ -1,0 +1,126 @@
+{
+ "instrument": "USTEC",
+ "strategy": "intraday_momentum",
+ "label": "Momentum intrajournalier (10:00 -> 15:30 NY)",
+ "n_events": 90,
+ "by_side": {
+  "long": {
+   "n": 49,
+   "E_R": 0.0169
+  },
+  "short": {
+   "n": 25,
+   "E_R": -0.1207
+  }
+ },
+ "buy_hold_research_pct": 94.1,
+ "rejections": {
+  "rr_insuffisant": 4
+ },
+ "evaluation": {
+  "verdict": "FAIL",
+  "reason": "\u00e9choue : expectancy,profit_factor,null_test,costs_x2,monte_carlo_p5,top3_share,risk_envelope,deflated_sharpe | \u00e9liminatoire(s) : null_test,costs_x2,monte_carlo_p5,risk_envelope,deflated_sharpe",
+  "n_trials": 127,
+  "spec_hash": "c51eb492a313d1fca143138a51b5ccf8037657778b6f13c765a8c16a289c89e0",
+  "data_hash": "21a8299ea2729b11846e61f6bdba3dcae61edd3e8741549a3b060c37c3d3d488",
+  "metrics": {
+   "n_trades": 74,
+   "expectancy_R": -0.02959113106845702,
+   "profit_factor": 0.7346641625239146,
+   "years": 2.565366187542779,
+   "sharpe_per_trade": -0.1007841202413286,
+   "worst_trade_R": -0.6589351723194464,
+   "median_R": -0.008123002907723238,
+   "total_return": -0.010967537727060162,
+   "max_drawdown": 0.019254416912619896
+  },
+  "gates": [
+   {
+    "name": "n_trades",
+    "ok": true,
+    "value": 74,
+    "threshold": 60,
+    "eliminatory": true
+   },
+   {
+    "name": "expectancy",
+    "ok": false,
+    "value": -0.0296,
+    "threshold": 0.15,
+    "eliminatory": false
+   },
+   {
+    "name": "profit_factor",
+    "ok": false,
+    "value": 0.735,
+    "threshold": 1.2,
+    "eliminatory": false
+   },
+   {
+    "name": "null_test",
+    "ok": false,
+    "value": 0.78316,
+    "threshold": 0.00083,
+    "eliminatory": true
+   },
+   {
+    "name": "costs_x2",
+    "ok": false,
+    "value": -0.037,
+    "threshold": 0.0,
+    "eliminatory": true
+   },
+   {
+    "name": "monte_carlo_p5",
+    "ok": false,
+    "value": 0.9693,
+    "threshold": 1.0,
+    "eliminatory": true
+   },
+   {
+    "name": "top3_share",
+    "ok": false,
+    "value": 1.0,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "folds_positive",
+    "ok": true,
+    "value": 0.5,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "risk_envelope",
+    "ok": false,
+    "value": {
+     "dd95_pct": 1.89,
+     "streak95": 17.0
+    },
+    "threshold": {
+     "max_pct": 6.0
+    },
+    "eliminatory": true
+   },
+   {
+    "name": "worst_trade",
+    "ok": true,
+    "value": -0.659,
+    "threshold": -5.0,
+    "eliminatory": true
+   },
+   {
+    "name": "deflated_sharpe",
+    "ok": false,
+    "value": 0.0035,
+    "threshold": 0.5,
+    "eliminatory": true
+   }
+  ]
+ },
+ "costs_used": {
+  "spread": 4.30898329465817e-05,
+  "max_leverage": 0.613653953079184
+ }
+}
