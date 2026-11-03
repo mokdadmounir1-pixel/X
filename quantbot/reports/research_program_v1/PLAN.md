@@ -17,3 +17,6 @@ Aucun résultat n'est utilisé pour régler une stratégie : un échec est publi
 | 20-28 | smc_free_v1 | smc_h1_free, smc_h4_free, smc_m15_free | EURUSD, XAUUSD, USTEC |
 
 Hors programme (non exécutables ici) : sig_tda, hawk_tox, leadlag_k (données/ticks absents), trend_multi (historique H1 sur le PC), stratégies sur indices absents du jeu.
+
+## Addendum (2026-11-03, avant les essais suivants)
+Essai n°2 (`candidates_v1` ibs_reversion, USTEC) : 309 signaux, 0 trade — le filtre R:R minimum du moteur (1,3) refuse les réversions dont la cible est plus proche que le stop. Défaut de conception, aucune performance vue. Amendement `specs/candidates_v1b.json` (seul changement : min_reward_risk 0,3), commité avant exécution ; ibs_reversion et rsi2_reversion y sont (ré)évalués : +2 essais (1 déjà gaspillé). Total du programme : 29 essais sur 50 autorisés.
