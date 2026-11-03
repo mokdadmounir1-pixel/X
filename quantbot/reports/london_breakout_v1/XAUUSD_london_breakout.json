@@ -1,0 +1,124 @@
+{
+ "instrument": "XAUUSD",
+ "strategy": "london_breakout",
+ "label": "Cassure de Londres (continuation apr\u00e8s plage asiatique)",
+ "n_events": 351,
+ "by_side": {
+  "long": {
+   "n": 203,
+   "E_R": 0.0232
+  },
+  "short": {
+   "n": 147,
+   "E_R": -0.0812
+  }
+ },
+ "buy_hold_research_pct": 112.1,
+ "rejections": {},
+ "evaluation": {
+  "verdict": "FAIL",
+  "reason": "\u00e9choue : expectancy,profit_factor,null_test,costs_x2,monte_carlo_p5,top3_share,risk_envelope,deflated_sharpe | \u00e9liminatoire(s) : null_test,costs_x2,monte_carlo_p5,risk_envelope,deflated_sharpe",
+  "n_trials": 129,
+  "spec_hash": "f750bcedb631dc215e5628cb4d5e67e6e95527a1b8653d8f7974ddb5b34dd0d4",
+  "data_hash": "a4dd3476e40a365f0e8ed0d6d075aa641da35b4489127d4b4a05f521030fd224",
+  "metrics": {
+   "n_trades": 350,
+   "expectancy_R": -0.020634029802510053,
+   "profit_factor": 0.9520068311248527,
+   "years": 2.403832991101985,
+   "sharpe_per_trade": -0.02093861740937244,
+   "worst_trade_R": -1.0323438465033403,
+   "median_R": -0.19902571258318766,
+   "total_return": -0.03953661531779418,
+   "max_drawdown": 0.09405422352740299
+  },
+  "gates": [
+   {
+    "name": "n_trades",
+    "ok": true,
+    "value": 350,
+    "threshold": 60,
+    "eliminatory": true
+   },
+   {
+    "name": "expectancy",
+    "ok": false,
+    "value": -0.0206,
+    "threshold": 0.15,
+    "eliminatory": false
+   },
+   {
+    "name": "profit_factor",
+    "ok": false,
+    "value": 0.952,
+    "threshold": 1.2,
+    "eliminatory": false
+   },
+   {
+    "name": "null_test",
+    "ok": false,
+    "value": 0.68799,
+    "threshold": 0.00082,
+    "eliminatory": true
+   },
+   {
+    "name": "costs_x2",
+    "ok": false,
+    "value": -0.0289,
+    "threshold": 0.0,
+    "eliminatory": true
+   },
+   {
+    "name": "monte_carlo_p5",
+    "ok": false,
+    "value": 0.8081,
+    "threshold": 1.0,
+    "eliminatory": true
+   },
+   {
+    "name": "top3_share",
+    "ok": false,
+    "value": 1.0,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "folds_positive",
+    "ok": true,
+    "value": 0.5,
+    "threshold": 0.5,
+    "eliminatory": false
+   },
+   {
+    "name": "risk_envelope",
+    "ok": false,
+    "value": {
+     "dd95_pct": 13.75,
+     "streak95": 12.0
+    },
+    "threshold": {
+     "max_pct": 6.0
+    },
+    "eliminatory": true
+   },
+   {
+    "name": "worst_trade",
+    "ok": true,
+    "value": -1.032,
+    "threshold": -5.0,
+    "eliminatory": true
+   },
+   {
+    "name": "deflated_sharpe",
+    "ok": false,
+    "value": 0.0,
+    "threshold": 0.5,
+    "eliminatory": true
+   }
+  ]
+ },
+ "costs_used": {
+  "spread": 2.5565977486733276e-05,
+  "max_leverage": 1.5025909330454783
+ }
+}
