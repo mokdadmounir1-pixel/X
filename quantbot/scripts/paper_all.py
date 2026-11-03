@@ -52,6 +52,7 @@ def main(argv=None, mt5=None, sleep=time.sleep, max_cycles=None, coinbase_client
     ap.add_argument("--source", choices=["mt5", "coinbase"], default="mt5", help="coinbase : crypto via l'API publique (lecture seule, sans clé, sans MT5)")
     ap.add_argument("--no-overlay", action="store_true", help="désactive la surcouche de risque (annonces macro + queue de pertes) ; elle ne fait que RÉDUIRE la taille")
     ap.add_argument("--client", default=None, help=argparse.SUPPRESS)
+    ap.add_argument("--name", default="", help="nom du worker quand plusieurs processus MT5 tournent en parallèle (verrou et fichier d'état distincts)")
     args = ap.parse_args(argv)
     if args.source == "coinbase" and args.spec == ["specs/inst_strategies_v1.json"]:
         args.spec = ["specs/crypto_paper_v1.json"]
@@ -77,15 +78,17 @@ def main(argv=None, mt5=None, sleep=time.sleep, max_cycles=None, coinbase_client
         if mt5 is not None:
             from quantbot.live.symbols import maybe_alias
             mt5 = maybe_alias(mt5, ROOT)        # noms de symboles du courtier (config/broker_profile.json) ; sans profil : aucun changement
-        with exclusive_lock(out_dir / f"paper_{args.source}.lock"):        # un verrou PAR source : la simulation MT5 et la simulation Coinbase tournent en même temps sans collision
+        with exclusive_lock(out_dir / f"paper_{args.source}{'_' + args.name if args.name else ''}.lock"):        # un verrou PAR source : la simulation MT5 et la simulation Coinbase tournent en même temps sans collision
             runners, errors = [], []
             overlay_fn = None
             if not args.no_overlay:
                 from quantbot.risk.overlay import build_overlay
                 _ov = build_overlay(ROOT); overlay_fn = lambda ts, close: _ov.multiplier(ts, close)["multiplier"]
+            seen: set = set()                       # (instrument, stratégie) déjà lancés : la PREMIÈRE spec de la liste l'emporte (ex. candidates_v1b avant candidates_v1), jamais deux lanceurs sur la même base d'état
             for spec_path, spec in specs:           # une ou plusieurs specs préenregistrées, chacune avec ses propres coûts/réglages
-                rs, es = build_runners(mt5, spec_path, out_dir, combos(spec, args.symbols, args.strategies), feed_factory=feed_factory, overlay=overlay_fn); runners += rs; errors += es
-            (out_dir / ("STATUS.json" if args.source == "mt5" else f"STATUS_{args.source}.json")).write_text(json.dumps({"runners": [f"{r.symbol}_{r.strategy_id}" for r in runners], "errors": errors, "started": time.time(), "source": args.source}, indent=1), encoding="utf-8")
+                pairs = [c for c in combos(spec, args.symbols, args.strategies) if c not in seen]; seen.update(pairs)
+                rs, es = build_runners(mt5, spec_path, out_dir, pairs, feed_factory=feed_factory, overlay=overlay_fn); runners += rs; errors += es
+            (out_dir / (f"STATUS_{args.name}.json" if args.name else "STATUS.json" if args.source == "mt5" else f"STATUS_{args.source}.json")).write_text(json.dumps({"runners": [f"{r.symbol}_{r.strategy_id}" for r in runners], "errors": errors, "started": time.time(), "source": args.source}, indent=1), encoding="utf-8")
             print(json.dumps({"runners": len(runners), "errors": errors}, ensure_ascii=False), flush=True)
             if not runners:                     # rien n'a pu démarrer (MT5/réseau) : on sort en erreur, le superviseur relance avec un délai croissant
                 return 2

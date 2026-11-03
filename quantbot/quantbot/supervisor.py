@@ -16,7 +16,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-PAPER_SPECS = ["specs/inst_strategies_v1.json", "specs/smc_v1b.json", "specs/gold_quant_v1.json", "specs/apex_pullback_v1.json", "specs/stop_hunt_v2.json", "specs/stop_hunt_v3.json", "specs/mtf_confluence_v1.json", "specs/il_svr_v1.json", "specs/cta_donchian_v1.json", "specs/twelve_v1.json", "specs/twelve_data_v1.json", "specs/omega_v2.json", "specs/institutional60_v1.json", "specs/candidates_v1.json", "specs/london_breakout_v1.json", "specs/ibs_rsi2_v1.json", "specs/noise_area_v1.json", "specs/smc_orig_v1.json", "specs/smc_free_v1.json", "specs/smc_filt_orig_v1.json", "specs/smc_filt_free_v1.json", "specs/hawk_tox_v1.json", "specs/leadlag_k_v1.json", "specs/sig_tda_v1.json"]
+# Trois processus MT5 pour que les stratégies M1 ne soient pas retardées par les calculs lourds (M15 : 117 lanceurs au total) ; chacun a son verrou et son fichier d'état.
+PAPER_GROUPS = {
+    "paper_mt5": ["specs/inst_strategies_v1.json", "specs/smc_v1b.json", "specs/gold_quant_v1.json", "specs/apex_pullback_v1.json", "specs/stop_hunt_v2.json", "specs/stop_hunt_v3.json", "specs/mtf_confluence_v1.json", "specs/il_svr_v1.json", "specs/cta_donchian_v1.json", "specs/twelve_v1.json", "specs/twelve_data_v1.json", "specs/omega_v2.json", "specs/institutional60_v1.json", "specs/candidates_v1b.json", "specs/candidates_v1.json", "specs/london_breakout_v1.json", "specs/noise_area_v1.json", "specs/smc_orig_v1.json", "specs/smc_free_v1.json", "specs/smc_filt_orig_v1.json", "specs/smc_filt_free_v1.json", "specs/apex_levels_v1.json", "specs/gold_winrate_v1b.json"],
+    "paper_mt5_heavy": ["specs/ibs_rsi2_v1.json", "specs/sig_tda_v1.json"],      # longs historiques (MM200 de séances : 24 000 barres ; SIG-TDA : signature + TDA)
+    "paper_mt5_m1": ["specs/hawk_tox_v1.json", "specs/leadlag_k_v1.json"],            # échelle M1 (HAWK-TOX, LEADLAG-K)
+}
+PAPER_SPECS = [x for g in PAPER_GROUPS.values() for x in g]
 
 
 @dataclass
@@ -115,14 +121,27 @@ class Supervisor:
         self._write_status(time.time())
 
 
+# Specs qui ne sont PAS lancées par le worker MT5 et pourquoi (jamais en silence) ; toute autre spec contenant des stratégies DOIT figurer dans PAPER_SPECS (test).
+NOT_LAUNCHED = {
+    "crypto_paper_v1": "lancée par le worker Coinbase (paper_coinbase), pas par le worker MT5",
+    "smc_v1": "invalide (bug du FVG baissier) ; remplacée par smc_v1b",
+    "gold_winrate_v1": "invalide (filtre R:R du moteur : 0 trade) ; remplacée par gold_winrate_v1b",
+    "omega_v1": "remplacée par omega_v2 (confluence) ; même identifiant de stratégie",
+    "stop_hunt_v1": "contenue dans stop_hunt_v2 (même stratégie « stop_hunt »)",
+    "stocks_orb_v1": "AUCUNE action exposée par le courtier démo : aucun instrument à lancer (à renseigner si le courtier en propose)",
+}
+
+
 def default_workers(root: Path) -> list[tuple[str, list[str]]]:
     """Processus standard : simulation PAPER sur MT5 (toutes les stratégies à règles figées) et simulation crypto Coinbase (lecture seule). Aucun ordre."""
     py = sys.executable; sc = str(Path(root) / "scripts" / "paper_all.py")
-    mt5 = [py, sc, "--spec", *PAPER_SPECS]
-    term = os.environ.get("QUANTBOT_MT5_TERMINAL")
-    if term:
-        mt5 += ["--terminal", term]
-    return [("paper_mt5", mt5), ("paper_coinbase", [py, sc, "--source", "coinbase"])]
+    term = os.environ.get("QUANTBOT_MT5_TERMINAL"); out = []
+    for name, specs in PAPER_GROUPS.items():
+        cmd = [py, sc, "--spec", *specs] + ([] if name == "paper_mt5" else ["--name", name.replace("paper_", "")])
+        if term:
+            cmd += ["--terminal", term]
+        out.append((name, cmd))
+    return out + [("paper_coinbase", [py, sc, "--source", "coinbase"])]
 
 
 def start_default(root: Path) -> Optional[Supervisor]:

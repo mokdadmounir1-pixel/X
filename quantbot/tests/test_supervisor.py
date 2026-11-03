@@ -36,7 +36,7 @@ def test_stable_worker_resets_backoff_and_stop_terminates_children(tmp_path):
 
 def test_default_workers_run_only_paper_scripts_never_order_scripts(tmp_path):
     ws = default_workers(Path(tmp_path)); names = [n for n, _ in ws]; flat = " ".join(" ".join(a) for _, a in ws)
-    assert names == ["paper_mt5", "paper_coinbase"] and "paper_all.py" in flat and "--source" in flat
+    assert names == ["paper_mt5", "paper_mt5_heavy", "paper_mt5_m1", "paper_coinbase"] and "paper_all.py" in flat and "--source" in flat and "--name" in flat
     for forbidden in ("run_live", "order_send", "approve", "--live"):
         assert forbidden not in flat
     assert "apex_pullback_v1.json" in flat and "gold_quant_v1.json" in flat

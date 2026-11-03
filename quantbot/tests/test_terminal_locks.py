@@ -28,7 +28,7 @@ def test_mt5_and_coinbase_paper_workers_use_separate_locks_and_status_files(tmp_
             with exclusive_lock(out / "paper_mt5.lock"):               # le même verrou, lui, protège bien contre un doublon
                 pass
     src = (Path(__file__).resolve().parents[1] / "scripts" / "paper_all.py").read_text(encoding="utf-8")
-    assert 'f"paper_{args.source}.lock"' in src and 'f"STATUS_{args.source}.json"' in src and '"paper.lock"' not in src
+    assert 'f"paper_{args.source}{' in src and 'f"STATUS_{args.source}.json"' in src and 'f"STATUS_{args.name}.json"' in src and '"paper.lock"' not in src
 
 
 def test_requirements_list_lightgbm_for_the_ml_scripts():
